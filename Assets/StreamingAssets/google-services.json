@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "611189074488",
+    "firebase_url": "https://witchly-cf9c3-default-rtdb.firebaseio.com",
+    "project_id": "witchly-cf9c3",
+    "storage_bucket": "witchly-cf9c3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:611189074488:android:95e20222e7a195a4e954cd",
+        "android_client_info": {
+          "package_name": "com.proyecto.witchly"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5ytFs3Q-bPOb_pR3HbqP_SugYmeWAcWQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc77a166dfac7be428ec7dff8fdd8126, type: 3}
+  m_Name: EsenciaLuna
+  m_EditorClassIdentifier: 
+  pocionNombre: Escencia de Luna
+  icon: {fileID: -6197436345821011499, guid: 2b96b08a953dc984aacd1398acc46e32, type: 3}
+  efecto: "Mejorar Sue\xF1o"
+  precio: 34
+  suero: {fileID: 11400000, guid: f65b2deede6f28b4e877de1412d9f5e2, type: 2}
+  ingrediente1: {fileID: 11400000, guid: 2c5b38410de14ee4f94f323a031ecbc2, type: 2}
+  ingrediente2: {fileID: 11400000, guid: f5507195989d2dd49b9ee0f5121831de, type: 2}

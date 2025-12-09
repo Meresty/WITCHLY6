@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc77a166dfac7be428ec7dff8fdd8126, type: 3}
+  m_Name: Metamorfica
+  m_EditorClassIdentifier: 
+  pocionNombre: "Pocion Metam\xF3rfica"
+  icon: {fileID: 1496503549211192053, guid: 2b96b08a953dc984aacd1398acc46e32, type: 3}
+  efecto: "Cambiar Apariencia f\xEDsica por un d\xEDa"
+  precio: 27
+  suero: {fileID: 11400000, guid: fa4a7d1c95031ce40b5cc4bfc738ef17, type: 2}
+  ingrediente1: {fileID: 11400000, guid: 2c5b38410de14ee4f94f323a031ecbc2, type: 2}
+  ingrediente2: {fileID: 11400000, guid: 7267fcacc0ff0d9418fa9b54001616e9, type: 2}
