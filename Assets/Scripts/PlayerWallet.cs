@@ -4,24 +4,58 @@ namespace Witchly.Mercado
 {
     public class PlayerWallet : MonoBehaviour
     {
-        [Header("Monedas actuales del jugador")]
-        public int monedas = 200; // pon lo que quieras de inicio
+        [Header("Monedero del jugador")]
+        [SerializeField] private int monedasIniciales = 100;
+        [SerializeField] private int monedasMaximas = 9999;
 
-        public bool PuedePagar(int costo)
+        public int Monedas { get; private set; }
+
+        // Evento opcional por si luego quieres actualizar HUD, etc.
+        public System.Action<int> OnWalletChanged;
+
+        private void Awake()
         {
-            return monedas >= costo;
+            Monedas = Mathf.Clamp(monedasIniciales, 0, monedasMaximas);
         }
 
-        public void Pagar(int costo)
+        /// <summary>
+        /// ¿El jugador tiene suficientes monedas para pagar esta cantidad?
+        /// </summary>
+        public bool PuedePagar(int cantidad)
         {
-            if (costo < 0) return;
-            monedas = Mathf.Max(0, monedas - costo);
+            return Monedas >= cantidad;
         }
 
+        /// <summary>
+        /// Cobra la cantidad indicada (si alcanza).
+        /// </summary>
+        public void Pagar(int cantidad)
+        {
+            if (cantidad <= 0)
+                return;
+
+            if (!PuedePagar(cantidad))
+            {
+                Debug.LogWarning($"[PlayerWallet] No alcanzan las monedas. Tienes {Monedas}, precio {cantidad}");
+                return;
+            }
+
+            Monedas -= cantidad;
+            Monedas = Mathf.Clamp(Monedas, 0, monedasMaximas);
+            OnWalletChanged?.Invoke(Monedas);
+        }
+
+        /// <summary>
+        /// Para cuando quieras darle monedas al jugador (recompensas, etc.).
+        /// </summary>
         public void AgregarMonedas(int cantidad)
         {
-            if (cantidad < 0) return;
-            monedas += cantidad;
+            if (cantidad <= 0)
+                return;
+
+            Monedas += cantidad;
+            Monedas = Mathf.Clamp(Monedas, 0, monedasMaximas);
+            OnWalletChanged?.Invoke(Monedas);
         }
     }
 }

@@ -253,7 +253,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 521875cd43ef9094bb5c4ed97b19dd7b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  monedas: 200
+  monedasIniciales: 500
 --- !u!1 &506630575
 GameObject:
   m_ObjectHideFlags: 0
@@ -633,6 +633,8 @@ MonoBehaviour:
   buscadorInput: {fileID: 658377383}
   filtrosDropdown: {fileID: 1407715617}
   ordenesPorObjeto: 2
+  refrescarAutomaticamente: 1
+  intervaloRefrescoHoras: 2
   monedero: {fileID: 147437156}
 --- !u!4 &705613088
 Transform:
