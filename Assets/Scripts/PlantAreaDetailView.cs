@@ -1,32 +1,29 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
-
-
 
 public class PlantAreaDetailView : MonoBehaviour
 {
     public static PlantAreaDetailView Instance { get; private set; }
 
-    [Header("Paneles Detallados (uno por planta)")]
-    public GameObject luminaDetailPanel;
-    public GameObject falsibayaDetailPanel;
-    public GameObject drakoniaDetailPanel;
-    public GameObject eldebriaDetailPanel;
-    public GameObject jiveriaDetailPanel;
-    public GameObject lirienDetailPanel;
+    [Header("Panel General que Contiene Todo")]
+    public GameObject detailViewPanel; // El panel padre que contiene toda la vista detallada
 
-    [Header("Referencias que se Reutilizan")]
+    [Header("UI Superior - Info de la Planta")]
     public TextMeshProUGUI areaTitleText;
-    public Button closeButton;
-    public Button plantAllButton;
-    public Button harvestAllButton;
     public Image areaPlantImage;
     public TextMeshProUGUI plantInfoText;
 
+    [Header("Grid Container 2x2")]
+    public Transform slotsGridContainer; // El Grid Layout Group donde est√°n los 4 SlotUI
+
+    [Header("Botones Principales")]
+    public Button closeButton;
+    public Button plantAllButton;
+    public Button harvestAllButton;
+
     private PlantaTipo currentAreaType;
-    private GameObject currentPanel;
     private List<PlantaSlot> currentSlots = new List<PlantaSlot>();
 
     void Awake()
@@ -59,72 +56,40 @@ public class PlantAreaDetailView : MonoBehaviour
             harvestAllButton.onClick.AddListener(HarvestAll);
         }
 
-        // Cerrar todos los paneles por defecto
-        CloseAllPanels();
+        // Cerrar panel por defecto
+        if (detailViewPanel != null)
+        {
+            detailViewPanel.SetActive(false);
+        }
     }
 
     /// <summary>
-    /// Cierra todos los paneles detallados
-    /// </summary>
-    void CloseAllPanels()
-    {
-        if (luminaDetailPanel != null) luminaDetailPanel.SetActive(false);
-        if (falsibayaDetailPanel != null) falsibayaDetailPanel.SetActive(false);
-        if (drakoniaDetailPanel != null) drakoniaDetailPanel.SetActive(false);
-        if (eldebriaDetailPanel != null) eldebriaDetailPanel.SetActive(false);
-        if (jiveriaDetailPanel != null) jiveriaDetailPanel.SetActive(false);
-        if (lirienDetailPanel != null) lirienDetailPanel.SetActive(false);
-    }
-
-    /// <summary>
-    /// Abre la vista detallada para un tipo de planta especÌfico
+    /// Abre la vista detallada para un tipo de planta espec√≠fico
     /// </summary>
     public void OpenAreaDetail(PlantaTipo plantType)
     {
-        // Cerrar cualquier panel abierto
-        CloseAllPanels();
-
+        // Guardar el tipo actual
         currentAreaType = plantType;
 
-        // Abrir el panel correspondiente
-        currentPanel = GetPanelForPlantType(plantType);
-        if (currentPanel != null)
+        // Obtener los slots de esta √°rea
+        currentSlots = GetSlotsForArea(plantType);
+
+        if (currentSlots.Count == 0)
         {
-            currentPanel.SetActive(true);
-        }
-        else
-        {
-            Debug.LogError($"Panel no encontrado para {plantType}");
+            Debug.LogError($"No hay slots configurados para {plantType}");
             return;
         }
 
-        // Obtener slots correspondientes
-        currentSlots = GetSlotsForArea(plantType);
-
-        if (currentSlots.Count != 4)
+        // Activar el panel principal
+        if (detailViewPanel != null)
         {
-            Debug.LogWarning($"El ·rea {plantType} tiene {currentSlots.Count} slots (se esperan 4)");
+            detailViewPanel.SetActive(true);
         }
 
-        // Actualizar UI
+        // Actualizar toda la UI
         UpdateDetailUI();
-    }
 
-    /// <summary>
-    /// Obtiene el panel correspondiente al tipo de planta
-    /// </summary>
-    GameObject GetPanelForPlantType(PlantaTipo type)
-    {
-        switch (type)
-        {
-            case PlantaTipo.Lumina: return luminaDetailPanel;
-            case PlantaTipo.Falsibaya: return falsibayaDetailPanel;
-            case PlantaTipo.Drakonia: return drakoniaDetailPanel;
-            case PlantaTipo.Eldebria: return eldebriaDetailPanel;
-            case PlantaTipo.Jiveria: return jiveriaDetailPanel;
-            case PlantaTipo.Lirien: return lirienDetailPanel;
-            default: return null;
-        }
+        Debug.Log($"Vista detallada abierta: {plantType} con {currentSlots.Count} slots");
     }
 
     /// <summary>
@@ -132,15 +97,21 @@ public class PlantAreaDetailView : MonoBehaviour
     /// </summary>
     public void CloseAreaDetail()
     {
-        CloseAllPanels();
-        currentPanel = null;
+        if (detailViewPanel != null)
+        {
+            detailViewPanel.SetActive(false);
+        }
 
-        // Actualizar botones de ·reas en la vista principal
+        currentSlots.Clear();
+
+        // Actualizar botones de √°reas en la vista principal
         UpdateMainViewButtons();
+
+        Debug.Log("Vista detallada cerrada");
     }
 
     /// <summary>
-    /// Actualiza la UI de la vista detallada
+    /// Actualiza toda la UI de la vista detallada
     /// </summary>
     void UpdateDetailUI()
     {
@@ -152,43 +123,44 @@ public class PlantAreaDetailView : MonoBehaviour
             return;
         }
 
-        // TÌtulo
+        // ===== 1. T√çTULO =====
         if (areaTitleText != null)
         {
-            areaTitleText.text = $"¡rea de {data.plantaNombre}";
+            areaTitleText.text = $"√Årea de {data.plantaNombre}";
         }
 
-        // Imagen
+        // ===== 2. IMAGEN DE LA PLANTA =====
         if (areaPlantImage != null && data.plantaSprite != null)
         {
             areaPlantImage.sprite = data.plantaSprite;
         }
 
-        // Info de la planta
+        // ===== 3. INFO DE LA PLANTA =====
         if (plantInfoText != null)
         {
-            string cycleType = data.semillaCiclo == SemillaCiclo.Perenne ? "Perenne" : "Replantar";
+            string cycleType = data.semillaCiclo == SemillaCiclo.Perenne ? "Perenne (‚àû)" : "Replantar";
             int minutes = data.tiempoCrecimientoMinutos;
 
             plantInfoText.text = $"<b>Tipo:</b> {cycleType}\n" +
                                 $"<b>Tiempo base:</b> {minutes} min\n" +
-                                $"<b>EnergÌa:</b> {data.energiaConsumo}\n" +
+                                $"<b>Energ√≠a:</b> {data.energiaConsumo}%\n" +
                                 $"<b>Cosecha:</b> {data.cosechaCantidad}x\n" +
                                 $"<b>Venta:</b> {data.precioVentaEstandar} monedas";
         }
 
-        // Actualizar estado de botones
+        // ===== 4. ACTUALIZAR ESTADO DE BOTONES =====
         UpdateButtons();
     }
 
     /// <summary>
-    /// Actualiza el estado de los botones seg˙n los slots
+    /// Actualiza el estado de los botones seg√∫n los slots
     /// </summary>
     void UpdateButtons()
     {
         int availableSlots = 0;
         int readySlots = 0;
 
+        // Contar slots disponibles y listos
         foreach (var slot in currentSlots)
         {
             if (slot != null)
@@ -201,7 +173,7 @@ public class PlantAreaDetailView : MonoBehaviour
             }
         }
 
-        // BotÛn plantar todo
+        // ===== BOT√ìN PLANTAR TODO =====
         if (plantAllButton != null)
         {
             bool canPlant = availableSlots > 0 && CanPlantInArea(currentAreaType);
@@ -221,7 +193,7 @@ public class PlantAreaDetailView : MonoBehaviour
             }
         }
 
-        // BotÛn cosechar todo
+        // ===== BOT√ìN COSECHAR TODO =====
         if (harvestAllButton != null)
         {
             harvestAllButton.interactable = readySlots > 0;
@@ -242,18 +214,18 @@ public class PlantAreaDetailView : MonoBehaviour
     }
 
     /// <summary>
-    /// Verifica si se puede plantar en esta ·rea
+    /// Verifica si se puede plantar en esta √°rea
     /// </summary>
     bool CanPlantInArea(PlantaTipo type)
     {
         PlantasInfo data = InvernaderoManager.Instance?.plantDatabase.GetPlantas(type);
         if (data == null) return false;
 
-        // Verificar energÌa
+        // Verificar energ√≠a (RQNF40.4 - no se puede plantar al 1%)
         if (!BarraEnergiaSistema.Instance.CanPlant(data.energiaConsumo))
             return false;
 
-        // Si no es perenne, verificar semillas
+        // Si no es perenne, verificar semillas (RQNF40.3)
         if (data.semillaCiclo == SemillaCiclo.Replantar)
         {
             return InventorySystem.Instance.HasSeed(type);
@@ -263,7 +235,7 @@ public class PlantAreaDetailView : MonoBehaviour
     }
 
     /// <summary>
-    /// Planta en todos los slots disponibles
+    /// RQF40: Planta en todos los slots disponibles
     /// </summary>
     void PlantAll()
     {
@@ -281,28 +253,20 @@ public class PlantAreaDetailView : MonoBehaviour
                 else
                 {
                     failed++;
-                    // Continuar intentando con los dem·s slots
                 }
             }
         }
 
-        Debug.Log($"Plantadas {planted} plantas en {currentAreaType}. Fallos: {failed}");
+        Debug.Log($"[PlantAll] Plantadas: {planted} | Fallos: {failed} en {currentAreaType}");
 
         UpdateButtons();
 
-        // NotificaciÛn (si tienes sistema de notificaciones)
-        if (planted > 0)
-        {
-            Debug.Log($" Plantadas {planted} {currentAreaType}");
-        }
-        else if (failed > 0)
-        {
-            Debug.LogWarning("No se pudo plantar (sin energÌa o semillas)");
-        }
+        // Actualizar vista principal
+        UpdateMainViewButtons();
     }
 
     /// <summary>
-    /// Cosecha todos los slots listos
+    /// RQF41: Cosecha todos los slots listos
     /// </summary>
     void HarvestAll()
     {
@@ -317,18 +281,16 @@ public class PlantAreaDetailView : MonoBehaviour
             }
         }
 
-        Debug.Log($"Cosechadas {harvested} plantas de {currentAreaType}");
+        Debug.Log($"[HarvestAll] Cosechadas {harvested} plantas de {currentAreaType}");
 
         UpdateButtons();
 
-        if (harvested > 0)
-        {
-            Debug.Log($" °Cosechadas {harvested} plantas!");
-        }
+        // Actualizar vista principal
+        UpdateMainViewButtons();
     }
 
     /// <summary>
-    /// Obtiene los slots correspondientes al ·rea desde InvernaderoManager
+    /// RQF36: Obtiene los slots correspondientes al √°rea desde InvernaderoManager
     /// </summary>
     List<PlantaSlot> GetSlotsForArea(PlantaTipo type)
     {
@@ -371,10 +333,22 @@ public class PlantAreaDetailView : MonoBehaviour
 
     void Update()
     {
-        // Actualizar botones constantemente mientras estÈ abierto alg˙n panel
-        if (currentPanel != null && currentPanel.activeSelf)
+        // RQF38: Actualizar constantemente mientras est√© abierto
+        if (detailViewPanel != null && detailViewPanel.activeSelf)
         {
             UpdateButtons();
+        }
+    }
+
+    /// <summary>
+    /// M√©todo p√∫blico para que los slots individuales actualicen los botones
+    /// </summary>
+    public void OnSlotStateChanged()
+    {
+        if (detailViewPanel != null && detailViewPanel.activeSelf)
+        {
+            UpdateButtons();
+            UpdateMainViewButtons();
         }
     }
 
@@ -384,6 +358,12 @@ public class PlantAreaDetailView : MonoBehaviour
     void TestOpenLumina()
     {
         OpenAreaDetail(PlantaTipo.Lumina);
+    }
+
+    [ContextMenu("Test Open Falsibaya")]
+    void TestOpenFalsibaya()
+    {
+        OpenAreaDetail(PlantaTipo.Falsibaya);
     }
 
     [ContextMenu("Test Close")]

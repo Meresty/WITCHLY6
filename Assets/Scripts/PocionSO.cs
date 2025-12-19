@@ -1,15 +1,18 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "Pocion", menuName = "Combinaciones/Potion")]
+[CreateAssetMenu(fileName = "Nueva Pocion", menuName = "Inventario/Pocion")]
 public class PocionSO : ScriptableObject
 {
     public string pocionNombre;
-    public Sprite icon; 
+    public Sprite icon;
     public string efecto;
-    public int precio;
     public ItemSO suero;
     public ItemSO ingrediente1;
     public ItemSO ingrediente2;
+
+
+    public float precioBase = 100f;
+    [System.NonSerialized]
+    public float precioFinal;
+    public ItemSO itemPocion;
 }
