@@ -270,7 +270,7 @@ public class BarraEnergiaSistema : MonoBehaviour
         UpdateUI();
         SaveEnergy();
 
-        Debug.Log($"Energía al 2% - ¿Puede plantar? {CanPlant(1)}");
+        Debug.Log($"Energía al 2% - Puede plantar? {CanPlant(1)}");
     }
 
     [ContextMenu("Mostrar Estado Actual")]

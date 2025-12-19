@@ -1,6 +1,6 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Witchly.Mercado
 {
@@ -8,65 +8,64 @@ namespace Witchly.Mercado
     {
         [Header("Referencias UI")]
         public Image iconoObjeto;
-        public TextMeshProUGUI textoNombreObjeto;
-        public TextMeshProUGUI textoNombreVendedor;
-        public TextMeshProUGUI textoCantidad;
-        public TextMeshProUGUI textoPrecio;
+        public TMP_Text textoNombreObjeto;
+        public TMP_Text textoNombreVendedor;
+        public TMP_Text textoCantidad;
+        public TMP_Text textoPrecio;
         public Button botonComprar;
 
         private OrdenVenta orden;
-        private GestorMercado gestor;
+        private PlayerWallet monedero;
+        private System.Action<OrdenVenta> callbackComprada;
 
-        public void Configurar(OrdenVenta orden, GestorMercado gestor)
+        public void Configurar(OrdenVenta orden, PlayerWallet monedero, System.Action<OrdenVenta> callbackComprada)
         {
             this.orden = orden;
-            this.gestor = gestor;
+            this.monedero = monedero;
+            this.callbackComprada = callbackComprada;
 
-            // ===== NOMBRE OBJETO =====
-            string nombreObjeto = "-";
-            if (orden.objeto != null)
-            {
-                if (!string.IsNullOrEmpty(orden.objeto.nombreMostrado))
-                    nombreObjeto = orden.objeto.nombreMostrado;
-                else
-                    nombreObjeto = orden.objeto.name; // nombre del asset
-            }
-
-            // ===== NOMBRE VENDEDOR =====
-            string nombreVendedor = "-";
-            if (orden.vendedor != null)
-            {
-                if (!string.IsNullOrEmpty(orden.vendedor.nombreVendedor))
-                    nombreVendedor = orden.vendedor.nombreVendedor;
-                else
-                    nombreVendedor = orden.vendedor.name; // nombre del asset
-            }
-
-            // ===== ICONO =====
+            // ----- Rellenar UI -----
             if (iconoObjeto != null)
-                iconoObjeto.sprite = orden.objeto != null ? orden.objeto.icono : null;
+                iconoObjeto.sprite = orden.iconoObjeto;
 
-            // ===== TEXTOS =====
             if (textoNombreObjeto != null)
-                textoNombreObjeto.text = nombreObjeto;
+                textoNombreObjeto.text = orden.nombreObjeto;
 
             if (textoNombreVendedor != null)
-                textoNombreVendedor.text = nombreVendedor;
+                textoNombreVendedor.text = orden.nombreVendedor;
 
             if (textoCantidad != null)
                 textoCantidad.text = $"x{orden.cantidad}";
 
             if (textoPrecio != null)
-                textoPrecio.text = orden.precioTotal.ToString("0");
+                textoPrecio.text = orden.precioTotal.ToString();
 
-            // ===== BOTÓN =====
+            // ----- Hook del botón -----
             if (botonComprar != null)
             {
                 botonComprar.onClick.RemoveAllListeners();
-                botonComprar.onClick.AddListener(() => gestor.IntentarComprar(orden));
+                botonComprar.onClick.AddListener(Comprar);
             }
 
-            Debug.Log($"[CartaOrdenUI] Configurada carta: {orden.cantidad} x {nombreObjeto} - {nombreVendedor} - {orden.precioTotal} monedas");
+            Debug.Log($"[CartaOrdenUI] Configurada carta: {orden.cantidad} x {orden.nombreObjeto} - {orden.precioTotal} monedas");
+        }
+
+        private void Comprar()
+        {
+            if (orden == null || monedero == null)
+            {
+                Debug.LogWarning("[CartaOrdenUI] No hay orden o monedero asignado al intentar comprar.");
+                return;
+            }
+
+            if (!monedero.PuedePagar(orden.precioTotal))
+            {
+                Debug.Log("[Mercado] No tienes suficientes monedas.");
+                return;
+            }
+
+            monedero.Pagar(orden.precioTotal);
+            callbackComprada?.Invoke(orden);
         }
     }
 }

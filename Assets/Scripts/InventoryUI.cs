@@ -1,76 +1,64 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Collections.Generic;
 
 public class InventoryUI : MonoBehaviour
 {
-    [System.Serializable]
-    public class InventoryItem
-    {
-        public ItemSO item;
-        public int cantidad;
-    }
-
     public GameObject itemSlotPrefab;
     public Transform content;
-    public List<InventoryItem> items = new List<InventoryItem>();
 
     void Start()
     {
         RefreshInventory();
     }
 
+    void OnEnable()
+    {
+        RefreshInventory();
+    }
+
     public void RefreshInventory()
     {
+
+        if (content == null)
+        {
+            Debug.LogError("[InventoryUI] ¡El campo 'Content' no está asignado en el Inspector!");
+            return;
+        }
+
+
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
-        foreach (var inventoryItem in items)
+
+        if (InventoryManager.instancia == null)
         {
-            // Validar el item
+            Debug.LogError("[InventoryUI] ¡No hay InventoryManager en la escena!");
+            return;
+        }
+
+        foreach (var inventoryItem in InventoryManager.instancia.items)
+        {
             if (inventoryItem == null || inventoryItem.item == null)
-            {
-                Debug.LogError("¡Item del inventario es NULL!");
                 continue;
-            }
 
             GameObject slot = Instantiate(itemSlotPrefab, content);
 
-            // Buscar los hijos
+
             Transform iconoTransform = slot.transform.Find("Icono");
             Transform cantidadTransform = slot.transform.Find("Cantidad");
             Transform buttonTransform = slot.transform.Find("Button");
 
-            // Validar que existan
-            if (iconoTransform == null)
-            {
-                Debug.LogError("No se encontró el hijo 'Icono' en el prefab!");
+            if (iconoTransform == null || cantidadTransform == null || buttonTransform == null)
                 continue;
-            }
 
-            if (cantidadTransform == null)
-            {
-                Debug.LogError("No se encontró el hijo 'Cantidad' en el prefab!");
-                continue;
-            }
 
-            if (buttonTransform == null)
-            {
-                Debug.LogError("No se encontró el hijo 'Button' en el prefab!");
-                continue;
-            }
-
-            // Asignar valores
             Image iconImage = iconoTransform.GetComponent<Image>();
             if (iconImage != null && inventoryItem.item.icon != null)
             {
                 iconImage.sprite = inventoryItem.item.icon;
             }
-            else
-            {
-                Debug.LogError("El sprite del item es NULL o no hay componente Image");
-            }
+
 
             TextMeshProUGUI cantidadText = cantidadTransform.GetComponent<TextMeshProUGUI>();
             if (cantidadText != null)
@@ -78,53 +66,35 @@ public class InventoryUI : MonoBehaviour
                 cantidadText.text = inventoryItem.cantidad.ToString();
             }
 
+
             Button boton = buttonTransform.GetComponent<Button>();
             if (boton != null)
             {
                 ItemSO itemRef = inventoryItem.item;
-                boton.onClick.AddListener(() => {
-                    CalderoLogic.instancia.AddIngredient(itemRef);
-                });
+                boton.onClick.AddListener(() => UsarItemEnCaldero(itemRef));
             }
+        }
+    }
+
+
+    void UsarItemEnCaldero(ItemSO item)
+    {
+        if (CalderoLogic.instancia != null)
+        {
+            CalderoLogic.instancia.AddIngredient(item);
+            Debug.Log($"[InventoryUI] Item '{item.itemNombre}' enviado a CalderoLogic");
+        }
+        else
+        {
+            Debug.LogWarning("[InventoryUI] CalderoLogic no está activo en esta escena!");
         }
     }
 
     public void AddItem(ItemSO item, int cantidad)
     {
-        var existente = items.Find(i => i.item == item);
-
-        if (existente == null)
+        if (InventoryManager.instancia != null)
         {
-            items.Add(new InventoryItem
-            {
-                item = item,
-                cantidad = cantidad
-            });
-        }
-        else
-        {
-            existente.cantidad += cantidad;
-        }
-
-        RefreshInventory();
-    }
-
-
-    public bool HasItem(ItemSO item)
-    {
-        var inv = items.Find(i => i.item == item);
-        return inv != null && inv.cantidad > 0;
-    }
-
-    public void RemoveItem(ItemSO item)
-    {
-        var inv = items.Find(i => i.item == item);
-        if (inv != null)
-        {
-            inv.cantidad--;
-            if (inv.cantidad <= 0)
-                items.Remove(inv);
-
+            InventoryManager.instancia.AddItem(item, cantidad);
             RefreshInventory();
         }
     }
