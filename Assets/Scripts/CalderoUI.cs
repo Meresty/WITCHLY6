@@ -25,7 +25,7 @@ public class CalderoUI : MonoBehaviour
 
     public List<ItemSO> ingredientesActuales = new List<ItemSO>();
 
-    public InventoryUI inventario; // asigna tu InventoryUI en el inspector
+    public InventoryManager inventario; // asigna tu InventoryUI en el inspector
 
     public Transform contenedorIngredientes;
     public GameObject iconoIngredientePrefab;

@@ -39,8 +39,7 @@ public class MinijuegoPresicion : MonoBehaviour
     private float limiteIzquierdo, limiteDerecho;
     private float zonaSeguraInicio, zonaSeguraFin;
     private System.Action<bool> alCompletarMinijuego;
-
-
+   
     private bool modoEscena = false;
 
     void Start()
