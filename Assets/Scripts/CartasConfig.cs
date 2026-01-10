@@ -3,9 +3,6 @@ using UnityEngine;
 
 public static class CartasConfig
 {
-    // ==============================
-    // NOMBRES CANÓNICOS DE POCIONES
-    // ==============================
     public const string POCION_AMOR = "Poción de Amor";
     public const string ELIXIR_MUSA = "Elixir de la Musa";
     public const string VERITALIXIR = "Veritalixir";
@@ -22,7 +19,7 @@ public static class CartasConfig
     public const string POCION_RUPTURA = "Poción de Ruptura";
     public const string SERENIDAD_LIQUIDA = "Serenidad Líquida";
 
-    // 3 pociones de la INTRO (primera ronda obligatoria)
+
     public static readonly string[] POCIONES_INTRO_ETAPA1 = new[]
     {
         POCION_VALOR_INFALIBLE,
@@ -30,7 +27,7 @@ public static class CartasConfig
         POCION_METAMORFICA
     };
 
-    // Pociones que se DESBLOQUEAN al comprar cartas especiales
+
     public static readonly string[] POCIONES_DESBLOQUEADAS_POR_CARTAS_ESPECIALES = new[]
     {
         POCION_RUPTURA,
@@ -38,15 +35,12 @@ public static class CartasConfig
         BREBAJE_GUARDIAN
     };
 
-    //  ============================
-    //  ETAPA 1 – Cartas 1–12
-    //  ============================
 
     public static List<CartaData> CrearCartasEtapa1()
     {
         var cartas = new List<CartaData>();
 
-        // 1. Introducción – Poción de Valor Infalible
+        //Poción de Valor Infalible
         cartas.Add(new CartaData
         {
             numero = 1,
@@ -68,7 +62,7 @@ decir lo que pienso sin temblar?
             recompensaBase = 29
         });
 
-        // 2. Introducción – Poción Revitalizante
+        //Poción Revitalizante
         cartas.Add(new CartaData
         {
             numero = 2,
@@ -90,7 +84,7 @@ sin arrastrar los pies.
             recompensaBase = 29
         });
 
-        // 3. Introducción – Poción Metamórfica
+        //Poción Metamórfica
         cartas.Add(new CartaData
         {
             numero = 3,
@@ -111,7 +105,7 @@ solo para disfrutar del festival en paz.
             recompensaBase = 27
         });
 
-        // 4. Carta estándar – Elixir de Sanación
+        //Elixir de Sanación
         cartas.Add(new CartaData
         {
             numero = 4,
@@ -133,7 +127,7 @@ enfermedades que simplemente no se quieren ir?
             recompensaBase = 43
         });
 
-        // 5. Carta estándar – Esencia del Sol
+        //Esencia del Sol
         cartas.Add(new CartaData
         {
             numero = 5,
@@ -154,7 +148,7 @@ recordarme que todavía hay cosas bonitas?
             recompensaBase = 32
         });
 
-        // 6. Carta estándar – Serenidad Líquida
+        //Serenidad Líquida
         cartas.Add(new CartaData
         {
             numero = 6,
@@ -175,7 +169,7 @@ medio dormido todo el día.
             recompensaBase = 36
         });
 
-        // 7. Carta estándar – Escencia del Sabio
+        //Escencia del Sabio
         cartas.Add(new CartaData
         {
             numero = 7,
@@ -196,7 +190,7 @@ sin volverme un zombi?
             recompensaBase = 39
         });
 
-        // 8. Carta estándar – Elixir Submarino
+        //Elixir Submarino
         cartas.Add(new CartaData
         {
             numero = 8,
@@ -218,7 +212,7 @@ por un tiempo, podríamos intentar recuperarlo.
             recompensaBase = 34
         });
 
-        // 9. Carta estándar – Veritalixir
+        //Veritalixir
         cartas.Add(new CartaData
         {
             numero = 9,
@@ -239,7 +233,7 @@ Solo la usaré en una ''cata gratuita'' de bebidas.
             recompensaBase = 33
         });
 
-        // 10. Carta estándar – Esencia de Luna
+        //Esencia de Luna
         cartas.Add(new CartaData
         {
             numero = 10,
@@ -260,7 +254,7 @@ mareado al día siguiente?
             recompensaBase = 34
         });
 
-        // 11. Carta estándar – Elixir de la Musa
+        //Elixir de la Musa
         cartas.Add(new CartaData
         {
             numero = 11,
@@ -281,7 +275,7 @@ Dicen que tienes un elixir que despierta la creatividad.
             recompensaBase = 41
         });
 
-        // 12. Carta estándar – Elixir de Purificación
+        //Elixir de Purificación
         cartas.Add(new CartaData
         {
             numero = 12,
@@ -306,15 +300,14 @@ a los que la bebemos.
         return cartas;
     }
 
-    //  ============================
-    //  ETAPA 2 – Cartas 13–27
-    //  ============================
+
+    //etapa 2 
 
     public static List<CartaData> CrearCartasEtapa2()
     {
         var cartas = new List<CartaData>();
 
-        // 13 – Valor Infalible (Plata)
+        //Valor Infalible
         cartas.Add(new CartaData
         {
             numero = 13,
@@ -335,7 +328,7 @@ Si es posible, de calidad Plata. No puedo permitirme fallar.
             recompensaBase = 29
         });
 
-        // 14 – Elixir de Sanación (Plata)
+        //Elixir de Sanación
         cartas.Add(new CartaData
         {
             numero = 14,
@@ -357,7 +350,7 @@ para repartirlo entre todos.
             recompensaBase = 43
         });
 
-        // 15 – Esencia del Sol (Plata)
+        //Esencia del Sol
         cartas.Add(new CartaData
         {
             numero = 15,
@@ -379,7 +372,7 @@ servirla en pequeñas dosis a mis clientes más tristes.
             recompensaBase = 32
         });
 
-        // 16 – Esencia de Luna (Oro)
+        //Esencia de Luna
         cartas.Add(new CartaData
         {
             numero = 16,
@@ -401,7 +394,7 @@ Oro, para que pueda descansar de verdad.
             recompensaBase = 34
         });
 
-        // 17 – Escencia del Sabio (Plata)
+        //Escencia del Sabio
         cartas.Add(new CartaData
         {
             numero = 17,
@@ -423,7 +416,7 @@ para terminar el examen sin olvidar ningún detalle.
             recompensaBase = 39
         });
 
-        // 18 – Serenidad Líquida (Plata)
+        //Serenidad Líquida
         cartas.Add(new CartaData
         {
             numero = 18,
@@ -444,7 +437,7 @@ que me quite el estrés sin quitarme las ganas de trabajar.
             recompensaBase = 36
         });
 
-        // 19 – Poción de Amor (Oro) – requiere poción especial
+        //Poción de Amor
         cartas.Add(new CartaData
         {
             numero = 19,
@@ -467,7 +460,7 @@ Si existe una versión de calidad Oro, pagaré lo que haga falta.
             recompensaBase = 44
         });
 
-        // 20 – Elixir de la Musa (Plata)
+        //Elixir de la Musa
         cartas.Add(new CartaData
         {
             numero = 20,
@@ -488,7 +481,7 @@ para encontrar la escena perfecta antes del estreno.
             recompensaBase = 41
         });
 
-        // 21 – Veritalixir (Oro)
+        //Veritalixir
         cartas.Add(new CartaData
         {
             numero = 21,
@@ -509,7 +502,7 @@ para asegurarnos de que al menos uno de ellos diga la verdad.
             recompensaBase = 33
         });
 
-        // 22 – Brebaje de Guardián (Plata) – requiere poción especial
+        //Brebaje de Guardián
         cartas.Add(new CartaData
         {
             numero = 22,
@@ -530,7 +523,7 @@ para ahuyentar a los espíritus y por fin cerrar la venta.
             recompensaBase = 37
         });
 
-        // 23 – Elixir de Purificación (Oro)
+        // Elixir de Purificación
         cartas.Add(new CartaData
         {
             numero = 23,
@@ -552,7 +545,7 @@ para limpiar la reliquia sin destruirla.
             recompensaBase = 45
         });
 
-        // 24 – Elixir Submarino (Plata)
+        //Elixir Submarino
         cartas.Add(new CartaData
         {
             numero = 24,
@@ -573,7 +566,7 @@ para poder permanecer más tiempo bajo el agua.
             recompensaBase = 34
         });
 
-        // 25 – Poción de Ruptura (Oro) – requiere poción especial
+        //Poción de Ruptura
         cartas.Add(new CartaData
         {
             numero = 25,
@@ -596,7 +589,7 @@ de que esta será la última vez.
             recompensaBase = 33
         });
 
-        // 26 – Revitalizante (Oro)
+        //Revitalizante 
         cartas.Add(new CartaData
         {
             numero = 26,
@@ -617,7 +610,7 @@ que me ayude a mantener el ritmo hasta el final.
             recompensaBase = 29
         });
 
-        // 27 – Poción Metamórfica (Plata)
+        //Poción Metamórfica
         cartas.Add(new CartaData
         {
             numero = 27,
@@ -641,16 +634,15 @@ para poder salir un día normal sin ser perseguida.
         return cartas;
     }
 
-    //  ============================
-    //  CARTAS ESPECIALES – 28–30
-    //  (se compran en el mercado)
-    //  ============================
+
+    //  especiales
+
 
     public static List<CartaData> CrearCartasEspeciales()
     {
         var cartas = new List<CartaData>();
 
-        // 28 – Carta especial: desbloquea Poción de Ruptura
+        //Poción de Ruptura
         cartas.Add(new CartaData
         {
             numero = 28,
@@ -669,11 +661,10 @@ y podrás aceptar encargos que la requieran.
 — Vendedor misterioso",
             pocionRequerida = POCION_RUPTURA,
             calidad = PotionQuality.Estandar,
-            // recompensa base doble del precio de la poción (33 × 2)
             recompensaBase = 66
         });
 
-        // 29 – Carta especial: desbloquea Brebaje de Guardián
+        //Brebaje de Guardián
         cartas.Add(new CartaData
         {
             numero = 29,
@@ -692,11 +683,11 @@ y atender pedidos relacionados con casas embrujadas.
 — Anticuario del mercado",
             pocionRequerida = BREBAJE_GUARDIAN,
             calidad = PotionQuality.Estandar,
-            // 37 × 2
+
             recompensaBase = 74
         });
 
-        // 30 – Carta especial: desbloquea Poción de Amor
+        //Poción de Amor
         cartas.Add(new CartaData
         {
             numero = 30,
@@ -715,7 +706,6 @@ y recibir encargos muy bien pagados relacionados con el amor.
 — Archivista romántico",
             pocionRequerida = POCION_AMOR,
             calidad = PotionQuality.Estandar,
-            // 44 × 2
             recompensaBase = 88
         });
 

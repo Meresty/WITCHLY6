@@ -1418,19 +1418,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   items:
   - item: {fileID: 11400000, guid: 2c5b38410de14ee4f94f323a031ecbc2, type: 2}
-    cantidad: 5
-  - item: {fileID: 11400000, guid: 1749b3d3045f2c64283a59696131f9fe, type: 2}
-    cantidad: 5
-  - item: {fileID: 11400000, guid: f5507195989d2dd49b9ee0f5121831de, type: 2}
-    cantidad: 5
+    cantidad: 10
   - item: {fileID: 11400000, guid: 7267fcacc0ff0d9418fa9b54001616e9, type: 2}
-    cantidad: 5
-  - item: {fileID: 11400000, guid: 9d3f1669b0e90ed4bbde9836768d8ea9, type: 2}
-    cantidad: 5
-  - item: {fileID: 11400000, guid: 0fcddf76d4ce7bd4499256a703a1a509, type: 2}
-    cantidad: 5
-  - item: {fileID: 11400000, guid: 6db8164750626f742a69959e0bf8a67b, type: 2}
-    cantidad: 5
+    cantidad: 10
+  - item: {fileID: 11400000, guid: 9004647c915b04945b9abacacafd451c, type: 2}
+    cantidad: 10
+  - item: {fileID: 11400000, guid: fa4a7d1c95031ce40b5cc4bfc738ef17, type: 2}
+    cantidad: 10
 --- !u!4 &1412810612
 Transform:
   m_ObjectHideFlags: 0

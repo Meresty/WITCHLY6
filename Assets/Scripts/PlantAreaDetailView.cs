@@ -8,7 +8,7 @@ public class PlantAreaDetailView : MonoBehaviour
     public static PlantAreaDetailView Instance { get; private set; }
 
     [Header("Panel General que Contiene Todo")]
-    public GameObject detailViewPanel; // El panel padre que contiene toda la vista detallada
+    public GameObject detailViewPanel;
 
     [Header("UI Superior - Info de la Planta")]
     public TextMeshProUGUI areaTitleText;
@@ -16,7 +16,7 @@ public class PlantAreaDetailView : MonoBehaviour
     public TextMeshProUGUI plantInfoText;
 
     [Header("Grid Container 2x2")]
-    public Transform slotsGridContainer; // El Grid Layout Group donde están los 4 SlotUI
+    public Transform slotsGridContainer; 
 
     [Header("Botones Principales")]
     public Button closeButton;
@@ -40,7 +40,7 @@ public class PlantAreaDetailView : MonoBehaviour
 
     void Start()
     {
-        // Configurar botones
+
         if (closeButton != null)
         {
             closeButton.onClick.AddListener(CloseAreaDetail);
@@ -56,22 +56,19 @@ public class PlantAreaDetailView : MonoBehaviour
             harvestAllButton.onClick.AddListener(HarvestAll);
         }
 
-        // Cerrar panel por defecto
+
         if (detailViewPanel != null)
         {
             detailViewPanel.SetActive(false);
         }
     }
 
-    /// <summary>
-    /// Abre la vista detallada para un tipo de planta específico
-    /// </summary>
+
+
     public void OpenAreaDetail(PlantaTipo plantType)
     {
-        // Guardar el tipo actual
-        currentAreaType = plantType;
 
-        // Obtener los slots de esta área
+        currentAreaType = plantType;
         currentSlots = GetSlotsForArea(plantType);
 
         if (currentSlots.Count == 0)
@@ -80,21 +77,16 @@ public class PlantAreaDetailView : MonoBehaviour
             return;
         }
 
-        // Activar el panel principal
         if (detailViewPanel != null)
         {
             detailViewPanel.SetActive(true);
         }
 
-        // Actualizar toda la UI
         UpdateDetailUI();
 
         Debug.Log($"Vista detallada abierta: {plantType} con {currentSlots.Count} slots");
     }
 
-    /// <summary>
-    /// Cierra la vista detallada
-    /// </summary>
     public void CloseAreaDetail()
     {
         if (detailViewPanel != null)
@@ -104,15 +96,12 @@ public class PlantAreaDetailView : MonoBehaviour
 
         currentSlots.Clear();
 
-        // Actualizar botones de áreas en la vista principal
+     
         UpdateMainViewButtons();
 
         Debug.Log("Vista detallada cerrada");
     }
 
-    /// <summary>
-    /// Actualiza toda la UI de la vista detallada
-    /// </summary>
     void UpdateDetailUI()
     {
         PlantasInfo data = InvernaderoManager.Instance?.plantDatabase.GetPlantas(currentAreaType);
@@ -123,19 +112,19 @@ public class PlantAreaDetailView : MonoBehaviour
             return;
         }
 
-        // ===== 1. TÍTULO =====
+       
         if (areaTitleText != null)
         {
             areaTitleText.text = $"Área de {data.plantaNombre}";
         }
 
-        // ===== 2. IMAGEN DE LA PLANTA =====
+   
         if (areaPlantImage != null && data.plantaSprite != null)
         {
             areaPlantImage.sprite = data.plantaSprite;
         }
 
-        // ===== 3. INFO DE LA PLANTA =====
+
         if (plantInfoText != null)
         {
             string cycleType = data.semillaCiclo == SemillaCiclo.Perenne ? "Perenne (∞)" : "Replantar";
@@ -147,20 +136,20 @@ public class PlantAreaDetailView : MonoBehaviour
                                 $"<b>Cosecha:</b> {data.cosechaCantidad}x\n" +
                                 $"<b>Venta:</b> {data.precioVentaEstandar} monedas";
         }
-
-        // ===== 4. ACTUALIZAR ESTADO DE BOTONES =====
         UpdateButtons();
     }
 
-    /// <summary>
-    /// Actualiza el estado de los botones según los slots
-    /// </summary>
+
+
+
+
+
     void UpdateButtons()
     {
         int availableSlots = 0;
         int readySlots = 0;
 
-        // Contar slots disponibles y listos
+
         foreach (var slot in currentSlots)
         {
             if (slot != null)
@@ -173,7 +162,11 @@ public class PlantAreaDetailView : MonoBehaviour
             }
         }
 
-        // ===== BOTÓN PLANTAR TODO =====
+
+
+
+
+
         if (plantAllButton != null)
         {
             bool canPlant = availableSlots > 0 && CanPlantInArea(currentAreaType);
@@ -193,7 +186,10 @@ public class PlantAreaDetailView : MonoBehaviour
             }
         }
 
-        // ===== BOTÓN COSECHAR TODO =====
+
+
+
+
         if (harvestAllButton != null)
         {
             harvestAllButton.interactable = readySlots > 0;
@@ -213,19 +209,17 @@ public class PlantAreaDetailView : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Verifica si se puede plantar en esta área
-    /// </summary>
+
     bool CanPlantInArea(PlantaTipo type)
     {
         PlantasInfo data = InvernaderoManager.Instance?.plantDatabase.GetPlantas(type);
         if (data == null) return false;
 
-        // Verificar energía (RQNF40.4 - no se puede plantar al 1%)
+        //40.4
         if (!BarraEnergiaSistema.Instance.CanPlant(data.energiaConsumo))
             return false;
 
-        // Si no es perenne, verificar semillas (RQNF40.3)
+        //40.3
         if (data.semillaCiclo == SemillaCiclo.Replantar)
         {
             return InventorySystem.Instance.HasSeed(type);
@@ -234,9 +228,8 @@ public class PlantAreaDetailView : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// RQF40: Planta en todos los slots disponibles
-    /// </summary>
+
+
     void PlantAll()
     {
         int planted = 0;
@@ -261,13 +254,11 @@ public class PlantAreaDetailView : MonoBehaviour
 
         UpdateButtons();
 
-        // Actualizar vista principal
+
         UpdateMainViewButtons();
     }
 
-    /// <summary>
-    /// RQF41: Cosecha todos los slots listos
-    /// </summary>
+
     void HarvestAll()
     {
         int harvested = 0;
@@ -285,13 +276,11 @@ public class PlantAreaDetailView : MonoBehaviour
 
         UpdateButtons();
 
-        // Actualizar vista principal
+
         UpdateMainViewButtons();
     }
 
-    /// <summary>
-    /// RQF36: Obtiene los slots correspondientes al área desde InvernaderoManager
-    /// </summary>
+
     List<PlantaSlot> GetSlotsForArea(PlantaTipo type)
     {
         if (InvernaderoManager.Instance == null)
@@ -299,6 +288,9 @@ public class PlantAreaDetailView : MonoBehaviour
             Debug.LogError("InvernaderoManager no encontrado!");
             return new List<PlantaSlot>();
         }
+
+
+
 
         switch (type)
         {
@@ -319,9 +311,11 @@ public class PlantAreaDetailView : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Actualiza los botones de la vista principal
-    /// </summary>
+
+
+
+
+
     void UpdateMainViewButtons()
     {
         PlantAreaButton[] areaButtons = FindObjectsOfType<PlantAreaButton>();
@@ -331,18 +325,23 @@ public class PlantAreaDetailView : MonoBehaviour
         }
     }
 
+
+
+
     void Update()
     {
-        // RQF38: Actualizar constantemente mientras esté abierto
+        // RQF38
         if (detailViewPanel != null && detailViewPanel.activeSelf)
         {
             UpdateButtons();
         }
     }
 
-    /// <summary>
-    /// Método público para que los slots individuales actualicen los botones
-    /// </summary>
+
+
+
+
+
     public void OnSlotStateChanged()
     {
         if (detailViewPanel != null && detailViewPanel.activeSelf)

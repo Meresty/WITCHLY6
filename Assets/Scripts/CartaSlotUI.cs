@@ -5,15 +5,13 @@ using TMPro;
 public class CartaSlotUI : MonoBehaviour
 {
     [Header("Referencias de UI del sobre")]
-    public Button botonCarta;     // El Button del propio sobre
-    public TMP_Text textoTitulo;  // El TMP hijo (TituloCarta1, etc.)
+    public Button botonCarta;     
+    public TMP_Text textoTitulo;  
 
-    private CartaData carta;              // La carta que representa este sobre
-    private BuzonController buzonOwner;   // Referencia al controlador
+    private CartaData carta;            
+    private BuzonController buzonOwner;  
 
-    /// <summary>
-    /// Configura este sobre con una carta específica.
-    /// </summary>
+
     public void Configurar(BuzonController owner, CartaData cartaData)
     {
         buzonOwner = owner;
@@ -39,7 +37,7 @@ public class CartaSlotUI : MonoBehaviour
         }
         else
         {
-            // Slot vacío (por si luego quieres tener menos cartas que sobres)
+
             if (textoTitulo != null)
                 textoTitulo.text = "";
 

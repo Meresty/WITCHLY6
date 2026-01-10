@@ -6,7 +6,7 @@ using Witchly.Mercado;
 
 public class BuzonController : MonoBehaviour
 {
-    // Estado interno del buzón
+
     private enum BuzonStage
     {
         Etapa1,
@@ -25,8 +25,8 @@ public class BuzonController : MonoBehaviour
     public TMP_Text txtCuerpoCarta;
     public TMP_Text txtCalidadCarta;
     public TMP_Text txtResultadoCarta;
-    public Button btnElegirPocion;   // Abre inventario
-    public Button btnCerrar;         // Cierra panel
+    public Button btnElegirPocion;   
+    public Button btnCerrar;     
 
     [Header("Economía")]
     public PlayerWallet playerWallet;
@@ -42,26 +42,25 @@ public class BuzonController : MonoBehaviour
     [Header("DEBUG (opcional)")]
     public Button btnSiguienteRondaDebug;
 
-    // ====== ESTADO INTERNO ======
+
     private List<CartaData> cartasEtapa1;
     private List<CartaData> cartasEtapa2;
-    private List<CartaData> cartasEspeciales; // por si las necesitas en otro script
+    private List<CartaData> cartasEspeciales; 
 
-    // Pool actual (depende de la etapa del juego)
-    private List<CartaData> poolDisponibles;   // cartas que pueden salir
-    private List<CartaData> poolExcluidas;     // las 2 que se sacan temporalmente
+    
+    private List<CartaData> poolDisponibles;  
+    private List<CartaData> poolExcluidas;   
 
-    private List<CartaData> cartasRondaActual; // las 3 cartas visibles
-    private CartaData cartaActual;             // carta abierta en el panel
+    private List<CartaData> cartasRondaActual; 
+    private CartaData cartaActual;             
 
-    private HashSet<int> cartasCompletadas;    // por numero de carta (1-27)
+
+    private HashSet<int> cartasCompletadas;    
     private int cartasResueltasEnRonda = 0;
 
     private BuzonStage estadoActual = BuzonStage.Etapa1;
 
-    // --------------------------------------------------
-    // Ciclo de vida
-    // --------------------------------------------------
+
 
     private void Awake()
     {
@@ -71,27 +70,25 @@ public class BuzonController : MonoBehaviour
 
     private void Start()
     {
-        // 1) Cargar TODAS las cartas
-        cartasEtapa1 = CartasConfig.CrearCartasEtapa1();      // 1–12
-        cartasEtapa2 = CartasConfig.CrearCartasEtapa2();      // 13–27
-        cartasEspeciales = CartasConfig.CrearCartasEspeciales(); // 28–30 (recetas)
+        cartasEtapa1 = CartasConfig.CrearCartasEtapa1();    
+        cartasEtapa2 = CartasConfig.CrearCartasEtapa2();     
+        cartasEspeciales = CartasConfig.CrearCartasEspeciales(); 
 
         cartasCompletadas = new HashSet<int>();
 
-        // 2) Inicializar pool con TODAS las de etapa 1
+
         poolDisponibles = new List<CartaData>(cartasEtapa1);
         poolExcluidas = new List<CartaData>();
         cartasRondaActual = new List<CartaData>(3);
 
         estadoActual = BuzonStage.Etapa1;
 
-        // 3) Botones del panel
         ConfigurarBotonesPanel();
 
-        // 4) Primera ronda SIEMPRE = intro (Valor, Revitalizante, Metamórfica)
+
         CrearRondaIntro();
 
-        // 5) Botón de debug para avanzar ronda manualmente (si lo quieres)
+    
         if (btnSiguienteRondaDebug != null)
         {
             btnSiguienteRondaDebug.onClick.RemoveAllListeners();
@@ -99,9 +96,6 @@ public class BuzonController : MonoBehaviour
         }
     }
 
-    // --------------------------------------------------
-    // Configuración de botones de panel
-    // --------------------------------------------------
 
     private void ConfigurarBotonesPanel()
     {
@@ -122,9 +116,6 @@ public class BuzonController : MonoBehaviour
         }
     }
 
-    // --------------------------------------------------
-    // Mostrar carta en panel
-    // --------------------------------------------------
 
     public void MostrarCartaEnPanel(CartaData carta)
     {
@@ -149,25 +140,15 @@ public class BuzonController : MonoBehaviour
             txtResultadoCarta.text = "";
     }
 
-    // --------------------------------------------------
-    // Botón "Elegir Poción" ? aquí solo abres el inventario
-    // --------------------------------------------------
 
     private void OnElegirPocion()
     {
         if (cartaActual == null)
             return;
 
-        // Aquí deberías llamar a tu sistema de inventario, algo como:
-        // InventarioUI.Instance.AbrirInventarioParaCarta(cartaActual, this);
         Debug.Log($"[Buzon] Abrir inventario para carta #{cartaActual.numero} ({cartaActual.pocionRequerida}).");
     }
 
-    // --------------------------------------------------
-    // LÓGICA DE ENTREGA: se llama desde el inventario
-    // --------------------------------------------------
-    // Llama a este método cuando el jugador pulse "Entregar"
-    // en el inventario, pasando la poción seleccionada.
 
     public void ProcesarEntrega(string pocionEntregada, PotionQuality calidadEntregada)
     {
@@ -180,7 +161,7 @@ public class BuzonController : MonoBehaviour
         string mensaje;
         int recompensa = CalcularRecompensa(cartaActual, pocionEntregada, calidadEntregada, out mensaje);
 
-        // Sumar monedas
+
         if (playerWallet != null)
         {
             playerWallet.AddCoins(recompensa);
@@ -190,28 +171,27 @@ public class BuzonController : MonoBehaviour
             Debug.LogWarning("[Buzon] No hay PlayerWallet asignado, no se suman monedas.");
         }
 
-        // Mostrar resultado en la carta
+
+
         if (txtResultadoCarta != null)
         {
             txtResultadoCarta.text = $"{mensaje}\n\nRecompensa: {recompensa} monedas.";
         }
 
-        // Marcar carta como completada
-        MarcarCartaCompletada(cartaActual);
 
-        // Contabilizar carta resuelta dentro de la ronda actual
+
+        MarcarCartaCompletada(cartaActual);
         cartasResueltasEnRonda++;
 
-        // Si ya se resolvieron las 3 cartas de la ronda, pasamos a la siguiente
+
+
+
+
         if (cartasResueltasEnRonda >= cartasRondaActual.Count)
         {
             TerminarRondaYCrearOtra();
         }
     }
-
-    // --------------------------------------------------
-    // Cálculo de recompensa / penalización
-    // --------------------------------------------------
 
     private int CalcularRecompensa(
         CartaData carta,
@@ -219,7 +199,6 @@ public class BuzonController : MonoBehaviour
         PotionQuality calidadEntregada,
         out string mensaje)
     {
-        // 1) POCIÓN INCORRECTA ? 10 monedas, revelar la correcta
         if (pocionEntregada != carta.pocionRequerida)
         {
             mensaje =
@@ -229,13 +208,14 @@ public class BuzonController : MonoBehaviour
             return 10;
         }
 
-        // 2) POCIÓN CORRECTA ? comprobar calidad
+
         int basePrice = carta.recompensaBase;
 
-        // calidadEntregada vs calidad requerida
+
         if ((int)calidadEntregada < (int)carta.calidad)
         {
-            // Calidad insuficiente ? penalización 20% del precio
+
+
             int penalizacion = Mathf.RoundToInt(basePrice * 0.2f);
             int recompensa = Mathf.Max(0, basePrice - penalizacion);
 
@@ -248,7 +228,7 @@ public class BuzonController : MonoBehaviour
         }
         else if ((int)calidadEntregada == (int)carta.calidad)
         {
-            // Calidad exacta ? recompensa completa + bonus por ser Plata/Oro
+
             int recompensa = CalcularRecompensaConBonus(basePrice, carta.calidad);
 
             mensaje =
@@ -260,9 +240,7 @@ public class BuzonController : MonoBehaviour
         }
         else
         {
-            // Calidad superior a la requerida
-            // ? NO hay penalización, pero TAMPOCO se paga el bono extra
-            //    que tendrías por pociones de mayor calidad.
+
             int recompensa = basePrice;
 
             mensaje =
@@ -273,7 +251,7 @@ public class BuzonController : MonoBehaviour
         }
     }
 
-    // Bonus de calidad Plata/Oro (ajusta los porcentajes según tu tabla real)
+
     private int CalcularRecompensaConBonus(int basePrice, PotionQuality calidadRequerida)
     {
         float multiplicador = 1f;
@@ -281,29 +259,27 @@ public class BuzonController : MonoBehaviour
         switch (calidadRequerida)
         {
             case PotionQuality.Estandar:
-                multiplicador = 1f;    // sin bonus
+                multiplicador = 1f;   
                 break;
             case PotionQuality.Plata:
-                multiplicador = 1.2f;  // +20% (ejemplo)
+                multiplicador = 1.2f; 
                 break;
             case PotionQuality.Oro:
-                multiplicador = 1.4f;  // +40% (ejemplo)
+                multiplicador = 1.4f;  
                 break;
         }
 
         return Mathf.RoundToInt(basePrice * multiplicador);
     }
 
-    // --------------------------------------------------
-    // RONDA INTRO (siempre la primera de Etapa 1)
-    // --------------------------------------------------
+
 
     private void CrearRondaIntro()
     {
         cartasRondaActual = new List<CartaData>();
         cartasResueltasEnRonda = 0;
 
-        // Buscar las 3 cartas intro en la Etapa 1
+
         CartaData cartaValor = cartasEtapa1.Find(
             c => c.pocionRequerida == CartasConfig.POCION_VALOR_INFALIBLE);
         CartaData cartaRevitalizante = cartasEtapa1.Find(
@@ -311,31 +287,39 @@ public class BuzonController : MonoBehaviour
         CartaData cartaMetamorfica = cartasEtapa1.Find(
             c => c.pocionRequerida == CartasConfig.POCION_METAMORFICA);
 
+
+
+
+
+
         if (cartaValor != null) cartasRondaActual.Add(cartaValor);
         if (cartaRevitalizante != null) cartasRondaActual.Add(cartaRevitalizante);
         if (cartaMetamorfica != null) cartasRondaActual.Add(cartaMetamorfica);
 
-        // Quitarlas del pool disponible de Etapa1 para que no salgan en aleatorio
+
         foreach (var carta in cartasRondaActual)
         {
             poolDisponibles.Remove(carta);
         }
 
-        // Asignar a slots
+        //asignar slots
         slot1.Configurar(this, cartasRondaActual.Count > 0 ? cartasRondaActual[0] : null);
         slot2.Configurar(this, cartasRondaActual.Count > 1 ? cartasRondaActual[1] : null);
         slot3.Configurar(this, cartasRondaActual.Count > 2 ? cartasRondaActual[2] : null);
     }
 
-    // --------------------------------------------------
-    // SISTEMA DE RONDAS (Etapa1, Etapa2, PostGame)
-    // --------------------------------------------------
 
+
+
+
+    //sist rondas
     private void CrearNuevaRonda()
     {
         cartasResueltasEnRonda = 0;
 
-        // Si el pool actual se quedó corto, reciclamos las excluidas
+
+
+
         if (poolDisponibles.Count < 3 && poolExcluidas.Count > 0)
         {
             poolDisponibles.AddRange(poolExcluidas);
@@ -372,7 +356,10 @@ public class BuzonController : MonoBehaviour
             return;
         }
 
-        // De las 3 cartas, 1 regresa al pool, 2 se van a excluidas temporalmente
+
+
+
+
         int idxQueRegresa = Random.Range(0, cartasRondaActual.Count);
 
         for (int i = 0; i < cartasRondaActual.Count; i++)
@@ -391,13 +378,12 @@ public class BuzonController : MonoBehaviour
 
         cartasRondaActual.Clear();
 
-        // Nueva ronda según el estado actual
+
+
+
         CrearNuevaRonda();
     }
 
-    // --------------------------------------------------
-    // Progreso y cambio de etapa
-    // --------------------------------------------------
 
     private void MarcarCartaCompletada(CartaData carta)
     {
@@ -406,14 +392,18 @@ public class BuzonController : MonoBehaviour
         if (!cartasCompletadas.Contains(carta.numero))
             cartasCompletadas.Add(carta.numero);
 
-        // Cambio de etapa cuando se completan 1–12
+
+
+
         if (estadoActual == BuzonStage.Etapa1 && TodasCartasEtapa1Completas())
         {
             estadoActual = BuzonStage.Etapa2;
             ReconstruirPoolEtapa2();
             Debug.Log("[Buzon] Etapa 2 desbloqueada.");
         }
-        // Cambio a PostGame cuando se completan TODAS las de Etapa1 y Etapa2 (1–27)
+
+
+
         else if (estadoActual == BuzonStage.Etapa2 &&
                  TodasCartasEtapa1Completas() &&
                  TodasCartasEtapa2Completas())
@@ -463,7 +453,8 @@ public class BuzonController : MonoBehaviour
         poolDisponibles = new List<CartaData>();
         poolExcluidas = new List<CartaData>();
 
-        // Todas las cartas de Etapa1 + Etapa2 vuelven al pool
+
+
         poolDisponibles.AddRange(cartasEtapa1);
         poolDisponibles.AddRange(cartasEtapa2);
     }
@@ -484,9 +475,10 @@ public class BuzonController : MonoBehaviour
         return true;
     }
 
-    // --------------------------------------------------
-    // Métodos para desbloquear recetas desde el mercado
-    // --------------------------------------------------
+
+
+
+
 
     public void DesbloquearRecetaRuptura()
     {

@@ -40,7 +40,7 @@ namespace Witchly.Mercado
             if (textoPrecio != null)
                 textoPrecio.text = orden.precioTotal.ToString();
 
-            // ----- Hook del botón -----
+
             if (botonComprar != null)
             {
                 botonComprar.onClick.RemoveAllListeners();

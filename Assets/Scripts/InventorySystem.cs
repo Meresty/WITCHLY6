@@ -1,4 +1,4 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 using System.Collections.Generic;
 using System;
 
@@ -27,6 +27,7 @@ public class SeedItem
 /// <summary>
 /// Sistema de inventario del invernadero
 /// Maneja plantas, semillas, sueros y monedas
+/// SINCRONIZA con InventoryManager del caldero
 /// </summary>
 public class InventorySystem : MonoBehaviour
 {
@@ -41,6 +42,10 @@ public class InventorySystem : MonoBehaviour
 
     [Header("Referencias")]
     public PlantaBD plantBD;
+
+    [Header("Conexi√≥n con Caldero")]
+    [Tooltip("Asigna los ItemSO correspondientes a cada planta")]
+    public PlantaItemSOMapping[] plantaToItemMapping;
 
     public event Action OnInventoryChanged;
 
@@ -67,12 +72,12 @@ public class InventorySystem : MonoBehaviour
 
             // RQF58: Inventario inicial
             AddSerum("Suero de Fuerza", 1);
-            AddSerum("Suero de EnergÌa", 1);
+            AddSerum("Suero de Energ√≠a", 1);
             AddPlant(PlantaTipo.Drakonia, PlantaCalidad.Estandar, 5);
             AddPlant(PlantaTipo.Falsibaya, PlantaCalidad.Estandar, 5);
 
             // RQF61: Drakonia y Falsibaya siempre disponibles (son perennes)
-            // Ya est·n en el inventario inicial
+            // Ya est√°n en el inventario inicial
 
             PlayerPrefs.SetInt("FirstTime", 1);
             PlayerPrefs.Save();
@@ -86,9 +91,9 @@ public class InventorySystem : MonoBehaviour
     #region SEMILLAS
 
     /// <summary>
-    /// AÒade semillas al inventario
+    /// A√±ade semillas al inventario
     /// </summary>
-    public void AÒadirSemilla(PlantaTipo type, int amount)
+    public void A√±adirSemilla(PlantaTipo type, int amount)
     {
         var existing = semillas.Find(s => s.plantaTipo == type);
         if (existing != null)
@@ -106,7 +111,7 @@ public class InventorySystem : MonoBehaviour
         OnInventoryChanged?.Invoke();
         SaveInventory();
 
-        Debug.Log($"AÒadidas {amount} semillas de {type}");
+        Debug.Log($"A√±adidas {amount} semillas de {type}");
     }
 
     /// <summary>
@@ -152,7 +157,7 @@ public class InventorySystem : MonoBehaviour
     #region PLANTAS
 
     /// <summary>
-    /// AÒade plantas al inventario
+    /// A√±ade plantas al inventario Y LAS SINCRONIZA CON EL CALDERO
     /// </summary>
     public void AddPlant(PlantaTipo type, PlantaCalidad quality, int amount)
     {
@@ -170,10 +175,14 @@ public class InventorySystem : MonoBehaviour
                 cantidad = amount
             });
         }
+
+        // ‚≠ê SINCRONIZAR CON CALDERO
+        SyncPlantToCaldero(type, quality, amount);
+
         OnInventoryChanged?.Invoke();
         SaveInventory();
 
-        Debug.Log($"AÒadidas {amount} plantas {type} de calidad {quality}");
+        Debug.Log($"A√±adidas {amount} plantas {type} de calidad {quality}");
     }
 
     /// <summary>
@@ -219,7 +228,7 @@ public class InventorySystem : MonoBehaviour
     #region SUEROS
 
     /// <summary>
-    /// AÒade sueros al inventario
+    /// A√±ade sueros al inventario
     /// </summary>
     public void AddSerum(string serumName, int amount)
     {
@@ -235,7 +244,7 @@ public class InventorySystem : MonoBehaviour
         OnInventoryChanged?.Invoke();
         SaveInventory();
 
-        Debug.Log($"AÒadidos {amount} {serumName}");
+        Debug.Log($"A√±adidos {amount} {serumName}");
     }
 
     /// <summary>
@@ -281,7 +290,7 @@ public class InventorySystem : MonoBehaviour
     #region MONEDAS
 
     /// <summary>
-    /// AÒade monedas al inventario
+    /// A√±ade monedas al inventario
     /// </summary>
     public void AddCoins(int amount)
     {
@@ -289,7 +298,7 @@ public class InventorySystem : MonoBehaviour
         OnInventoryChanged?.Invoke();
         SaveInventory();
 
-        Debug.Log($"AÒadidas {amount} monedas. Total: {coins}");
+        Debug.Log($"A√±adidas {amount} monedas. Total: {coins}");
     }
 
     /// <summary>
@@ -316,7 +325,7 @@ public class InventorySystem : MonoBehaviour
     #region VENTA DE ITEMS
 
     /// <summary>
-    /// RQF59: Vende plantas por monedas seg˙n la tabla de precios
+    /// RQF59: Vende plantas por monedas seg√∫n la tabla de precios
     /// </summary>
     public void SellPlant(PlantaTipo type, PlantaCalidad quality, int amount)
     {
@@ -389,12 +398,54 @@ public class InventorySystem : MonoBehaviour
 
         if (SpendCoins(totalCost))
         {
-            AÒadirSemilla(type, amount);
+            A√±adirSemilla(type, amount);
             Debug.Log($"Compradas {amount} semillas de {type} por {totalCost} monedas");
             return true;
         }
 
         return false;
+    }
+
+    #endregion
+
+    #region SINCRONIZACI√ìN CON CALDERO
+
+    /// <summary>
+    /// Sincroniza las plantas del invernadero con el inventario del caldero
+    /// </summary>
+    private void SyncPlantToCaldero(PlantaTipo tipo, PlantaCalidad calidad, int cantidad)
+    {
+        if (InventoryManager.instancia == null)
+        {
+            Debug.LogWarning("[InventorySystem] InventoryManager no est√° disponible a√∫n");
+            return;
+        }
+
+        ItemSO itemSO = GetItemSOForPlant(tipo, calidad);
+        if (itemSO != null)
+        {
+            InventoryManager.instancia.AddItem(itemSO, cantidad);
+            Debug.Log($"‚úÖ Sincronizado: {cantidad}x {tipo} ({calidad}) ‚Üí Caldero");
+        }
+        else
+        {
+            Debug.LogWarning($"‚ö†Ô∏è No hay ItemSO mapeado para {tipo} ({calidad})");
+        }
+    }
+
+    /// <summary>
+    /// Obtiene el ItemSO correspondiente a una planta
+    /// </summary>
+    private ItemSO GetItemSOForPlant(PlantaTipo tipo, PlantaCalidad calidad)
+    {
+        foreach (var mapping in plantaToItemMapping)
+        {
+            if (mapping.tipo == tipo && mapping.calidad == calidad)
+            {
+                return mapping.itemSO;
+            }
+        }
+        return null;
     }
 
     #endregion
@@ -455,7 +506,7 @@ public class InventorySystem : MonoBehaviour
 
     #endregion
 
-    #region M…TODOS DE UTILIDAD
+    #region M√âTODOS DE UTILIDAD
 
     /// <summary>
     /// Limpia todo el inventario (para testing)
@@ -505,7 +556,16 @@ public class InventorySystem : MonoBehaviour
     #endregion
 }
 
-// Clases auxiliares para serializaciÛn
+// ‚≠ê NUEVA CLASE: Mapeo entre plantas del invernadero y ItemSO del caldero
+[System.Serializable]
+public class PlantaItemSOMapping
+{
+    public PlantaTipo tipo;
+    public PlantaCalidad calidad;
+    public ItemSO itemSO;
+}
+
+// Clases auxiliares para serializaci√≥n
 [System.Serializable]
 public class PlantsList
 {

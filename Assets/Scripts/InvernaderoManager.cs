@@ -9,14 +9,19 @@ public class InvernaderoManager : MonoBehaviour
     [Header("Referencias")]
     public PlantaBD plantDatabase;
 
-    [Header("Áreas de Cultivo - 4 slots por área")]
-    [Tooltip("RQF36: 6 áreas de cultivo, una para cada tipo de planta")]
+    //RQF36
+
+    [Header("Áreas de Cultivo")]
+    [Tooltip("RQF36")]
+
     public List<PlantaSlot> luminaSlots = new List<PlantaSlot>();
     public List<PlantaSlot> falsibayaSlots = new List<PlantaSlot>();
     public List<PlantaSlot> drakoniaSlots = new List<PlantaSlot>();
     public List<PlantaSlot> eldebriaSlots = new List<PlantaSlot>();
     public List<PlantaSlot> jiveriaSlots = new List<PlantaSlot>();
     public List<PlantaSlot> lirienSlots = new List<PlantaSlot>();
+
+
 
     void Awake()
     {
@@ -41,7 +46,7 @@ public class InvernaderoManager : MonoBehaviour
 
     void InitializeSlots()
     {
-        // RQNF36.2: Cada área solo acepta su tipo de planta específico
+        // RQNF36.2
         AssignPlantTypeToSlots(luminaSlots, PlantaTipo.Lumina);
         AssignPlantTypeToSlots(falsibayaSlots, PlantaTipo.Falsibaya);
         AssignPlantTypeToSlots(drakoniaSlots, PlantaTipo.Drakonia);
@@ -116,10 +121,10 @@ public class InvernaderoManager : MonoBehaviour
         return count;
     }
 
-    /// <summary>
-    /// RQF37: Obtiene el número de slots disponibles (vacíos) en un área
-    /// </summary>
-    public int GetAvailableSlots(PlantaTipo type)
+
+    /// RQF37
+
+    public int GetSlotsDisp(PlantaTipo type)
     {
         List<PlantaSlot> slots = GetSlotsForPlantType(type);
         int count = 0;
@@ -133,9 +138,10 @@ public class InvernaderoManager : MonoBehaviour
         return count;
     }
 
-    /// <summary>
-    /// Obtiene el número de slots con plantas listas para cosechar
-    /// </summary>
+
+
+
+
     public int GetReadySlots(PlantaTipo type)
     {
         List<PlantaSlot> slots = GetSlotsForPlantType(type);
@@ -150,9 +156,9 @@ public class InvernaderoManager : MonoBehaviour
         return count;
     }
 
-    /// <summary>
-    /// RQF40: Planta una semilla en el siguiente slot disponible del área correspondiente
-    /// </summary>
+
+    /// RQF40
+
     public bool PlantInNextAvailableSlot(PlantaTipo type)
     {
         List<PlantaSlot> slots = GetSlotsForPlantType(type);
@@ -180,9 +186,9 @@ public class InvernaderoManager : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// Obtiene la lista de slots correspondiente a un tipo de planta
-    /// </summary>
+
+
+
     List<PlantaSlot> GetSlotsForPlantType(PlantaTipo type)
     {
         switch (type)
@@ -199,9 +205,9 @@ public class InvernaderoManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Obtiene el total de plantas activas en todo el invernadero
-    /// </summary>
+
+
+
     public int GetTotalActivePlants()
     {
         int total = 0;
@@ -214,9 +220,9 @@ public class InvernaderoManager : MonoBehaviour
         return total;
     }
 
-    /// <summary>
-    /// RQF41: Cosecha todas las plantas listas en el invernadero
-    /// </summary>
+
+    /// RQF41
+
     public void HarvestAll()
     {
         int harvested = 0;
@@ -231,9 +237,9 @@ public class InvernaderoManager : MonoBehaviour
         Debug.Log($"Cosechadas {harvested} plantas en total");
     }
 
-    /// <summary>
-    /// Cosecha todas las plantas listas de un área específica
-    /// </summary>
+
+
+
     int HarvestAllFromArea(List<PlantaSlot> slots)
     {
         int count = 0;
@@ -250,9 +256,10 @@ public class InvernaderoManager : MonoBehaviour
         return count;
     }
 
-    /// <summary>
-    /// Cosecha todas las plantas de un tipo específico
-    /// </summary>
+
+
+
+
     public void HarvestAllOfType(PlantaTipo type)
     {
         List<PlantaSlot> slots = GetSlotsForPlantType(type);
@@ -275,7 +282,7 @@ public class InvernaderoManager : MonoBehaviour
         foreach (PlantaTipo type in System.Enum.GetValues(typeof(PlantaTipo)))
         {
             int active = GetActiveSlots(type);
-            int available = GetAvailableSlots(type);
+            int available = GetSlotsDisp(type);
             int ready = GetReadySlots(type);
             Debug.Log($"{type}: {active} activos, {ready} listos, {available} disponibles");
         }
@@ -292,6 +299,11 @@ public class InvernaderoManager : MonoBehaviour
         }
     }
 
+
+
+
+
+
     [ContextMenu("Llenar Todo el Invernadero")]
     public void FillGreenhouse()
     {
@@ -299,16 +311,24 @@ public class InvernaderoManager : MonoBehaviour
 
         foreach (PlantaTipo type in System.Enum.GetValues(typeof(PlantaTipo)))
         {
-            // Intentar llenar los 4 slots de cada área
             for (int i = 0; i < 4; i++)
             {
                 if (!PlantInNextAvailableSlot(type))
-                    break; // No hay más slots disponibles
+                    break;
             }
         }
 
+
+
         Debug.Log($"Invernadero llenado. Total plantas: {GetTotalActivePlants()}");
     }
+
+
+
+
+
+
+
 
     [ContextMenu("Cosechar Todo")]
     public void HarvestAllDebug()
@@ -326,7 +346,7 @@ public class InvernaderoManager : MonoBehaviour
         {
             int active = GetActiveSlots(type);
             int ready = GetReadySlots(type);
-            int available = GetAvailableSlots(type);
+            int available = GetSlotsDisp(type);
             int total = active + available;
 
             Debug.Log($"\n{type}:");

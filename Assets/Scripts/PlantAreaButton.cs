@@ -118,8 +118,11 @@ public class PlantAreaButton : MonoBehaviour
     /// </summary>
     void OnAreaClicked()
     {
+        Debug.Log("Botón clickeado!");
+
         if (PlantAreaDetailView.Instance != null)
         {
+            Debug.Log($"Instance encontrada {areaPlantType}");
             PlantAreaDetailView.Instance.OpenAreaDetail(areaPlantType);
         }
         else

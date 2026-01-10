@@ -21,17 +21,19 @@ public class CartaData
     public int numero;               // 1–30
 
     [Header("Contenido de la carta")]
-    public string titulo;            // Título corto
+    public string titulo;            
     [TextArea(4, 12)]
-    public string textoCarta;        // Texto completo
+    public string textoCarta;       
 
     [Header("Requisito de poción")]
-    public string pocionRequerida;   // Nombre de la poción
-    public PotionQuality calidad;    // Estandar / Plata / Oro
+    public string pocionRequerida;   
+    public PotionQuality calidad;    
 
     [Header("Recompensas")]
-    public int recompensaBase;       // Precio de venta base
+    public int recompensaBase;       
+
+
 
     [Header("Metadatos")]
-    public CartaStage etapa;         // Etapa1, Etapa2, Especial
+    public CartaStage etapa;        
 }
