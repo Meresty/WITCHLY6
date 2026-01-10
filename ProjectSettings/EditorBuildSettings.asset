@@ -5,7 +5,7 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
   - enabled: 1
@@ -30,8 +30,14 @@ EditorBuildSettings:
     path: Assets/Scenes/Invernadero.unity
     guid: 1229dc841cf781a498f9c3cbf16f720b
   - enabled: 1
+    path: Assets/Scenes/Parcela.unity
+    guid: ea24723f42eff9c43ad3141820b7b57e
+  - enabled: 1
     path: Assets/Scenes/IniciarSesion.unity
     guid: 10874dd59de05a0479da1e336acec72a
+  - enabled: 1
+    path: Assets/Scenes/EntregaPocion.unity
+    guid: 89adf7e623c26104da4459285617b57d
   - enabled: 1
     path: Assets/Scenes/Tienda.unity
     guid: 37db6a8025d09844eaf314457df2a4f7
@@ -56,4 +62,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/RecuperarCuenta.unity
     guid: 11c2897c2c740334b8493b7fbb73e44f
+  - enabled: 1
+    path: Assets/Scenes/prueba.unity
+    guid: 065633a62639ec74b9ce1e712e5d4831
   m_configObjects: {}
