@@ -1,4 +1,4 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
@@ -62,7 +62,7 @@ public class GameManager : MonoBehaviour
     void InitializeSystems()
     {
         // Los sistemas ya se inicializan solos en sus Awake
-        // AquÌ solo verificamos que existan
+        // Aqu√± solo verificamos que existan
         if (inventorySystem == null)
             inventorySystem = FindObjectOfType<InventorySystem>();
 
@@ -101,7 +101,7 @@ public class GameManager : MonoBehaviour
         SaveProgress();
         CheckQualityBoxUnlocks();
 
-        Debug.Log($"PociÛn de calidad completada! Total: {qualityPotionsCompleted}");
+        Debug.Log($"Poci√±n de calidad completada! Total: {qualityPotionsCompleted}");
     }
 
     // DESBLOQUEO DE CAJAS
@@ -169,8 +169,8 @@ public class GameManager : MonoBehaviour
         if (energyBarSystem == null) return;
 
         string info = $"=== DEBUG INFO ===";
-        info += $"EnergÌa: {energyBarSystem.GetEnergyPercentage():F1}%";
-        info += $"PenalizaciÛn de tiempo: +{energyBarSystem.GetTimePenalty()}s";
+        info += $"Energ√±a: {energyBarSystem.GetEnergyPercentage():F1}%";
+        info += $"Penalizaci√±n de tiempo: +{energyBarSystem.GetTimePenalty()}s";
         info += $"Monedas: {inventorySystem.coins}";
         info += $"Plantas activas: {greenhouseManager.GetTotalActivePlants()}";
         info += $"Cartas completadas: {completedCards}";
@@ -180,7 +180,7 @@ public class GameManager : MonoBehaviour
         debugText.text = info;
     }
 
-    // M…TODOS DE UTILIDAD PARA TESTING
+    // M√±TODOS DE UTILIDAD PARA TESTING
     [ContextMenu("Add 5 Completed Cards")]
     public void AddCompletedCards()
     {
@@ -220,16 +220,16 @@ public class GameManager : MonoBehaviour
     [ContextMenu("Add Test Seeds")]
     public void AddTestSeeds()
     {
-        inventorySystem.AÒadirSemilla(PlantaTipo.Lumina, 10);
-        inventorySystem.AÒadirSemilla(PlantaTipo.Eldebria, 10);
-        inventorySystem.AÒadirSemilla(PlantaTipo.Jiveria, 10);
-        inventorySystem.AÒadirSemilla(PlantaTipo.Lirien, 10);
+        inventorySystem.AddSemilla(PlantaTipo.Lumina, 10);
+        inventorySystem.AddSemilla(PlantaTipo.Eldebria, 10);
+        inventorySystem.AddSemilla(PlantaTipo.Jiveria, 10);
+        inventorySystem.AddSemilla(PlantaTipo.Lirien, 10);
     }
 
     [ContextMenu("Add Test Plants")]
     public void AddTestPlants()
     {
-        // Plantas est·ndar
+        // Plantas est√±ndar
         inventorySystem.AddPlant(PlantaTipo.Lumina, PlantaCalidad.Estandar, 5);
         inventorySystem.AddPlant(PlantaTipo.Eldebria, PlantaCalidad.Estandar, 5);
 
@@ -282,7 +282,7 @@ public class GameManager : MonoBehaviour
     }
 }
 
-// Script adicional para botones de UI r·pida
+// Script adicional para botones de UI r√±pida
 public class QuickActionButtons : MonoBehaviour
 {
     public void PlantAllLumina()
@@ -310,7 +310,7 @@ public class QuickActionButtons : MonoBehaviour
     {
         if (InventorySystem.Instance.SpendCoins(7))
         {
-            InventorySystem.Instance.AÒadirSemilla(PlantaTipo.Lumina, 1);
+            InventorySystem.Instance.AddSemilla(PlantaTipo.Lumina, 1);
         }
     }
 }

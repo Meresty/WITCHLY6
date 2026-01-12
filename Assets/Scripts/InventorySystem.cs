@@ -66,7 +66,7 @@ public class InventorySystem : MonoBehaviour
     void InitializeInventory()
     {
         // Verificar si es la primera vez que se juega
-        if (!PlayerPrefs.HasKey("FirstTime"))
+        if (true || !PlayerPrefs.HasKey("FirstTime"))
         {
             Debug.Log("Primera vez jugando - Inicializando inventario inicial");
 
@@ -75,6 +75,9 @@ public class InventorySystem : MonoBehaviour
             AddSerum("Suero de Energía", 1);
             AddPlant(PlantaTipo.Drakonia, PlantaCalidad.Estandar, 5);
             AddPlant(PlantaTipo.Falsibaya, PlantaCalidad.Estandar, 5);
+            AddSemilla(PlantaTipo.Falsibaya, -1);
+            AddSemilla(PlantaTipo.Drakonia, -1);
+            AddSemilla(PlantaTipo.Lumina, 3);
 
             // RQF61: Drakonia y Falsibaya siempre disponibles (son perennes)
             // Ya están en el inventario inicial
@@ -93,7 +96,7 @@ public class InventorySystem : MonoBehaviour
     /// <summary>
     /// Añade semillas al inventario
     /// </summary>
-    public void AñadirSemilla(PlantaTipo type, int amount)
+    public void AddSemilla(PlantaTipo type, int amount)
     {
         var existing = semillas.Find(s => s.plantaTipo == type);
         if (existing != null)
@@ -129,13 +132,16 @@ public class InventorySystem : MonoBehaviour
     public bool RemoveSeed(PlantaTipo type, int amount = 1)
     {
         var seed = semillas.Find(s => s.plantaTipo == type);
-        if (seed != null && seed.cantidad >= amount)
+        if (seed != null && (seed.cantidad >= amount || amount == -1))
         {
             seed.cantidad -= amount;
             if (seed.cantidad == 0)
             {
                 semillas.Remove(seed);
             }
+            if (amount == -1)
+                seed.cantidad = -1;
+
             OnInventoryChanged?.Invoke();
             SaveInventory();
             return true;
@@ -398,7 +404,7 @@ public class InventorySystem : MonoBehaviour
 
         if (SpendCoins(totalCost))
         {
-            AñadirSemilla(type, amount);
+            AddSemilla(type, amount);
             Debug.Log($"Compradas {amount} semillas de {type} por {totalCost} monedas");
             return true;
         }

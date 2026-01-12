@@ -1,10 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 
 public class InvernaderoManager : MonoBehaviour
 {
     public static InvernaderoManager Instance { get; private set; }
+
+    public PlantasInfo currentParcelaPlant = null;
 
     [Header("Referencias")]
     public PlantaBD plantDatabase;
@@ -38,7 +41,7 @@ public class InvernaderoManager : MonoBehaviour
     void Start()
     {
         InitializeSlots();
-        ValidateSlots();
+        // ValidateSlots();
 
         Debug.Log("InvernaderoManager inicializado");
     }
@@ -138,10 +141,6 @@ public class InvernaderoManager : MonoBehaviour
         return count;
     }
 
-
-
-
-
     public int GetReadySlots(PlantaTipo type)
     {
         List<PlantaSlot> slots = GetSlotsForPlantType(type);
@@ -156,9 +155,7 @@ public class InvernaderoManager : MonoBehaviour
         return count;
     }
 
-
     /// RQF40
-
     public bool PlantInNextAvailableSlot(PlantaTipo type)
     {
         List<PlantaSlot> slots = GetSlotsForPlantType(type);
@@ -186,9 +183,6 @@ public class InvernaderoManager : MonoBehaviour
         return false;
     }
 
-
-
-
     List<PlantaSlot> GetSlotsForPlantType(PlantaTipo type)
     {
         switch (type)
@@ -205,9 +199,6 @@ public class InvernaderoManager : MonoBehaviour
         }
     }
 
-
-
-
     public int GetTotalActivePlants()
     {
         int total = 0;
@@ -220,9 +211,7 @@ public class InvernaderoManager : MonoBehaviour
         return total;
     }
 
-
     /// RQF41
-
     public void HarvestAll()
     {
         int harvested = 0;
@@ -236,9 +225,6 @@ public class InvernaderoManager : MonoBehaviour
 
         Debug.Log($"Cosechadas {harvested} plantas en total");
     }
-
-
-
 
     int HarvestAllFromArea(List<PlantaSlot> slots)
     {
@@ -255,10 +241,6 @@ public class InvernaderoManager : MonoBehaviour
 
         return count;
     }
-
-
-
-
 
     public void HarvestAllOfType(PlantaTipo type)
     {
@@ -299,11 +281,6 @@ public class InvernaderoManager : MonoBehaviour
         }
     }
 
-
-
-
-
-
     [ContextMenu("Llenar Todo el Invernadero")]
     public void FillGreenhouse()
     {
@@ -317,18 +294,8 @@ public class InvernaderoManager : MonoBehaviour
                     break;
             }
         }
-
-
-
         Debug.Log($"Invernadero llenado. Total plantas: {GetTotalActivePlants()}");
     }
-
-
-
-
-
-
-
 
     [ContextMenu("Cosechar Todo")]
     public void HarvestAllDebug()
@@ -369,6 +336,34 @@ public class InvernaderoManager : MonoBehaviour
             }
         }
     }
-
     #endregion
+
+    // public void GoToParcela(PlantaTipo plantaTipo)
+    // {
+    //     Debug.Log($"Navegando a parcela de {plantaTipo}...");
+    //     PlantasInfo plantaInfo = plantDatabase.GetPlantas(plantaTipo);
+    //     if (plantaInfo != null)
+    //     {
+    //         currentParcelaPlant = plantaInfo;
+    //         Debug.Log($"Navegando a parcela de {plantaInfo.plantaNombre}");
+    //         // Aquí iría la lógica para cambiar de escena o activar la parcela
+    //         SceneManager.LoadScene("ParcelaScene");
+    //     }
+    //     else
+    //     {
+    //         Debug.LogError($"No se encontró información para la planta de tipo {plantaTipo}");
+    //     }
+    // }
+
+    // // Métodos públicos sin parámetros para usar en botones UI
+    // public void GoToParcelaLumina() => GoToParcela(PlantaTipo.Lumina);
+    // public void GoToParcelaFalsibaya() => GoToParcela(PlantaTipo.Falsibaya);
+    // public void GoToParcelaDrakonia() => GoToParcela(PlantaTipo.Drakonia);
+    // public void GoToParcelaEldebria() => GoToParcela(PlantaTipo.Eldebria);
+    // public void GoToParcelaJiveria() => GoToParcela(PlantaTipo.Jiveria);
+    // public void GoToParcelaLirien() => GoToParcela(PlantaTipo.Lirien);
+
+    public void PlantarTodo() {
+        Debug.Log("PlantarTodo no implementado aún");
+    }
 }

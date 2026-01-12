@@ -1,6 +1,9 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+/// <summary>
+/// Del caldero
+/// </summary>
 public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager instancia;

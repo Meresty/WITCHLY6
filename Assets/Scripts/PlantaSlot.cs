@@ -125,7 +125,7 @@ public class PlantaSlot : MonoBehaviour
             // Si falla, devolver la semilla
             if (data.semillaCiclo == SemillaCiclo.Replantar)
             {
-                InventorySystem.Instance.AñadirSemilla(plantType, 1);
+                InventorySystem.Instance.AddSemilla(plantType, 1);
             }
             return false;
         }
