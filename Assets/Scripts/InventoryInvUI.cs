@@ -73,7 +73,7 @@ public class InventoryInvUI : MonoBehaviour
         // Crear items para cada tipo de semilla
         foreach (PlantaTipo plantaTipo in System.Enum.GetValues(typeof(PlantaTipo)))
         {
-            PlantasInfo data = InvernaderoManager.Instance.plantDatabase.GetPlantas(plantaTipo);
+            PlantasData data = InvernaderoManager.Instance.plantDatabase.GetPlantas(plantaTipo);
             if (data == null) continue;
             
             // Mostrar siempre Drakonia y Falsibaya (perennes)
@@ -110,7 +110,7 @@ public class InventoryInvUI : MonoBehaviour
         {
             if (plantItem.cantidad > 0)
             {
-                PlantasInfo data = InvernaderoManager.Instance.plantDatabase.GetPlantas(plantItem.plantaTipo);
+                PlantasData data = InvernaderoManager.Instance.plantDatabase.GetPlantas(plantItem.plantaTipo);
                 if (data == null) continue;
                 
                 GameObject itemObj = Instantiate(inventoryItemPrefab, plantasContainer);
@@ -197,7 +197,7 @@ public class InventoryItemUI : MonoBehaviour
         }
     }
     
-    public void SetupSeed(PlantaTipo type, PlantasInfo data, int count, bool perennial)
+    public void SetupSeed(PlantaTipo type, PlantasData data, int count, bool perennial)
     {
         plantaTipo = type;
         isSemilla = true;
@@ -207,7 +207,7 @@ public class InventoryItemUI : MonoBehaviour
             itemImg.sprite = data.semillaSprite;
         
         if (itemNombreTxt != null)
-            itemNombreTxt.text = $"{data.plantaNombre} (Semilla)";
+            itemNombreTxt.text = $"{data.nombre} (Semilla)";
         
         if (cantidadTxt != null)
         {
@@ -231,7 +231,7 @@ public class InventoryItemUI : MonoBehaviour
             calidadEstrella.gameObject.SetActive(false);
     }
     
-    public void SetupPlant(PlantaTipo type, PlantaCalidad qual, PlantasInfo data, int count)
+    public void SetupPlant(PlantaTipo type, PlantaCalidad qual, PlantasData data, int count)
     {
         plantaTipo = type;
         calidad = qual;
@@ -244,7 +244,7 @@ public class InventoryItemUI : MonoBehaviour
         {
             string qualityName = qual == PlantaCalidad.Estandar ? "" : 
                                 qual == PlantaCalidad.Plata ? " (Plata)" : " (Oro)";
-            itemNombreTxt.text = $"{data.plantaNombre}{qualityName}";
+            itemNombreTxt.text = $"{data.nombre}{qualityName}";
         }
         
         if (cantidadTxt != null)

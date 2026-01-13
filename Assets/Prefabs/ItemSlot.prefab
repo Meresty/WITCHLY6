@@ -348,6 +348,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Icono: {fileID: 3647124858711228773}
+  bg: {fileID: 4060681623425660252}
   Cantidad: {fileID: 1047949349888499695}
   clickButton: {fileID: 7541738472910261628}
 --- !u!114 &7541738472910261628
@@ -377,7 +378,7 @@ MonoBehaviour:
     m_SelectedColor: {r: 0.7584905, g: 0.50409204, b: 0.30196503, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
-    m_FadeDuration: 0.1
+    m_FadeDuration: 0
   m_SpriteState:
     m_HighlightedSprite: {fileID: 0}
     m_PressedSprite: {fileID: 0}

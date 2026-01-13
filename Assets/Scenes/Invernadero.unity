@@ -5233,22 +5233,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentParcelaPlant:
-    plantaTipo: 0
-    plantaNombre: 
-    plantaSprite: {fileID: 0}
-    semillaSprite: {fileID: 0}
-    semillaCiclo: 0
-    semillaPrecio: 0
-    tiempoCrecimientoMinutos: 0
-    energiaConsumo: 0
-    cosechaCantidad: 0
+    nombre: 
+    descripcion: "(Sin descripci\xF3n)"
     precioVentaEstandar: 0
     precioVentaPlata: 0
     precioVentaOro: 0
     precioCompraEstandar: 0
     precioCompraPlata: 0
     precioCompraOro: 0
+    plantaTipo: 0
+    plantaSprite: {fileID: 0}
+    semillaSprite: {fileID: 0}
+    frutoSprite: {fileID: 0}
+    semillaCiclo: 0
+    tiempoCrecimientoMinutos: 0
+    energiaConsumo: 0
+    cosechaCantidad: 0
   plantDatabase: {fileID: 11400000, guid: 7e4af753f08acdc4eb432a2a579b9909, type: 2}
+  sueroDatabase: {fileID: 11400000, guid: dddeab91cc41dd14b8f114a42be96db1, type: 2}
   luminaSlots:
   - {fileID: 1712869259}
   - {fileID: 1242775528}
@@ -9336,7 +9338,8 @@ MonoBehaviour:
     cantidad: 1
   sueros: []
   coins: 0
-  plantBD: {fileID: 0}
+  plantBD: {fileID: 11400000, guid: 7e4af753f08acdc4eb432a2a579b9909, type: 2}
+  sueroBD: {fileID: 11400000, guid: dddeab91cc41dd14b8f114a42be96db1, type: 2}
   plantaToItemMapping: []
 --- !u!4 &1660954818
 Transform:

@@ -5,8 +5,9 @@ using TMPro;
 public class InventoryUI : MonoBehaviour
 {
     public GameObject itemSlotPrefab;
-    public Transform content;
-    public Image detailsSprite;
+    public Transform semillasContent;
+    public Transform plantasContent;
+    public Transform suerosContent;
 
     public static InventoryUI Instance { get; private set; }
 
@@ -33,66 +34,97 @@ public class InventoryUI : MonoBehaviour
 
     public void RefreshInventory()
     {
-        if (content == null)
+        RefreshSemillas();
+        RefreshPlantas();
+        RefreshSueros();
+    }
+
+    public void CheckNotNull(GameObject obj, string fieldName)
+    {
+        if (obj == null)
         {
-            Debug.LogError("[InventoryUI] ¡El campo 'Content' no está asignado en el Inspector!");
-            return;
+            Debug.LogError($"[InventoryUI] ¡El campo '{fieldName}' no está asignado en el Inspector!");
         }
+    }
 
-        foreach (Transform child in content)
-            Destroy(child.gameObject);
+    public void RefreshSemillas()
+    {
+        CheckNotNull(semillasContent.gameObject, "semillasContent");
+        CheckNotNull(InventorySystem.Instance.gameObject, "InventorySystem");
 
-
-        if (InventorySystem.Instance == null)
-        {
-            Debug.LogError("[InventoryUI] ¡No hay InventoryManager en la escena!");
-            return;
-        }
+        foreach (Transform child in semillasContent) { Destroy(child.gameObject); }
 
         foreach (var semilla in InventorySystem.Instance.semillas)
         {
             Debug.Log($"[InventoryUI] Procesando semilla: {semilla.plantaTipo} x{semilla.cantidad}");
-            if (semilla == null)
-                continue;
+            GameObject slot = Instantiate(itemSlotPrefab, semillasContent);
 
-            GameObject slot = Instantiate(itemSlotPrefab, content);
-
-            // Transform iconoTransform = slot.transform.Find("Icono");
-            // Transform cantidadTransform = slot.transform.Find("Cantidad");
-            // Transform buttonTransform = slot.transform.Find("Button");
-
-            // if (iconoTransform == null || cantidadTransform == null || buttonTransform == null)
-            //     continue;
-
-            // Image iconImage = iconoTransform.GetComponent<Image>();
-            PlantasInfo plantasInfo = InvernaderoManager.Instance.plantDatabase.GetPlantas(semilla.plantaTipo);
+            PlantasData plantaData = InvernaderoManager.Instance.plantDatabase.GetPlantas(semilla.plantaTipo);
             slot.GetComponent<InventorySlot>().Setup(
-                new ItemSO { itemNombre = plantasInfo.plantaNombre, itemDescripcion = "Sin descripción",
-                icon = plantasInfo.semillaSprite },
+                new ItemInfo {
+                    itemNombre = plantaData.nombre,
+                    itemDescripcion = plantaData.descripcion,
+                    icon = plantaData.semillaSprite,
+                    widthModifier = plantaData.widthModifier,
+                    heightModifier = plantaData.heightModifier
+                },
                 semilla.cantidad
             );
-
-            // if (iconImage != null && plantasInfo.semillaSprite != null)
-            // {
-            //     iconImage.sprite = plantasInfo.semillaSprite;
-            // }
-
-
-            // TextMeshProUGUI cantidadText = cantidadTransform.GetComponent<TextMeshProUGUI>();
-            // if (cantidadText != null)
-            // {
-            //     cantidadText.text = semilla.cantidad == -1 ? "∞" : semilla.cantidad.ToString();
-            // }
-
-            // Button boton = buttonTransform.GetComponent<Button>();
-            // if (boton != null)
-            // {
-            //     ItemSO itemRef = semilla;
-            //     boton.onClick.AddListener(() => UsarItemEnCaldero(itemRef));
-            // }
         }
     }
 
+    public void RefreshPlantas()
+    {
+        CheckNotNull(plantasContent.gameObject, "plantasContent");
+        CheckNotNull(InventorySystem.Instance.gameObject, "InventorySystem");
+
+        foreach (Transform child in plantasContent) { Destroy(child.gameObject); }
+
+        foreach (var planta in InventorySystem.Instance.plantas)
+        {
+            Debug.Log($"[InventoryUI] Procesando planta: {planta.plantaTipo} x{planta.cantidad}");
+            GameObject slot = Instantiate(itemSlotPrefab, plantasContent);
+
+            PlantasData plantaData = InvernaderoManager.Instance.plantDatabase.GetPlantas(planta.plantaTipo);
+            slot.GetComponent<InventorySlot>().Setup(
+                new ItemInfo {
+                    itemNombre = plantaData.nombre,
+                    itemDescripcion = plantaData.descripcion,
+                    icon = plantaData.frutoSprite,
+                    calidad = planta.calidad,
+                    widthModifier = plantaData.widthModifier,
+                    heightModifier = plantaData.heightModifier
+                },
+                planta.cantidad
+            );
+        }
+    }
+
+    public void RefreshSueros()
+    {
+        CheckNotNull(suerosContent.gameObject, "suerosContent");
+        CheckNotNull(InventorySystem.Instance.gameObject, "InventorySystem");
+
+        foreach (Transform child in suerosContent) { Destroy(child.gameObject); }
+
+        foreach (var suero in InventorySystem.Instance.sueros)
+        {
+            Debug.Log($"[InventoryUI] Procesando suero: {suero.sueroNombre} x{suero.cantidad}");
+            GameObject slot = Instantiate(itemSlotPrefab, suerosContent);
+
+            SueroData sueroInfo = InvernaderoManager.Instance.sueroDatabase.GetSueroByName(suero.sueroNombre);
+            slot.GetComponent<InventorySlot>().Setup(
+                new ItemInfo {
+                    itemNombre = sueroInfo.nombre,
+                    itemDescripcion = sueroInfo.descripcion,
+                    icon = sueroInfo.sueroSprite,
+                    widthModifier = sueroInfo.widthModifier,
+                    heightModifier = sueroInfo.heightModifier
+                },
+                suero.cantidad
+            );
+        }
+    }
 
     void UsarItemEnCaldero(ItemSO item)
     {
@@ -116,10 +148,8 @@ public class InventoryUI : MonoBehaviour
         }
     }
 
-    public void DisplayDetails(ItemSO item)
+    public void DisplayDetails(ItemInfo item)
     {
-        Debug.Log($"[InventoryUI] Mostrando detalles para: {item.itemNombre}");
-        detailsSprite.sprite = item.icon;
-        detailsSprite.gameObject.SetActive(true);
+        InventarioDetailsUI.Instance.ShowItemDetails(item);
     }
 }

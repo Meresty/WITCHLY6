@@ -84,7 +84,7 @@ public class CajaCalidadUI : MonoBehaviour
             // Solo mostrar plantas que no sean oro y que tengamos al menos 2
             if (plantaItem.calidad != PlantaCalidad.Oro && plantaItem.cantidad >= 2)
             {
-                PlantasInfo data = InvernaderoManager.Instance.plantDatabase.GetPlantas(plantaItem.plantaTipo);
+                PlantasData data = InvernaderoManager.Instance.plantDatabase.GetPlantas(plantaItem.plantaTipo);
                 if (data == null) continue;
 
                 GameObject itemObj = Instantiate(plantSelectionItemPrefab, plantListContainer);
@@ -185,7 +185,7 @@ public class PlantSelectionItem : MonoBehaviour
         }
     }
 
-    public void Setup(PlantaTipo type, PlantaCalidad qual, PlantasInfo data, int count, CajaCalidadUI parent)
+    public void Setup(PlantaTipo type, PlantaCalidad qual, PlantasData data, int count, CajaCalidadUI parent)
     {
         plantaTipo = type;
         calidad = qual;
@@ -199,7 +199,7 @@ public class PlantSelectionItem : MonoBehaviour
         if (itemNombreTxt != null)
         {
             string qualityName = qual == PlantaCalidad.Estandar ? "Estándar" : "Plata";
-            itemNombreTxt.text = $"{data.plantaNombre} ({qualityName})";
+            itemNombreTxt.text = $"{data.nombre} ({qualityName})";
         }
 
         if (cantidadTxt != null)

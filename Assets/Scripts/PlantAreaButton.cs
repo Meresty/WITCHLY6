@@ -23,7 +23,7 @@ public class PlantAreaButton : MonoBehaviour
     public Color growingColor = new Color(0.3f, 0.6f, 0.9f); // Azul
     public Color readyColor = new Color(1f, 0.84f, 0f); // Dorado
 
-    private PlantasInfo plantData;
+    private PlantasData plantData;
 
     void Start()
     {
@@ -69,7 +69,7 @@ public class PlantAreaButton : MonoBehaviour
         // Actualizar nombre
         if (areaNameText != null)
         {
-            areaNameText.text = plantData.plantaNombre;
+            areaNameText.text = plantData.nombre;
         }
 
         // Actualizar icono

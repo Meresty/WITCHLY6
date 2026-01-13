@@ -42,6 +42,7 @@ public class InventorySystem : MonoBehaviour
 
     [Header("Referencias")]
     public PlantaBD plantBD;
+    public SueroDB sueroBD;
 
     [Header("Conexión con Caldero")]
     [Tooltip("Asigna los ItemSO correspondientes a cada planta")]
@@ -74,10 +75,11 @@ public class InventorySystem : MonoBehaviour
             AddSerum("Suero de Fuerza", 1);
             AddSerum("Suero de Energía", 1);
             AddPlant(PlantaTipo.Drakonia, PlantaCalidad.Estandar, 5);
+            AddPlant(PlantaTipo.Drakonia, PlantaCalidad.Plata, 5);
             AddPlant(PlantaTipo.Falsibaya, PlantaCalidad.Estandar, 5);
+            AddPlant(PlantaTipo.Drakonia, PlantaCalidad.Oro, 5);
             AddSemilla(PlantaTipo.Falsibaya, -1);
             AddSemilla(PlantaTipo.Drakonia, -1);
-            AddSemilla(PlantaTipo.Lumina, 3);
 
             // RQF61: Drakonia y Falsibaya siempre disponibles (son perennes)
             // Ya están en el inventario inicial
@@ -337,7 +339,7 @@ public class InventorySystem : MonoBehaviour
     {
         if (RemovePlant(type, quality, amount))
         {
-            PlantasInfo data = plantBD.GetPlantas(type);
+            PlantasData data = plantBD.GetPlantas(type);
             if (data != null)
             {
                 int price = quality == PlantaCalidad.Estandar ? data.precioVentaEstandar :
@@ -358,12 +360,12 @@ public class InventorySystem : MonoBehaviour
     {
         if (RemoveSeed(type, amount))
         {
-            PlantasInfo data = plantBD.GetPlantas(type);
+            PlantasData data = plantBD.GetPlantas(type);
             if (data != null)
             {
-                AddCoins(data.semillaPrecio * amount);
+                AddCoins(data.precioCompraEstandar * amount);
 
-                Debug.Log($"Vendidas {amount} semillas de {type} por {data.semillaPrecio * amount} monedas");
+                Debug.Log($"Vendidas {amount} semillas de {type} por {data.precioCompraEstandar * amount} monedas");
             }
         }
     }
@@ -373,7 +375,7 @@ public class InventorySystem : MonoBehaviour
     /// </summary>
     public bool BuyPlant(PlantaTipo type, PlantaCalidad quality, int amount = 1)
     {
-        PlantasInfo data = plantBD.GetPlantas(type);
+        PlantasData data = plantBD.GetPlantas(type);
         if (data == null) return false;
 
         int price = quality == PlantaCalidad.Estandar ? data.precioCompraEstandar :
@@ -397,10 +399,10 @@ public class InventorySystem : MonoBehaviour
     /// </summary>
     public bool BuySeed(PlantaTipo type, int amount = 1)
     {
-        PlantasInfo data = plantBD.GetPlantas(type);
+        PlantasData data = plantBD.GetPlantas(type);
         if (data == null) return false;
 
-        int totalCost = data.semillaPrecio * amount;
+        int totalCost = data.precioCompraEstandar * amount;
 
         if (SpendCoins(totalCost))
         {

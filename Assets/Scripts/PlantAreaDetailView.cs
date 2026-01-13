@@ -104,7 +104,7 @@ public class PlantAreaDetailView : MonoBehaviour
 
     void UpdateDetailUI()
     {
-        PlantasInfo data = InvernaderoManager.Instance?.plantDatabase.GetPlantas(currentAreaType);
+        PlantasData data = InvernaderoManager.Instance?.plantDatabase.GetPlantas(currentAreaType);
 
         if (data == null)
         {
@@ -115,7 +115,7 @@ public class PlantAreaDetailView : MonoBehaviour
        
         if (areaTitleText != null)
         {
-            areaTitleText.text = $"Área de {data.plantaNombre}";
+            areaTitleText.text = $"Área de {data.nombre}";
         }
 
    
@@ -212,7 +212,7 @@ public class PlantAreaDetailView : MonoBehaviour
 
     bool CanPlantInArea(PlantaTipo type)
     {
-        PlantasInfo data = InvernaderoManager.Instance?.plantDatabase.GetPlantas(type);
+        PlantasData data = InvernaderoManager.Instance?.plantDatabase.GetPlantas(type);
         if (data == null) return false;
 
         //40.4

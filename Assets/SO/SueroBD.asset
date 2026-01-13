@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f8ebe9537c5bb74da144271081717cb, type: 3}
+  m_Name: SueroBD
+  m_EditorClassIdentifier: 
+  sueros:
+  - nombre: Suero de Fuerza
+    descripcion: Otorga fuerza. Tiene un sabor salado.
+    precioVentaEstandar: 0
+    precioVentaPlata: 0
+    precioVentaOro: 0
+    precioCompraEstandar: 0
+    precioCompraPlata: 0
+    precioCompraOro: 0
+    widthModifier: 0.4
+    heightModifier: 1
+    sueroSprite: {fileID: 7415104913495319241, guid: 1df0f041d1fb5cd4998a391156e3e293, type: 3}
+  - nombre: "Suero de Energ\xEDa"
+    descripcion: "Dota de energ\xEDa. Es dulce y colorido."
+    precioVentaEstandar: 0
+    precioVentaPlata: 0
+    precioVentaOro: 0
+    precioCompraEstandar: 0
+    precioCompraPlata: 0
+    precioCompraOro: 0
+    widthModifier: 0.4
+    heightModifier: 1
+    sueroSprite: {fileID: -7653906039105187158, guid: 1df0f041d1fb5cd4998a391156e3e293, type: 3}

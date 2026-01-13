@@ -13,93 +13,99 @@ MonoBehaviour:
   m_Name: PlantaBD
   m_EditorClassIdentifier: 
   plantas:
-  - plantaTipo: 0
-    plantaNombre: Lumina
+  - nombre: Lumina
+    descripcion: Emite un brillo sutil.
+    precioVentaEstandar: 0
+    precioVentaPlata: 0
+    precioVentaOro: 0
+    precioCompraEstandar: 0
+    precioCompraPlata: 0
+    precioCompraOro: 0
+    plantaTipo: 0
     plantaSprite: {fileID: 601721336096263527, guid: d119a540a0cbf40478b5711131eb3993, type: 3}
     semillaSprite: {fileID: 1639117514337336417, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}
+    frutoSprite: {fileID: 3144707607413309124, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
-    semillaPrecio: 0
     tiempoCrecimientoMinutos: 0
     energiaConsumo: 0
     cosechaCantidad: 0
+  - nombre: Falsibaya
+    descripcion: Aparenta ser una baya.
     precioVentaEstandar: 0
     precioVentaPlata: 0
     precioVentaOro: 0
     precioCompraEstandar: 0
     precioCompraPlata: 0
     precioCompraOro: 0
-  - plantaTipo: 1
-    plantaNombre: Falsibaya
+    plantaTipo: 1
     plantaSprite: {fileID: -4088496729837929557, guid: d119a540a0cbf40478b5711131eb3993, type: 3}
     semillaSprite: {fileID: 8341670268560739888, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}
+    frutoSprite: {fileID: 7769131342665995938, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
-    semillaPrecio: 0
     tiempoCrecimientoMinutos: 0
     energiaConsumo: 0
     cosechaCantidad: 0
+  - nombre: Drakonia
+    descripcion: "Se dice que est\xE1 relacinoada con Dragones."
     precioVentaEstandar: 0
     precioVentaPlata: 0
     precioVentaOro: 0
     precioCompraEstandar: 0
     precioCompraPlata: 0
     precioCompraOro: 0
-  - plantaTipo: 2
-    plantaNombre: Drakonia
+    plantaTipo: 2
     plantaSprite: {fileID: 1747077838145205141, guid: d119a540a0cbf40478b5711131eb3993, type: 3}
     semillaSprite: {fileID: -3726113340208717667, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}
+    frutoSprite: {fileID: -6017750437960063451, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
-    semillaPrecio: 0
     tiempoCrecimientoMinutos: 0
     energiaConsumo: 0
     cosechaCantidad: 0
+  - nombre: Eldebria
+    descripcion: Una planta muy antigua.
     precioVentaEstandar: 0
     precioVentaPlata: 0
     precioVentaOro: 0
     precioCompraEstandar: 0
     precioCompraPlata: 0
     precioCompraOro: 0
-  - plantaTipo: 3
-    plantaNombre: Eldebria
+    plantaTipo: 3
     plantaSprite: {fileID: 8412732159294920865, guid: d119a540a0cbf40478b5711131eb3993, type: 3}
     semillaSprite: {fileID: 8636291974338579882, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}
+    frutoSprite: {fileID: -2188078002575295142, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
-    semillaPrecio: 0
     tiempoCrecimientoMinutos: 0
     energiaConsumo: 0
     cosechaCantidad: 0
+  - nombre: Jiveria
+    descripcion: "Ex\xF3tica."
     precioVentaEstandar: 0
     precioVentaPlata: 0
     precioVentaOro: 0
     precioCompraEstandar: 0
     precioCompraPlata: 0
     precioCompraOro: 0
-  - plantaTipo: 4
-    plantaNombre: Jiveria
+    plantaTipo: 4
     plantaSprite: {fileID: 5900901404066471658, guid: d119a540a0cbf40478b5711131eb3993, type: 3}
     semillaSprite: {fileID: 4618484782213255994, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}
+    frutoSprite: {fileID: 2105267316751674198, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
-    semillaPrecio: 0
     tiempoCrecimientoMinutos: 0
     energiaConsumo: 0
     cosechaCantidad: 0
+  - nombre: Lirien
+    descripcion: Dice que trae buena suerte a los benevolentes.
     precioVentaEstandar: 0
     precioVentaPlata: 0
     precioVentaOro: 0
     precioCompraEstandar: 0
     precioCompraPlata: 0
     precioCompraOro: 0
-  - plantaTipo: 5
-    plantaNombre: Lirien
+    plantaTipo: 5
     plantaSprite: {fileID: -7287476289611647745, guid: d119a540a0cbf40478b5711131eb3993, type: 3}
     semillaSprite: {fileID: 3478803527628270165, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}
+    frutoSprite: {fileID: -1692550596250065869, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
-    semillaPrecio: 0
     tiempoCrecimientoMinutos: 0
     energiaConsumo: 0
     cosechaCantidad: 0
-    precioVentaEstandar: 0
-    precioVentaPlata: 0
-    precioVentaOro: 0
-    precioCompraEstandar: 0
-    precioCompraPlata: 0
-    precioCompraOro: 0

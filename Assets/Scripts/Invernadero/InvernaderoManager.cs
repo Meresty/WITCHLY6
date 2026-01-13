@@ -7,10 +7,11 @@ public class InvernaderoManager : MonoBehaviour
 {
     public static InvernaderoManager Instance { get; private set; }
 
-    public PlantasInfo currentParcelaPlant = null;
+    public PlantasData currentParcelaPlant = null;
 
     [Header("Referencias")]
     public PlantaBD plantDatabase;
+    public SueroDB sueroDatabase;
 
     //RQF36
 
