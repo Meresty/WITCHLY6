@@ -23,7 +23,7 @@ public class PlantAreaButton : MonoBehaviour
     public Color growingColor = new Color(0.3f, 0.6f, 0.9f); // Azul
     public Color readyColor = new Color(1f, 0.84f, 0f); // Dorado
 
-    private PlantasData plantData;
+    private PlantData plantData;
 
     void Start()
     {
@@ -38,14 +38,7 @@ public class PlantAreaButton : MonoBehaviour
             plantData = InvernaderoManager.Instance.plantDatabase.GetPlantas(areaPlantType);
         }
 
-        UpdateAreaDisplay();
-
-        // Suscribirse a cambios
-        if (InvernaderoManager.Instance != null)
-        {
-            // Actualizar cada segundo para reflejar cambios
-            InvokeRepeating(nameof(UpdateAreaDisplay), 1f, 1f);
-        }
+        // UpdateAreaDisplay();
     }
 
     void OnDestroy()
@@ -56,62 +49,62 @@ public class PlantAreaButton : MonoBehaviour
     /// <summary>
     /// Actualiza la visualización del área según su estado
     /// </summary>
-    void UpdateAreaDisplay()
-    {
-        if (InvernaderoManager.Instance == null || plantData == null)
-            return;
+    // void UpdateAreaDisplay()
+    // {
+    //     if (InvernaderoManager.Instance == null || plantData == null)
+    //         return;
 
-        // Obtener slots de esta área
-        int activeSlots = InvernaderoManager.Instance.GetActiveSlots(areaPlantType);
-        int readySlots = InvernaderoManager.Instance.GetReadySlots(areaPlantType);
-        int totalSlots = 4;
+    //     // Obtener slots de esta área
+    //     int activeSlots = InvernaderoManager.Instance.GetActiveSlots(areaPlantType);
+    //     int readySlots = InvernaderoManager.Instance.GetReadySlots(areaPlantType);
+    //     int totalSlots = 4;
 
-        // Actualizar nombre
-        if (areaNameText != null)
-        {
-            areaNameText.text = plantData.nombre;
-        }
+    //     // Actualizar nombre
+    //     if (areaNameText != null)
+    //     {
+    //         areaNameText.text = plantData.nombre;
+    //     }
 
-        // Actualizar icono
-        if (areaIcon != null && plantData.plantaSprite != null)
-        {
-            areaIcon.sprite = plantData.plantaSprite;
-        }
+    //     // Actualizar icono
+    //     if (areaIcon != null && plantData.plantaSprite != null)
+    //     {
+    //         areaIcon.sprite = plantData.plantaSprite;
+    //     }
 
-        // Actualizar texto de estado
-        if (statusText != null)
-        {
-            if (activeSlots == 0)
-            {
-                statusText.text = "Vacío";
-            }
-            else if (readySlots > 0)
-            {
-                statusText.text = $"{readySlots}/{totalSlots} Listo";
-            }
-            else
-            {
-                statusText.text = $"{activeSlots}/{totalSlots} Creciendo";
-            }
-        }
+    //     // Actualizar texto de estado
+    //     if (statusText != null)
+    //     {
+    //         if (activeSlots == 0)
+    //         {
+    //             statusText.text = "Vacío";
+    //         }
+    //         else if (readySlots > 0)
+    //         {
+    //             statusText.text = $"{readySlots}/{totalSlots} Listo";
+    //         }
+    //         else
+    //         {
+    //             statusText.text = $"{activeSlots}/{totalSlots} Creciendo";
+    //         }
+    //     }
 
-        // Actualizar indicador de color
-        if (statusIndicator != null)
-        {
-            if (activeSlots == 0)
-            {
-                statusIndicator.color = emptyColor;
-            }
-            else if (readySlots > 0)
-            {
-                statusIndicator.color = readyColor;
-            }
-            else
-            {
-                statusIndicator.color = growingColor;
-            }
-        }
-    }
+    //     // Actualizar indicador de color
+    //     if (statusIndicator != null)
+    //     {
+    //         if (activeSlots == 0)
+    //         {
+    //             statusIndicator.color = emptyColor;
+    //         }
+    //         else if (readySlots > 0)
+    //         {
+    //             statusIndicator.color = readyColor;
+    //         }
+    //         else
+    //         {
+    //             statusIndicator.color = growingColor;
+    //         }
+    //     }
+    // }
 
     /// <summary>
     /// Abre la vista detallada de esta área
@@ -134,8 +127,8 @@ public class PlantAreaButton : MonoBehaviour
     /// <summary>
     /// Fuerza una actualización inmediata
     /// </summary>
-    public void ForceUpdate()
-    {
-        UpdateAreaDisplay();
-    }
+    // public void ForceUpdate()
+    // {
+    //     UpdateAreaDisplay();
+    // }
 }

@@ -339,7 +339,7 @@ public class InventorySystem : MonoBehaviour
     {
         if (RemovePlant(type, quality, amount))
         {
-            PlantasData data = plantBD.GetPlantas(type);
+            PlantData data = plantBD.GetPlantas(type);
             if (data != null)
             {
                 int price = quality == PlantaCalidad.Estandar ? data.precioVentaEstandar :
@@ -360,7 +360,7 @@ public class InventorySystem : MonoBehaviour
     {
         if (RemoveSeed(type, amount))
         {
-            PlantasData data = plantBD.GetPlantas(type);
+            PlantData data = plantBD.GetPlantas(type);
             if (data != null)
             {
                 AddCoins(data.precioCompraEstandar * amount);
@@ -375,7 +375,7 @@ public class InventorySystem : MonoBehaviour
     /// </summary>
     public bool BuyPlant(PlantaTipo type, PlantaCalidad quality, int amount = 1)
     {
-        PlantasData data = plantBD.GetPlantas(type);
+        PlantData data = plantBD.GetPlantas(type);
         if (data == null) return false;
 
         int price = quality == PlantaCalidad.Estandar ? data.precioCompraEstandar :
@@ -399,7 +399,7 @@ public class InventorySystem : MonoBehaviour
     /// </summary>
     public bool BuySeed(PlantaTipo type, int amount = 1)
     {
-        PlantasData data = plantBD.GetPlantas(type);
+        PlantData data = plantBD.GetPlantas(type);
         if (data == null) return false;
 
         int totalCost = data.precioCompraEstandar * amount;

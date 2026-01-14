@@ -73,7 +73,7 @@ public class InventoryInvUI : MonoBehaviour
         // Crear items para cada tipo de semilla
         foreach (PlantaTipo plantaTipo in System.Enum.GetValues(typeof(PlantaTipo)))
         {
-            PlantasData data = InvernaderoManager.Instance.plantDatabase.GetPlantas(plantaTipo);
+            PlantData data = InvernaderoManager.Instance.plantDatabase.GetPlantas(plantaTipo);
             if (data == null) continue;
             
             // Mostrar siempre Drakonia y Falsibaya (perennes)
@@ -110,7 +110,7 @@ public class InventoryInvUI : MonoBehaviour
         {
             if (plantItem.cantidad > 0)
             {
-                PlantasData data = InvernaderoManager.Instance.plantDatabase.GetPlantas(plantItem.plantaTipo);
+                PlantData data = InvernaderoManager.Instance.plantDatabase.GetPlantas(plantItem.plantaTipo);
                 if (data == null) continue;
                 
                 GameObject itemObj = Instantiate(inventoryItemPrefab, plantasContainer);
@@ -197,7 +197,7 @@ public class InventoryItemUI : MonoBehaviour
         }
     }
     
-    public void SetupSeed(PlantaTipo type, PlantasData data, int count, bool perennial)
+    public void SetupSeed(PlantaTipo type, PlantData data, int count, bool perennial)
     {
         plantaTipo = type;
         isSemilla = true;
@@ -231,7 +231,7 @@ public class InventoryItemUI : MonoBehaviour
             calidadEstrella.gameObject.SetActive(false);
     }
     
-    public void SetupPlant(PlantaTipo type, PlantaCalidad qual, PlantasData data, int count)
+    public void SetupPlant(PlantaTipo type, PlantaCalidad qual, PlantData data, int count)
     {
         plantaTipo = type;
         calidad = qual;
@@ -289,9 +289,9 @@ public class InventoryItemUI : MonoBehaviour
         if (isSemilla)
         {
             // Intentar plantar en el siguiente slot disponible
-            bool success = InvernaderoManager.Instance.PlantInNextAvailableSlot(plantaTipo);
+            // bool success = InvernaderoManager.Instance.PlantInNextAvailableSlot(plantaTipo);
             
-            if (success)
+            if (false)
             {
                 Debug.Log($"Plantado {plantaTipo}");
             }

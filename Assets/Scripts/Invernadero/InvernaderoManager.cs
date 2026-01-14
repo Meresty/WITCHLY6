@@ -2,29 +2,41 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 
+[System.Serializable]
+public class CultivoSlotInfo
+{
+    public CultivoSlotInfo(PlantaTipo plantaTipo) {
+        this.plantaTipo = plantaTipo;
+    }
+
+    public PlantaTipo plantaTipo;
+    public bool isOccupied = false;
+    public Timer timer = new Timer();
+}
+
 
 public class InvernaderoManager : MonoBehaviour
 {
     public static InvernaderoManager Instance { get; private set; }
 
-    public PlantasData currentParcelaPlant = null;
+    public PlantData currentParcelaPlantData = null;
 
     [Header("Referencias")]
     public PlantaBD plantDatabase;
     public SueroDB sueroDatabase;
 
+    public List<CultivoSlotUI> cultivoSlotUIs = new List<CultivoSlotUI>();
     //RQF36
-
     [Header("Áreas de Cultivo")]
     [Tooltip("RQF36")]
+    [SerializeField] private List<CultivoSlotInfo> luminaSlots = new List<CultivoSlotInfo>();
+    [SerializeField] private List<CultivoSlotInfo> falsibayaSlots = new List<CultivoSlotInfo>();
+    [SerializeField] private List<CultivoSlotInfo> drakoniaSlots = new List<CultivoSlotInfo>();
+    [SerializeField] private List<CultivoSlotInfo> eldebriaSlots = new List<CultivoSlotInfo>();
+    [SerializeField] private List<CultivoSlotInfo> jiveriaSlots = new List<CultivoSlotInfo>();
+    [SerializeField] private List<CultivoSlotInfo> lirienSlots = new List<CultivoSlotInfo>();
 
-    public List<PlantaSlot> luminaSlots = new List<PlantaSlot>();
-    public List<PlantaSlot> falsibayaSlots = new List<PlantaSlot>();
-    public List<PlantaSlot> drakoniaSlots = new List<PlantaSlot>();
-    public List<PlantaSlot> eldebriaSlots = new List<PlantaSlot>();
-    public List<PlantaSlot> jiveriaSlots = new List<PlantaSlot>();
-    public List<PlantaSlot> lirienSlots = new List<PlantaSlot>();
-
+    public Dictionary<PlantaTipo, List<CultivoSlotInfo>> allPlantSlots;
 
 
     void Awake()
@@ -32,6 +44,7 @@ public class InvernaderoManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -41,330 +54,87 @@ public class InvernaderoManager : MonoBehaviour
 
     void Start()
     {
-        InitializeSlots();
-        // ValidateSlots();
-
         Debug.Log("InvernaderoManager inicializado");
+        InitilizeSlots();
+        InitializeDictionary();
     }
 
-
-    void InitializeSlots()
+    private void InitializeDictionary()
     {
-        // RQNF36.2
-        AssignPlantTypeToSlots(luminaSlots, PlantaTipo.Lumina);
-        AssignPlantTypeToSlots(falsibayaSlots, PlantaTipo.Falsibaya);
-        AssignPlantTypeToSlots(drakoniaSlots, PlantaTipo.Drakonia);
-        AssignPlantTypeToSlots(eldebriaSlots, PlantaTipo.Eldebria);
-        AssignPlantTypeToSlots(jiveriaSlots, PlantaTipo.Jiveria);
-        AssignPlantTypeToSlots(lirienSlots, PlantaTipo.Lirien);
-    }
-
-
-    void AssignPlantTypeToSlots(List<PlantaSlot> slots, PlantaTipo type)
-    {
-        foreach (var slot in slots)
+        allPlantSlots = new Dictionary<PlantaTipo, List<CultivoSlotInfo>>()
         {
-            if (slot != null)
+            { PlantaTipo.Lumina, luminaSlots },
+            { PlantaTipo.Falsibaya, falsibayaSlots },
+            { PlantaTipo.Drakonia, drakoniaSlots },
+            { PlantaTipo.Eldebria, eldebriaSlots },
+            { PlantaTipo.Jiveria, jiveriaSlots },
+            { PlantaTipo.Lirien, lirienSlots }
+        };
+    }
+
+    private void InitilizeSlots()
+    {
+        InitializeSlotWithPlantType(luminaSlots, PlantaTipo.Lumina);
+        InitializeSlotWithPlantType(falsibayaSlots, PlantaTipo.Falsibaya);
+        InitializeSlotWithPlantType(drakoniaSlots, PlantaTipo.Drakonia);
+        InitializeSlotWithPlantType(eldebriaSlots, PlantaTipo.Eldebria);
+        InitializeSlotWithPlantType(jiveriaSlots, PlantaTipo.Jiveria);
+        InitializeSlotWithPlantType(lirienSlots, PlantaTipo.Lirien);
+    }
+
+    private void InitializeSlotWithPlantType(List<CultivoSlotInfo> cultivoSlots, PlantaTipo tipo, int slotsCount = 4)
+    {
+        for(int i = 0; i < slotsCount; i++)
+        {
+            cultivoSlots.Add(new CultivoSlotInfo(tipo));
+        }
+    }
+
+    private void Update()
+    {
+        foreach (var plantaSlots in allPlantSlots.Values)
+        {
+            foreach (var slot in plantaSlots)
             {
-                slot.slotPlantType = type;
+                slot.timer.Tick(Time.deltaTime);
             }
         }
     }
 
-
-    void ValidateSlots()
+    public bool CanPlantInSlot(PlantaTipo plantaTipo)
     {
-        ValidateSlotArea(luminaSlots, "Lumina");
-        ValidateSlotArea(falsibayaSlots, "Falsibaya");
-        ValidateSlotArea(drakoniaSlots, "Drakonia");
-        ValidateSlotArea(eldebriaSlots, "Eldebria");
-        ValidateSlotArea(jiveriaSlots, "Jiveria");
-        ValidateSlotArea(lirienSlots, "Lirien");
-    }
-
-    void ValidateSlotArea(List<PlantaSlot> slots, string areaName)
-    {
-        if (slots.Count > 4)
-        {
-            Debug.LogError($"[VALIDACIÓN] El área {areaName} tiene {slots.Count} slots. MÁXIMO PERMITIDO: 4");
-        }
-        else if (slots.Count < 4)
-        {
-            Debug.LogWarning($"[VALIDACIÓN] El área {areaName} tiene {slots.Count} slots. Se recomienda 4.");
-        }
-        else
-        {
-            Debug.Log($"[VALIDACIÓN] Área {areaName}: {slots.Count} slots (correcto)");
-        }
-
- 
-        int nullCount = 0;
-        foreach (var slot in slots)
-        {
-            if (slot == null) nullCount++;
-        }
-
-        if (nullCount > 0)
-        {
-            Debug.LogError($"[VALIDACIÓN] El área {areaName} tiene {nullCount} slots NULL. Asígnalos en el Inspector.");
-        }
-    }
-
-
-    public int GetActiveSlots(PlantaTipo type)
-    {
-        List<PlantaSlot> slots = GetSlotsForPlantType(type);
-        int count = 0;
+        List<CultivoSlotInfo> slots = allPlantSlots[plantaTipo];
+        Debug.Log($"[InvernaderoManager] Verificando slots disponibles para {plantaTipo} entre {slots.Count} slots");
 
         foreach (var slot in slots)
         {
-            if (slot != null && slot.isOccupied)
-                count++;
-        }
-
-        return count;
-    }
-
-
-    /// RQF37
-
-    public int GetSlotsDisp(PlantaTipo type)
-    {
-        List<PlantaSlot> slots = GetSlotsForPlantType(type);
-        int count = 0;
-
-        foreach (var slot in slots)
-        {
-            if (slot != null && slot.CanPlant())
-                count++;
-        }
-
-        return count;
-    }
-
-    public int GetReadySlots(PlantaTipo type)
-    {
-        List<PlantaSlot> slots = GetSlotsForPlantType(type);
-        int count = 0;
-
-        foreach (var slot in slots)
-        {
-            if (slot != null && slot.IsReady())
-                count++;
-        }
-
-        return count;
-    }
-
-    /// RQF40
-    public bool PlantInNextAvailableSlot(PlantaTipo type)
-    {
-        List<PlantaSlot> slots = GetSlotsForPlantType(type);
-
-        // Buscar el primer slot disponible
-        foreach (var slot in slots)
-        {
-            if (slot != null && slot.CanPlant())
+            Debug.Log($"[InvernaderoManager] Slot ocupado: {slot.isOccupied}");
+            if (!slot.isOccupied)
             {
-                bool success = slot.PlantSeed(type);
-
-                if (success)
-                {
-                    Debug.Log($"Plantado {type} en slot disponible");
-                    return true;
-                }
-                else
-                {
-                    Debug.LogWarning($"No se pudo plantar {type} en el slot");
-                }
+                return true;
             }
         }
-
-        Debug.LogWarning($"No hay slots disponibles para {type}");
         return false;
     }
 
-    List<PlantaSlot> GetSlotsForPlantType(PlantaTipo type)
+    public void PlantSeed(PlantaTipo plantaTipo)
     {
-        switch (type)
+        if(!CanPlantInSlot(plantaTipo))
         {
-            case PlantaTipo.Lumina: return luminaSlots;
-            case PlantaTipo.Falsibaya: return falsibayaSlots;
-            case PlantaTipo.Drakonia: return drakoniaSlots;
-            case PlantaTipo.Eldebria: return eldebriaSlots;
-            case PlantaTipo.Jiveria: return jiveriaSlots;
-            case PlantaTipo.Lirien: return lirienSlots;
-            default:
-                Debug.LogError($"Tipo de planta no reconocido: {type}");
-                return new List<PlantaSlot>();
+            Debug.LogWarning($"No hay slots disponibles para plantar {plantaTipo}");
+            return;
         }
+        PlantData plantData = plantDatabase.GetPlantas(plantaTipo);
+        CultivoSlotInfo firstAvailableSlot = null;
+        var allPlantSlotsOfType = allPlantSlots[plantaTipo];
+        Debug.Log($"[InvernaderoManager] Buscando slot disponible para {plantaTipo} entre {allPlantSlotsOfType.Count} slots");
+        firstAvailableSlot = allPlantSlotsOfType.Find(slot => !slot.isOccupied);
+
+        if(firstAvailableSlot == null) { throw new System.Exception($"No hay slots disponibles para plantar {plantaTipo}"); }
+
+        firstAvailableSlot.isOccupied = true;
+        firstAvailableSlot.timer.Start(plantData.tiempoCrecimientoMinutos * 60);
+        InventorySystem.Instance.RemoveSeed(plantaTipo, 1);
     }
 
-    public int GetTotalActivePlants()
-    {
-        int total = 0;
-        total += GetActiveSlots(PlantaTipo.Lumina);
-        total += GetActiveSlots(PlantaTipo.Falsibaya);
-        total += GetActiveSlots(PlantaTipo.Drakonia);
-        total += GetActiveSlots(PlantaTipo.Eldebria);
-        total += GetActiveSlots(PlantaTipo.Jiveria);
-        total += GetActiveSlots(PlantaTipo.Lirien);
-        return total;
-    }
-
-    /// RQF41
-    public void HarvestAll()
-    {
-        int harvested = 0;
-
-        harvested += HarvestAllFromArea(luminaSlots);
-        harvested += HarvestAllFromArea(falsibayaSlots);
-        harvested += HarvestAllFromArea(drakoniaSlots);
-        harvested += HarvestAllFromArea(eldebriaSlots);
-        harvested += HarvestAllFromArea(jiveriaSlots);
-        harvested += HarvestAllFromArea(lirienSlots);
-
-        Debug.Log($"Cosechadas {harvested} plantas en total");
-    }
-
-    int HarvestAllFromArea(List<PlantaSlot> slots)
-    {
-        int count = 0;
-
-        foreach (var slot in slots)
-        {
-            if (slot != null && slot.isOccupied && slot.IsReady())
-            {
-                slot.Harvest();
-                count++;
-            }
-        }
-
-        return count;
-    }
-
-    public void HarvestAllOfType(PlantaTipo type)
-    {
-        List<PlantaSlot> slots = GetSlotsForPlantType(type);
-        int count = HarvestAllFromArea(slots);
-
-        Debug.Log($"Cosechadas {count} plantas de {type}");
-    }
-
-    #region MÉTODOS DE DEBUGGING
-
-    [ContextMenu("Validar Configuración de Slots")]
-    public void ValidateConfiguration()
-    {
-        Debug.Log("=== VALIDACIÓN DE CONFIGURACIÓN ===");
-        ValidateSlots();
-
-        Debug.Log("\n--- ESTADO ACTUAL ---");
-        Debug.Log($"Total de plantas activas: {GetTotalActivePlants()}");
-
-        foreach (PlantaTipo type in System.Enum.GetValues(typeof(PlantaTipo)))
-        {
-            int active = GetActiveSlots(type);
-            int available = GetSlotsDisp(type);
-            int ready = GetReadySlots(type);
-            Debug.Log($"{type}: {active} activos, {ready} listos, {available} disponibles");
-        }
-    }
-
-    [ContextMenu("Plantar Una de Cada Tipo")]
-    public void PlantOneOfEach()
-    {
-        Debug.Log("=== PLANTANDO UNA DE CADA TIPO ===");
-
-        foreach (PlantaTipo type in System.Enum.GetValues(typeof(PlantaTipo)))
-        {
-            PlantInNextAvailableSlot(type);
-        }
-    }
-
-    [ContextMenu("Llenar Todo el Invernadero")]
-    public void FillGreenhouse()
-    {
-        Debug.Log("=== LLENANDO INVERNADERO ===");
-
-        foreach (PlantaTipo type in System.Enum.GetValues(typeof(PlantaTipo)))
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                if (!PlantInNextAvailableSlot(type))
-                    break;
-            }
-        }
-        Debug.Log($"Invernadero llenado. Total plantas: {GetTotalActivePlants()}");
-    }
-
-    [ContextMenu("Cosechar Todo")]
-    public void HarvestAllDebug()
-    {
-        HarvestAll();
-    }
-
-    [ContextMenu("Mostrar Estado del Invernadero")]
-    public void ShowGreenhouseState()
-    {
-        Debug.Log("=== ESTADO DEL INVERNADERO ===");
-        Debug.Log($"Total de plantas activas: {GetTotalActivePlants()}/24");
-
-        foreach (PlantaTipo type in System.Enum.GetValues(typeof(PlantaTipo)))
-        {
-            int active = GetActiveSlots(type);
-            int ready = GetReadySlots(type);
-            int available = GetSlotsDisp(type);
-            int total = active + available;
-
-            Debug.Log($"\n{type}:");
-            Debug.Log($"  Slots totales: {total}");
-            Debug.Log($"  Activos: {active}");
-            Debug.Log($"  Listos para cosechar: {ready}");
-            Debug.Log($"  Disponibles: {available}");
-
-            // Mostrar estado de cada slot
-            List<PlantaSlot> slots = GetSlotsForPlantType(type);
-            for (int i = 0; i < slots.Count; i++)
-            {
-                if (slots[i] != null)
-                {
-                    string status = slots[i].isOccupied ?
-                        (slots[i].IsReady() ? "LISTO " : "CRECIENDO...") :
-                        "VACÍO";
-                    Debug.Log($"    Slot {i + 1}: {status}");
-                }
-            }
-        }
-    }
-    #endregion
-
-    // public void GoToParcela(PlantaTipo plantaTipo)
-    // {
-    //     Debug.Log($"Navegando a parcela de {plantaTipo}...");
-    //     PlantasInfo plantaInfo = plantDatabase.GetPlantas(plantaTipo);
-    //     if (plantaInfo != null)
-    //     {
-    //         currentParcelaPlant = plantaInfo;
-    //         Debug.Log($"Navegando a parcela de {plantaInfo.plantaNombre}");
-    //         // Aquí iría la lógica para cambiar de escena o activar la parcela
-    //         SceneManager.LoadScene("ParcelaScene");
-    //     }
-    //     else
-    //     {
-    //         Debug.LogError($"No se encontró información para la planta de tipo {plantaTipo}");
-    //     }
-    // }
-
-    // // Métodos públicos sin parámetros para usar en botones UI
-    // public void GoToParcelaLumina() => GoToParcela(PlantaTipo.Lumina);
-    // public void GoToParcelaFalsibaya() => GoToParcela(PlantaTipo.Falsibaya);
-    // public void GoToParcelaDrakonia() => GoToParcela(PlantaTipo.Drakonia);
-    // public void GoToParcelaEldebria() => GoToParcela(PlantaTipo.Eldebria);
-    // public void GoToParcelaJiveria() => GoToParcela(PlantaTipo.Jiveria);
-    // public void GoToParcelaLirien() => GoToParcela(PlantaTipo.Lirien);
-
-    public void PlantarTodo() {
-        Debug.Log("PlantarTodo no implementado aún");
-    }
 }

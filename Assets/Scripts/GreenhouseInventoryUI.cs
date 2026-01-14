@@ -110,7 +110,7 @@ public class GreenhouseInventoryUI : MonoBehaviour
         // Configurar visual
         if (InventorySystem.Instance.plantBD != null)
         {
-            PlantasData info = InventorySystem.Instance.plantBD.GetPlantas(plant.plantaTipo);
+            PlantData info = InventorySystem.Instance.plantBD.GetPlantas(plant.plantaTipo);
             if (info != null && icon != null)
             {
                 icon.sprite = info.plantaSprite;
@@ -145,7 +145,7 @@ public class GreenhouseInventoryUI : MonoBehaviour
 
             if (actionDescriptionText != null)
             {
-                PlantasData info = InventorySystem.Instance.plantBD.GetPlantas(plant.plantaTipo);
+                PlantData info = InventorySystem.Instance.plantBD.GetPlantas(plant.plantaTipo);
                 if (info != null)
                 {
                     int precio = plant.calidad == PlantaCalidad.Estandar ? info.precioVentaEstandar :
@@ -214,7 +214,7 @@ public class GreenhouseInventoryUI : MonoBehaviour
 
         if (InventorySystem.Instance.plantBD != null)
         {
-            PlantasData info = InventorySystem.Instance.plantBD.GetPlantas(seed.plantaTipo);
+            PlantData info = InventorySystem.Instance.plantBD.GetPlantas(seed.plantaTipo);
             if (info != null && icon != null)
             {
                 // Puedes usar un icono diferente para semillas
@@ -249,7 +249,7 @@ public class GreenhouseInventoryUI : MonoBehaviour
 
             if (actionDescriptionText != null)
             {
-                PlantasData info = InventorySystem.Instance.plantBD.GetPlantas(seed.plantaTipo);
+                PlantData info = InventorySystem.Instance.plantBD.GetPlantas(seed.plantaTipo);
                 if (info != null)
                 {
                     actionDescriptionText.text = $"Cantidad: {seed.cantidad}\nPrecio venta: {info.precioCompraEstandar} monedas";

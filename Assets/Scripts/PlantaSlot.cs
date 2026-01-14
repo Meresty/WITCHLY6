@@ -93,7 +93,7 @@ public class PlantaSlot : MonoBehaviour
             return false;
         }
 
-        PlantasData data = InvernaderoManager.Instance.plantDatabase.GetPlantas(plantType);
+        PlantData data = InvernaderoManager.Instance.plantDatabase.GetPlantas(plantType);
         if (data == null)
         {
             Debug.LogError($"PlantData no encontrado para {plantType}");
@@ -214,7 +214,7 @@ public class PlantaSlot : MonoBehaviour
             return;
         }
 
-        PlantasData data = InvernaderoManager.Instance.plantDatabase.GetPlantas(currentPlant);
+        PlantData data = InvernaderoManager.Instance.plantDatabase.GetPlantas(currentPlant);
         if (data == null)
         {
             Debug.LogError($"PlantData no encontrado para {currentPlant}");
@@ -284,7 +284,7 @@ public class PlantaSlot : MonoBehaviour
         {
             if (isOccupied)
             {
-                PlantasData data = InvernaderoManager.Instance.plantDatabase.GetPlantas(currentPlant);
+                PlantData data = InvernaderoManager.Instance.plantDatabase.GetPlantas(currentPlant);
                 if (data != null)
                 {
                     plantImage.sprite = data.plantaSprite;

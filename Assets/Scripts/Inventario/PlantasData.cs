@@ -10,7 +10,8 @@ public enum  PlantaTipo
     Drakonia,
     Eldebria,
     Jiveria,
-    Lirien
+    Lirien,
+    NONE = -1,
 }
 
 [System.Serializable]
@@ -30,7 +31,7 @@ public enum SemillaCiclo
 }
 
 [System.Serializable]
-public class PlantasData : ItemData
+public class PlantData : ItemData
 {
     [Header("Identificacion")]
     public PlantaTipo plantaTipo;

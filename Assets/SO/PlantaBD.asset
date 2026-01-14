@@ -21,6 +21,8 @@ MonoBehaviour:
     precioCompraEstandar: 0
     precioCompraPlata: 0
     precioCompraOro: 0
+    widthModifier: 1
+    heightModifier: 1
     plantaTipo: 0
     plantaSprite: {fileID: 601721336096263527, guid: d119a540a0cbf40478b5711131eb3993, type: 3}
     semillaSprite: {fileID: 1639117514337336417, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}
@@ -37,6 +39,8 @@ MonoBehaviour:
     precioCompraEstandar: 0
     precioCompraPlata: 0
     precioCompraOro: 0
+    widthModifier: 1
+    heightModifier: 1
     plantaTipo: 1
     plantaSprite: {fileID: -4088496729837929557, guid: d119a540a0cbf40478b5711131eb3993, type: 3}
     semillaSprite: {fileID: 8341670268560739888, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}
@@ -53,6 +57,8 @@ MonoBehaviour:
     precioCompraEstandar: 0
     precioCompraPlata: 0
     precioCompraOro: 0
+    widthModifier: 1
+    heightModifier: 1
     plantaTipo: 2
     plantaSprite: {fileID: 1747077838145205141, guid: d119a540a0cbf40478b5711131eb3993, type: 3}
     semillaSprite: {fileID: -3726113340208717667, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}
@@ -69,6 +75,8 @@ MonoBehaviour:
     precioCompraEstandar: 0
     precioCompraPlata: 0
     precioCompraOro: 0
+    widthModifier: 1
+    heightModifier: 1
     plantaTipo: 3
     plantaSprite: {fileID: 8412732159294920865, guid: d119a540a0cbf40478b5711131eb3993, type: 3}
     semillaSprite: {fileID: 8636291974338579882, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}
@@ -85,6 +93,8 @@ MonoBehaviour:
     precioCompraEstandar: 0
     precioCompraPlata: 0
     precioCompraOro: 0
+    widthModifier: 1
+    heightModifier: 1
     plantaTipo: 4
     plantaSprite: {fileID: 5900901404066471658, guid: d119a540a0cbf40478b5711131eb3993, type: 3}
     semillaSprite: {fileID: 4618484782213255994, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}
@@ -101,6 +111,8 @@ MonoBehaviour:
     precioCompraEstandar: 0
     precioCompraPlata: 0
     precioCompraOro: 0
+    widthModifier: 1
+    heightModifier: 1
     plantaTipo: 5
     plantaSprite: {fileID: -7287476289611647745, guid: d119a540a0cbf40478b5711131eb3993, type: 3}
     semillaSprite: {fileID: 3478803527628270165, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}

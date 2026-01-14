@@ -1737,6 +1737,7 @@ MonoBehaviour:
   itemNameText: {fileID: 488864335}
   itemDescriptionText: {fileID: 1198974207}
   calidadText: {fileID: 885394757}
+  plantarButton: {fileID: 905283270}
 --- !u!1 &645306752
 GameObject:
   m_ObjectHideFlags: 0

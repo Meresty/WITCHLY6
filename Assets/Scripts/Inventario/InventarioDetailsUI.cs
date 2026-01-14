@@ -12,6 +12,7 @@ public class InventarioDetailsUI : MonoBehaviour
     public TMP_Text itemNameText;
     public TMP_Text itemDescriptionText;
     public TMP_Text calidadText;
+    public Button plantarButton;
 
     private void Awake()
     {
@@ -61,5 +62,8 @@ public class InventarioDetailsUI : MonoBehaviour
                 bg.color = Color.white - new Color(0f, 0f, 0f, 0.3f);
                 break;
         }
+
+        plantarButton.onClick.RemoveAllListeners();
+        plantarButton.onClick.AddListener(() => InvernaderoManager.Instance.PlantSeed(item.plantaTipo));
     }
 }

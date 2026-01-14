@@ -24,7 +24,13 @@ public class InventoryUI : MonoBehaviour
     void Start()
     {
         Debug.Log("[InventoryUI] Inicializando UI de Inventario");
+        InventorySystem.Instance.OnInventoryChanged += RefreshInventory;
         RefreshInventory();
+    }
+
+    void OnDestroy()
+    {
+        InventorySystem.Instance.OnInventoryChanged -= RefreshInventory;
     }
 
     void OnEnable()
@@ -57,16 +63,19 @@ public class InventoryUI : MonoBehaviour
         foreach (var semilla in InventorySystem.Instance.semillas)
         {
             Debug.Log($"[InventoryUI] Procesando semilla: {semilla.plantaTipo} x{semilla.cantidad}");
-            GameObject slot = Instantiate(itemSlotPrefab, semillasContent);
+            GameObject itemSlot = Instantiate(itemSlotPrefab, semillasContent);
 
-            PlantasData plantaData = InvernaderoManager.Instance.plantDatabase.GetPlantas(semilla.plantaTipo);
-            slot.GetComponent<InventorySlot>().Setup(
+            PlantData plantaData = InvernaderoManager.Instance.plantDatabase.GetPlantas(semilla.plantaTipo);
+            Debug.Log($"[InventoryUI] Obtenida PlantData para {semilla.plantaTipo}: {plantaData.nombre}");
+            InventorySlot inventorySlot = itemSlot.GetComponent<InventorySlot>();
+            inventorySlot.Setup(
                 new ItemInfo {
                     itemNombre = plantaData.nombre,
                     itemDescripcion = plantaData.descripcion,
                     icon = plantaData.semillaSprite,
                     widthModifier = plantaData.widthModifier,
-                    heightModifier = plantaData.heightModifier
+                    heightModifier = plantaData.heightModifier,
+                    plantaTipo = semilla.plantaTipo,
                 },
                 semilla.cantidad
             );
@@ -83,10 +92,10 @@ public class InventoryUI : MonoBehaviour
         foreach (var planta in InventorySystem.Instance.plantas)
         {
             Debug.Log($"[InventoryUI] Procesando planta: {planta.plantaTipo} x{planta.cantidad}");
-            GameObject slot = Instantiate(itemSlotPrefab, plantasContent);
+            GameObject itemSlot = Instantiate(itemSlotPrefab, plantasContent);
 
-            PlantasData plantaData = InvernaderoManager.Instance.plantDatabase.GetPlantas(planta.plantaTipo);
-            slot.GetComponent<InventorySlot>().Setup(
+            PlantData plantaData = InvernaderoManager.Instance.plantDatabase.GetPlantas(planta.plantaTipo);
+            itemSlot.GetComponent<InventorySlot>().Setup(
                 new ItemInfo {
                     itemNombre = plantaData.nombre,
                     itemDescripcion = plantaData.descripcion,
@@ -110,10 +119,10 @@ public class InventoryUI : MonoBehaviour
         foreach (var suero in InventorySystem.Instance.sueros)
         {
             Debug.Log($"[InventoryUI] Procesando suero: {suero.sueroNombre} x{suero.cantidad}");
-            GameObject slot = Instantiate(itemSlotPrefab, suerosContent);
+            GameObject itemSlot = Instantiate(itemSlotPrefab, suerosContent);
 
             SueroData sueroInfo = InvernaderoManager.Instance.sueroDatabase.GetSueroByName(suero.sueroNombre);
-            slot.GetComponent<InventorySlot>().Setup(
+            itemSlot.GetComponent<InventorySlot>().Setup(
                 new ItemInfo {
                     itemNombre = sueroInfo.nombre,
                     itemDescripcion = sueroInfo.descripcion,

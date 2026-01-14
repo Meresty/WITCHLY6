@@ -15,59 +15,39 @@ public class PlantAreaDetailView : MonoBehaviour
     public Image areaPlantImage;
     public TextMeshProUGUI plantInfoText;
 
-    [Header("Grid Container 2x2")]
-    public Transform slotsGridContainer; 
-
     [Header("Botones Principales")]
-    public Button closeButton;
     public Button plantAllButton;
     public Button harvestAllButton;
 
     private PlantaTipo currentAreaType;
-    private List<PlantaSlot> currentSlots = new List<PlantaSlot>();
+    private List<CultivoSlotInfo> currentSlots = new List<CultivoSlotInfo>();
+    public List<CultivoSlotUI> cultivoSlotUIs = new List<CultivoSlotUI>();
 
     void Awake()
     {
         if (Instance == null)
         {
+            Debug.Log("PlantAreaDetailView inicializado");
             Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
+            Debug.LogWarning("PlantAreaDetailView ya existe, destruyendo instancia duplicada");
             Destroy(gameObject);
         }
     }
 
     void Start()
     {
-
-        if (closeButton != null)
-        {
-            closeButton.onClick.AddListener(CloseAreaDetail);
-        }
-
-        if (plantAllButton != null)
-        {
-            plantAllButton.onClick.AddListener(PlantAll);
-        }
-
-        if (harvestAllButton != null)
-        {
-            harvestAllButton.onClick.AddListener(HarvestAll);
-        }
-
-
         if (detailViewPanel != null)
         {
             detailViewPanel.SetActive(false);
         }
     }
 
-
-
     public void OpenAreaDetail(PlantaTipo plantType)
     {
-
         currentAreaType = plantType;
         currentSlots = GetSlotsForArea(plantType);
 
@@ -83,7 +63,7 @@ public class PlantAreaDetailView : MonoBehaviour
         }
 
         UpdateDetailUI();
-
+        UpdateCultivoSlotsUI();
         Debug.Log($"Vista detallada abierta: {plantType} con {currentSlots.Count} slots");
     }
 
@@ -93,37 +73,28 @@ public class PlantAreaDetailView : MonoBehaviour
         {
             detailViewPanel.SetActive(false);
         }
-
-        currentSlots.Clear();
-
-     
-        UpdateMainViewButtons();
-
         Debug.Log("Vista detallada cerrada");
     }
 
     void UpdateDetailUI()
     {
-        PlantasData data = InvernaderoManager.Instance?.plantDatabase.GetPlantas(currentAreaType);
+        PlantData data = InvernaderoManager.Instance?.plantDatabase.GetPlantas(currentAreaType);
 
         if (data == null)
         {
             Debug.LogError($"PlantaData no encontrado para {currentAreaType}");
             return;
         }
-
        
         if (areaTitleText != null)
         {
             areaTitleText.text = $"Área de {data.nombre}";
         }
-
    
         if (areaPlantImage != null && data.plantaSprite != null)
         {
             areaPlantImage.sprite = data.plantaSprite;
         }
-
 
         if (plantInfoText != null)
         {
@@ -136,83 +107,11 @@ public class PlantAreaDetailView : MonoBehaviour
                                 $"<b>Cosecha:</b> {data.cosechaCantidad}x\n" +
                                 $"<b>Venta:</b> {data.precioVentaEstandar} monedas";
         }
-        UpdateButtons();
     }
-
-
-
-
-
-
-    void UpdateButtons()
-    {
-        int availableSlots = 0;
-        int readySlots = 0;
-
-
-        foreach (var slot in currentSlots)
-        {
-            if (slot != null)
-            {
-                if (slot.CanPlant())
-                    availableSlots++;
-
-                if (slot.IsReady())
-                    readySlots++;
-            }
-        }
-
-
-
-
-
-
-        if (plantAllButton != null)
-        {
-            bool canPlant = availableSlots > 0 && CanPlantInArea(currentAreaType);
-            plantAllButton.interactable = canPlant;
-
-            TextMeshProUGUI buttonText = plantAllButton.GetComponentInChildren<TextMeshProUGUI>();
-            if (buttonText != null)
-            {
-                if (availableSlots > 0)
-                {
-                    buttonText.text = $"Plantar Todo ({availableSlots})";
-                }
-                else
-                {
-                    buttonText.text = "Sin Espacios";
-                }
-            }
-        }
-
-
-
-
-
-        if (harvestAllButton != null)
-        {
-            harvestAllButton.interactable = readySlots > 0;
-
-            TextMeshProUGUI buttonText = harvestAllButton.GetComponentInChildren<TextMeshProUGUI>();
-            if (buttonText != null)
-            {
-                if (readySlots > 0)
-                {
-                    buttonText.text = $"Cosechar Todo ({readySlots})";
-                }
-                else
-                {
-                    buttonText.text = "Sin Cosechas";
-                }
-            }
-        }
-    }
-
 
     bool CanPlantInArea(PlantaTipo type)
     {
-        PlantasData data = InvernaderoManager.Instance?.plantDatabase.GetPlantas(type);
+        PlantData data = InvernaderoManager.Instance?.plantDatabase.GetPlantas(type);
         if (data == null) return false;
 
         //40.4
@@ -229,147 +128,25 @@ public class PlantAreaDetailView : MonoBehaviour
     }
 
 
-
-    void PlantAll()
-    {
-        int planted = 0;
-        int failed = 0;
-
-        foreach (var slot in currentSlots)
-        {
-            if (slot != null && slot.CanPlant())
-            {
-                if (slot.PlantSeed(currentAreaType))
-                {
-                    planted++;
-                }
-                else
-                {
-                    failed++;
-                }
-            }
-        }
-
-        Debug.Log($"[PlantAll] Plantadas: {planted} | Fallos: {failed} en {currentAreaType}");
-
-        UpdateButtons();
-
-
-        UpdateMainViewButtons();
-    }
-
-
-    void HarvestAll()
-    {
-        int harvested = 0;
-
-        foreach (var slot in currentSlots)
-        {
-            if (slot != null && slot.IsReady())
-            {
-                slot.Harvest();
-                harvested++;
-            }
-        }
-
-        Debug.Log($"[HarvestAll] Cosechadas {harvested} plantas de {currentAreaType}");
-
-        UpdateButtons();
-
-
-        UpdateMainViewButtons();
-    }
-
-
-    List<PlantaSlot> GetSlotsForArea(PlantaTipo type)
+    List<CultivoSlotInfo> GetSlotsForArea(PlantaTipo plantaTipo)
     {
         if (InvernaderoManager.Instance == null)
         {
-            Debug.LogError("InvernaderoManager no encontrado!");
-            return new List<PlantaSlot>();
+            throw new System.Exception("InvernaderoManager no encontrado!");
         }
 
+        return InvernaderoManager.Instance.allPlantSlots[plantaTipo];
+    }
 
-
-
-        switch (type)
+    private void UpdateCultivoSlotsUI()
+    {
+        Debug.Log($"Actualizando UI de Cultivo para {currentAreaType} con {currentSlots.Count} slots");
+        int i = 0;
+        foreach (CultivoSlotInfo cultivoSlotInfo in currentSlots)
         {
-            case PlantaTipo.Lumina:
-                return InvernaderoManager.Instance.luminaSlots;
-            case PlantaTipo.Falsibaya:
-                return InvernaderoManager.Instance.falsibayaSlots;
-            case PlantaTipo.Drakonia:
-                return InvernaderoManager.Instance.drakoniaSlots;
-            case PlantaTipo.Eldebria:
-                return InvernaderoManager.Instance.eldebriaSlots;
-            case PlantaTipo.Jiveria:
-                return InvernaderoManager.Instance.jiveriaSlots;
-            case PlantaTipo.Lirien:
-                return InvernaderoManager.Instance.lirienSlots;
-            default:
-                return new List<PlantaSlot>();
+            PlantData plantData = InvernaderoManager.Instance.plantDatabase.GetPlantas(currentAreaType);
+            PlantAreaDetailView.Instance.cultivoSlotUIs[i].SetUp(plantData.plantaSprite, cultivoSlotInfo.timer, cultivoSlotInfo);
+            i++;
         }
     }
-
-
-
-
-
-
-    void UpdateMainViewButtons()
-    {
-        PlantAreaButton[] areaButtons = FindObjectsOfType<PlantAreaButton>();
-        foreach (var button in areaButtons)
-        {
-            button.ForceUpdate();
-        }
-    }
-
-
-
-
-    void Update()
-    {
-        // RQF38
-        if (detailViewPanel != null && detailViewPanel.activeSelf)
-        {
-            UpdateButtons();
-        }
-    }
-
-
-
-
-
-
-    public void OnSlotStateChanged()
-    {
-        if (detailViewPanel != null && detailViewPanel.activeSelf)
-        {
-            UpdateButtons();
-            UpdateMainViewButtons();
-        }
-    }
-
-    #region DEBUGGING
-
-    [ContextMenu("Test Open Lumina")]
-    void TestOpenLumina()
-    {
-        OpenAreaDetail(PlantaTipo.Lumina);
-    }
-
-    [ContextMenu("Test Open Falsibaya")]
-    void TestOpenFalsibaya()
-    {
-        OpenAreaDetail(PlantaTipo.Falsibaya);
-    }
-
-    [ContextMenu("Test Close")]
-    void TestClose()
-    {
-        CloseAreaDetail();
-    }
-
-    #endregion
 }

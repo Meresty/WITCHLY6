@@ -6,9 +6,9 @@ using UnityEngine;
 
 public class PlantaBD : ScriptableObject
 {
-    public List<PlantasData> plantas;
+    public List<PlantData> plantas;
 
-    public PlantasData GetPlantas(PlantaTipo tipo)
+    public PlantData GetPlantas(PlantaTipo tipo)
     {
         return plantas.Find(p => p.plantaTipo == tipo);
     }

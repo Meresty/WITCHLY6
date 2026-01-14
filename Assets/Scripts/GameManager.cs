@@ -172,7 +172,7 @@ public class GameManager : MonoBehaviour
         info += $"Energña: {energyBarSystem.GetEnergyPercentage():F1}%";
         info += $"Penalizaciñn de tiempo: +{energyBarSystem.GetTimePenalty()}s";
         info += $"Monedas: {inventorySystem.coins}";
-        info += $"Plantas activas: {greenhouseManager.GetTotalActivePlants()}";
+        // info += $"Plantas activas: {greenhouseManager.GetTotalActivePlants()}";
         info += $"Cartas completadas: {completedCards}";
         info += $"Pociones de calidad: {qualityPotionsCompleted}";
 
@@ -238,12 +238,6 @@ public class GameManager : MonoBehaviour
         inventorySystem.AddPlant(PlantaTipo.Eldebria, PlantaCalidad.Plata, 3);
     }
 
-    [ContextMenu("Harvest All Ready Plants")]
-    public void HarvestAllPlants()
-    {
-        greenhouseManager.HarvestAll();
-    }
-
     [ContextMenu("Fill Energy Bar")]
     public void FillEnergy()
     {
@@ -282,35 +276,35 @@ public class GameManager : MonoBehaviour
     }
 }
 
-// Script adicional para botones de UI rñpida
-public class QuickActionButtons : MonoBehaviour
-{
-    public void PlantAllLumina()
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            InvernaderoManager.Instance.PlantInNextAvailableSlot(PlantaTipo.Lumina);
-        }
-    }
+// // Script adicional para botones de UI rñpida
+// public class QuickActionButtons : MonoBehaviour
+// {
+//     public void PlantAllLumina()
+//     {
+//         for (int i = 0; i < 4; i++)
+//         {
+//             InvernaderoManager.Instance.PlantInNextAvailableSlot(PlantaTipo.Lumina);
+//         }
+//     }
 
-    public void PlantAllFalsibaya()
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            InvernaderoManager.Instance.PlantInNextAvailableSlot(PlantaTipo.Falsibaya);
-        }
-    }
+//     public void PlantAllFalsibaya()
+//     {
+//         for (int i = 0; i < 4; i++)
+//         {
+//             InvernaderoManager.Instance.PlantInNextAvailableSlot(PlantaTipo.Falsibaya);
+//         }
+//     }
 
-    public void HarvestAll()
-    {
-        InvernaderoManager.Instance.HarvestAll();
-    }
+//     public void HarvestAll()
+//     {
+//         InvernaderoManager.Instance.HarvestAll();
+//     }
 
-    public void BuySeedsLumina()
-    {
-        if (InventorySystem.Instance.SpendCoins(7))
-        {
-            InventorySystem.Instance.AddSemilla(PlantaTipo.Lumina, 1);
-        }
-    }
-}
+//     public void BuySeedsLumina()
+//     {
+//         if (InventorySystem.Instance.SpendCoins(7))
+//         {
+//             InventorySystem.Instance.AddSemilla(PlantaTipo.Lumina, 1);
+//         }
+//     }
+// }
