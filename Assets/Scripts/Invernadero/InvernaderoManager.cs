@@ -5,13 +5,15 @@ using UnityEngine.SceneManagement;
 [System.Serializable]
 public class CultivoSlotInfo
 {
-    public CultivoSlotInfo(PlantaTipo plantaTipo) {
+    public CultivoSlotInfo(PlantaTipo plantaTipo)
+    {
         this.plantaTipo = plantaTipo;
     }
 
     public PlantaTipo plantaTipo;
     public bool isOccupied = false;
     public Timer timer = new Timer();
+    public bool isReady => timer.hasFinished;
 }
 
 
@@ -57,6 +59,7 @@ public class InvernaderoManager : MonoBehaviour
         Debug.Log("InvernaderoManager inicializado");
         InitilizeSlots();
         InitializeDictionary();
+        TryLoadAllSlotsState();
     }
 
     private void InitializeDictionary()
@@ -84,10 +87,37 @@ public class InvernaderoManager : MonoBehaviour
 
     private void InitializeSlotWithPlantType(List<CultivoSlotInfo> cultivoSlots, PlantaTipo tipo, int slotsCount = 4)
     {
-        for(int i = 0; i < slotsCount; i++)
+        for (int i = 0; i < slotsCount; i++)
         {
             cultivoSlots.Add(new CultivoSlotInfo(tipo));
         }
+    }
+
+    private void TryLoadAllSlotsState()
+    {
+        foreach (var plantaSlots in allPlantSlots.Values)
+        {
+            for (int i = 0; i < plantaSlots.Count; i++)
+            {
+                LoadSlotState(plantaSlots[i], i);
+            }
+        }
+    }
+
+    private void SaveAllSlotsState()
+    {
+        foreach (var plantaSlots in allPlantSlots.Values)
+        {
+            for (int i = 0; i < plantaSlots.Count; i++)
+            {
+                SaveSlotState(plantaSlots[i], i);
+            }
+        }
+    }
+
+    private void OnApplicationQuit()
+    {
+        SaveAllSlotsState();
     }
 
     private void Update()
@@ -117,24 +147,36 @@ public class InvernaderoManager : MonoBehaviour
         return false;
     }
 
-    public void PlantSeed(PlantaTipo plantaTipo)
+    public void TryPlantSeed(PlantaTipo plantaTipo)
     {
-        if(!CanPlantInSlot(plantaTipo))
+        if (!CanPlantInSlot(plantaTipo))
         {
             Debug.LogWarning($"No hay slots disponibles para plantar {plantaTipo}");
             return;
         }
+
         PlantData plantData = plantDatabase.GetPlantas(plantaTipo);
+        if (BarraEnergiaSistema.Instance.CanPlant(plantData.energiaConsumo) == false) { return; }
+
+        PlantSeed(plantData);
+    }
+
+    public void PlantSeed(PlantData plantData)
+    {
+        PlantaTipo plantaTipo = plantData.plantaTipo;
         CultivoSlotInfo firstAvailableSlot = null;
         var allPlantSlotsOfType = allPlantSlots[plantaTipo];
         Debug.Log($"[InvernaderoManager] Buscando slot disponible para {plantaTipo} entre {allPlantSlotsOfType.Count} slots");
         firstAvailableSlot = allPlantSlotsOfType.Find(slot => !slot.isOccupied);
 
-        if(firstAvailableSlot == null) { throw new System.Exception($"No hay slots disponibles para plantar {plantaTipo}"); }
+        if (firstAvailableSlot == null) { throw new System.Exception($"No hay slots disponibles para plantar {plantaTipo}"); }
 
         firstAvailableSlot.isOccupied = true;
-        firstAvailableSlot.timer.Start(plantData.tiempoCrecimientoMinutos * 60);
+        float modifiedGrowthTime = BarraEnergiaSistema.Instance.GetModifiedGrowthTime(plantData.tiempoCrecimientoMinutos * 60);
+        firstAvailableSlot.timer.Start(modifiedGrowthTime);
         InventorySystem.Instance.RemoveSeed(plantaTipo, 1);
+
+        BarraEnergiaSistema.Instance.ConsumeEnergy(plantData.energiaConsumo);
     }
 
     public void CosecharPlanta(CultivoSlotInfo slotInfo)
@@ -146,9 +188,53 @@ public class InvernaderoManager : MonoBehaviour
         }
 
         PlantData plantData = plantDatabase.GetPlantas(slotInfo.plantaTipo);
-        InventorySystem.Instance.AddPlant(plantData.plantaTipo, PlantaCalidad.Estandar, 1);
+        InventorySystem.Instance.AddPlant(plantData.plantaTipo, PlantaCalidad.Estandar, plantData.cosechaCantidad);
         slotInfo.isOccupied = false;
         slotInfo.timer.Reset(0);
+
+        BarraEnergiaSistema.Instance.RestoreEnergy(plantData.energiaConsumo);
     }
 
+    private string GetCultivoSlotKey(CultivoSlotInfo cultivoSlotInfo, int index)
+    {
+        PlantData plantData = plantDatabase.GetPlantas(cultivoSlotInfo.plantaTipo);
+        return $"PlantSlot_{plantData.plantaTipo}_{index}";
+    }
+
+    void SaveSlotState(CultivoSlotInfo cultivoSlotInfo, int index)
+    {
+        PlantData plantData = plantDatabase.GetPlantas(cultivoSlotInfo.plantaTipo);
+        string key = GetCultivoSlotKey(cultivoSlotInfo, index);
+        PlayerPrefs.SetInt($"{key}_Occupied", cultivoSlotInfo.isOccupied ? 1 : 0);
+        // PlayerPrefs.SetInt($"{key}_Ready", cultivoSlotInfo.isReady ? 1 : 0);
+        PlayerPrefs.SetInt($"{key}_PlantType", (int)cultivoSlotInfo.plantaTipo);
+        // PlayerPrefs.SetInt($"{key}_SeedCycle", (int)cultivoSlotInfo.???);
+        PlayerPrefs.SetFloat($"{key}_TimeLeft", cultivoSlotInfo.timer.TimeLeft); // ISO 8601
+        PlayerPrefs.Save();
+    }
+
+    void LoadSlotState(CultivoSlotInfo cultivoSlotInfo, int index)
+    {
+        string key = GetCultivoSlotKey(cultivoSlotInfo, index);
+        PlantData plantData = plantDatabase.GetPlantas(cultivoSlotInfo.plantaTipo);
+
+        if (PlayerPrefs.HasKey($"{key}_Occupied"))
+        {
+            cultivoSlotInfo.isOccupied = PlayerPrefs.GetInt($"{key}_Occupied") == 1;
+            cultivoSlotInfo.plantaTipo = (PlantaTipo)PlayerPrefs.GetInt($"{key}_PlantType");
+            // cultivoSlotInfo.seedCycle = (SemillaCiclo)PlayerPrefs.GetInt($"{key}_SeedCycle");
+
+            float timeLeft = PlayerPrefs.GetFloat($"{key}_TimeLeft");
+            if (timeLeft > 0)
+            {
+                cultivoSlotInfo.timer.Start(timeLeft);
+            }
+            else
+            {
+                cultivoSlotInfo.timer.Reset(0);
+            }
+
+            Debug.Log($"Slot cargado: {cultivoSlotInfo.plantaTipo} - Ocupado: {cultivoSlotInfo.isOccupied} - Listo: {cultivoSlotInfo.timer.hasFinished} - Tiempo restante: {cultivoSlotInfo.timer.TimeLeft}");
+        }
+    }
 }

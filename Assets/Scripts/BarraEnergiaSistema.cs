@@ -12,14 +12,15 @@ public class BarraEnergiaSistema : MonoBehaviour
     public static BarraEnergiaSistema Instance { get; private set; }
 
     [Header("UI Referencias")]
+    public Transform barraEnergiaTransform;
     public Slider energySlider;
     public TextMeshProUGUI energyText;
     public Image fillImage;
 
     [Header("Colores de la Barra")]
-    public Color highEnergyColor = new Color(0.2f, 0.8f, 0.2f); // Verde
-    public Color mediumEnergyColor = new Color(0.9f, 0.9f, 0.2f); // Amarillo
-    public Color lowEnergyColor = new Color(0.9f, 0.2f, 0.2f); // Rojo
+    public Color highEnergyColor = new Color(0.2f, 0.8f, 0.2f, 1f); // Verde
+    public Color mediumEnergyColor = new Color(0.9f, 0.9f, 0.2f, 1f); // Amarillo
+    public Color lowEnergyColor = new Color(0.9f, 0.2f, 0.2f, 1f); // Rojo
 
     [Header("Configuración")]
     public float maxEnergy = 100f;
@@ -63,18 +64,12 @@ public class BarraEnergiaSistema : MonoBehaviour
     /// <summary>
     /// Obtiene la energía actual
     /// </summary>
-    public float GetCurrentEnergy()
-    {
-        return currentEnergy;
-    }
+    public float GetCurrentEnergy() => currentEnergy;
 
     /// <summary>
     /// Obtiene el porcentaje de energía (0-100)
     /// </summary>
-    public float GetEnergyPercentage()
-    {
-        return (currentEnergy / maxEnergy) * 100f;
-    }
+    public float GetEnergyPercentage() => (currentEnergy / maxEnergy) * 100f;
 
     /// <summary>
     /// RQF40.4 y RQF56: Verifica si se puede plantar (no puede estar al 1% o menos)
@@ -209,6 +204,22 @@ public class BarraEnergiaSistema : MonoBehaviour
             {
                 fillImage.color = lowEnergyColor;
             }
+        }
+    }
+
+    public void HideBar()
+    {
+        if (barraEnergiaTransform != null)
+        {
+            barraEnergiaTransform.gameObject.SetActive(false);
+        }
+    }
+
+    public void ShowBar()
+    {
+        if (barraEnergiaTransform != null)
+        {
+            barraEnergiaTransform.gameObject.SetActive(true);
         }
     }
 

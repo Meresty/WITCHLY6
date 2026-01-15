@@ -67,7 +67,7 @@ public class InventorySystem : MonoBehaviour
     void InitializeInventory()
     {
         // Verificar si es la primera vez que se juega
-        if (true || !PlayerPrefs.HasKey("FirstTime"))
+        if (!PlayerPrefs.HasKey("FirstTime"))
         {
             Debug.Log("Primera vez jugando - Inicializando inventario inicial");
 

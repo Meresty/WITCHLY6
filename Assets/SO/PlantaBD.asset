@@ -29,8 +29,8 @@ MonoBehaviour:
     frutoSprite: {fileID: 3144707607413309124, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
     tiempoCrecimientoMinutos: 1
-    energiaConsumo: 0
-    cosechaCantidad: 0
+    energiaConsumo: 4
+    cosechaCantidad: 2
   - nombre: Falsibaya
     descripcion: Aparenta ser una baya.
     precioVentaEstandar: 0
@@ -47,8 +47,8 @@ MonoBehaviour:
     frutoSprite: {fileID: 7769131342665995938, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
     tiempoCrecimientoMinutos: 2
-    energiaConsumo: 0
-    cosechaCantidad: 0
+    energiaConsumo: 1
+    cosechaCantidad: 2
   - nombre: Drakonia
     descripcion: "Se dice que est\xE1 relacinoada con Dragones."
     precioVentaEstandar: 0
@@ -65,8 +65,8 @@ MonoBehaviour:
     frutoSprite: {fileID: -6017750437960063451, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
     tiempoCrecimientoMinutos: 2
-    energiaConsumo: 0
-    cosechaCantidad: 0
+    energiaConsumo: 1
+    cosechaCantidad: 2
   - nombre: Eldebria
     descripcion: Una planta muy antigua.
     precioVentaEstandar: 0
@@ -83,8 +83,8 @@ MonoBehaviour:
     frutoSprite: {fileID: -2188078002575295142, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
     tiempoCrecimientoMinutos: 1.5
-    energiaConsumo: 0
-    cosechaCantidad: 0
+    energiaConsumo: 6
+    cosechaCantidad: 2
   - nombre: Jiveria
     descripcion: "Ex\xF3tica."
     precioVentaEstandar: 0
@@ -101,8 +101,8 @@ MonoBehaviour:
     frutoSprite: {fileID: 2105267316751674198, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
     tiempoCrecimientoMinutos: 1.5
-    energiaConsumo: 0
-    cosechaCantidad: 0
+    energiaConsumo: 6
+    cosechaCantidad: 2
   - nombre: Lirien
     descripcion: Dice que trae buena suerte a los benevolentes.
     precioVentaEstandar: 0
@@ -119,5 +119,5 @@ MonoBehaviour:
     frutoSprite: {fileID: -1692550596250065869, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
     tiempoCrecimientoMinutos: 1.3
-    energiaConsumo: 0
-    cosechaCantidad: 0
+    energiaConsumo: 4
+    cosechaCantidad: 2

@@ -64,6 +64,6 @@ public class InventarioDetailsUI : MonoBehaviour
         }
 
         plantarButton.onClick.RemoveAllListeners();
-        plantarButton.onClick.AddListener(() => InvernaderoManager.Instance.PlantSeed(item.plantaTipo));
+        plantarButton.onClick.AddListener(() => InvernaderoManager.Instance.TryPlantSeed(item.plantaTipo));
     }
 }

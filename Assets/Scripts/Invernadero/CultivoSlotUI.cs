@@ -37,11 +37,16 @@ public class CultivoSlotUI : MonoBehaviour
             return;
         }
 
+        image.enabled = true;
         timerText.text = FormatTime(timer.TimeLeft);
         if (timer.hasFinished)
         {
             buttonCosechar.gameObject.SetActive(true);
             timerText.text = "Listo";
+        }
+        else
+        {
+            buttonCosechar.gameObject.SetActive(false);
         }
     }
 

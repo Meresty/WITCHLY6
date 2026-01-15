@@ -48,5 +48,4 @@ public class PlantData : ItemData
     public float tiempoCrecimientoMinutos;
     public int energiaConsumo;
     public int cosechaCantidad;
-
 }
