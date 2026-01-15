@@ -6923,7 +6923,7 @@ GameObject:
   - component: {fileID: 1340876335}
   - component: {fileID: 1340876334}
   m_Layer: 0
-  m_Name: DetailPanelLumina
+  m_Name: DetailPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
