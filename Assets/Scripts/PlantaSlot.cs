@@ -32,7 +32,7 @@ public class PlantaSlot : MonoBehaviour
     private PlantaTipo currentPlant;
     private SemillaCiclo currentSeedCycle;
     private DateTime plantedTime;
-    private int growthTimeSeconds;
+    private float growthTimeSeconds;
     private bool isReady = false;
 
     void Start()
@@ -138,7 +138,7 @@ public class PlantaSlot : MonoBehaviour
         plantedTime = DateTime.Now;
 
         // RQF38.1 y RQNF53.2: Calcular tiempo de crecimiento con penalización de energía
-        int baseTime = data.tiempoCrecimientoMinutos * 60; // Convertir a segundos
+        float baseTime = data.tiempoCrecimientoMinutos * 60f; // Convertir a segundos
         growthTimeSeconds = BarraEnergiaSistema.Instance.GetModifiedGrowthTime(baseTime);
 
         UpdateSlotVisuals();
@@ -154,7 +154,7 @@ public class PlantaSlot : MonoBehaviour
     void UpdateTimer()
     {
         TimeSpan elapsed = DateTime.Now - plantedTime;
-        int remainingSeconds = growthTimeSeconds - (int)elapsed.TotalSeconds;
+        float remainingSeconds = growthTimeSeconds - (int)elapsed.TotalSeconds;
 
         if (remainingSeconds <= 0)
         {
@@ -183,8 +183,8 @@ public class PlantaSlot : MonoBehaviour
         else
         {
             // Mostrar tiempo restante en formato MM:SS
-            int minutes = remainingSeconds / 60;
-            int seconds = remainingSeconds % 60;
+            float minutes = remainingSeconds / 60;
+            int seconds = (int)remainingSeconds % 60;
 
             if (timerText != null)
                 timerText.text = $"{minutes:D2}:{seconds:D2}";
@@ -237,7 +237,7 @@ public class PlantaSlot : MonoBehaviour
             plantedTime = DateTime.Now;
 
             // Recalcular tiempo con la energía actual
-            int baseTime = data.tiempoCrecimientoMinutos * 60;
+            float baseTime = data.tiempoCrecimientoMinutos * 60;
             growthTimeSeconds = BarraEnergiaSistema.Instance.GetModifiedGrowthTime(baseTime);
 
             if (harvestButton != null)
@@ -334,7 +334,7 @@ public class PlantaSlot : MonoBehaviour
         PlayerPrefs.SetInt($"{key}_PlantType", (int)currentPlant);
         PlayerPrefs.SetInt($"{key}_SeedCycle", (int)currentSeedCycle);
         PlayerPrefs.SetString($"{key}_PlantedTime", plantedTime.ToString("o")); // ISO 8601
-        PlayerPrefs.SetInt($"{key}_GrowthTime", growthTimeSeconds);
+        PlayerPrefs.SetFloat($"{key}_GrowthTime", growthTimeSeconds);
         PlayerPrefs.Save();
     }
 

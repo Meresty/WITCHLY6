@@ -159,7 +159,7 @@ public class BarraEnergiaSistema : MonoBehaviour
     /// <summary>
     /// RQNF53.2: Calcula el tiempo de crecimiento modificado según energía
     /// </summary>
-    public int GetModifiedGrowthTime(int baseTimeSeconds)
+    public float GetModifiedGrowthTime(float baseTimeSeconds)
     {
         int penalty = GetTimePenalty();
         return baseTimeSeconds + penalty;

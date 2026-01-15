@@ -6,7 +6,7 @@ public class Timer
     bool active = true;
     float duration;
     public float TimeLeft {get; private set; }
-    public bool hasFinished => duration <= 0;
+    public bool hasFinished => TimeLeft <= 0;
     public Action OnTimerFinished;
 
     public Timer(float duration = 0) {

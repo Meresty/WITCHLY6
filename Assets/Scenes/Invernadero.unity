@@ -3209,7 +3209,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   detailViewPanel: {fileID: 437136550}
-  invernaderoCanvas: {fileID: 1713334197}
   areaTitleText: {fileID: 1807279424}
   areaPlantImage: {fileID: 254550828}
   plantInfoText: {fileID: 2058496795}
@@ -5011,7 +5010,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   detailViewPanel: {fileID: 437136550}
-  invernaderoCanvas: {fileID: 0}
   areaTitleText: {fileID: 1807279424}
   areaPlantImage: {fileID: 254550828}
   plantInfoText: {fileID: 2058496795}
@@ -5786,7 +5784,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1153688449
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7101,7 +7099,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1436845632
 RectTransform:
   m_ObjectHideFlags: 0

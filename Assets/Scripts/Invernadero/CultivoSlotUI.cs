@@ -1,4 +1,5 @@
 
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -36,7 +37,7 @@ public class CultivoSlotUI : MonoBehaviour
             return;
         }
 
-        timerText.text = ((int)timer.TimeLeft).ToString();
+        timerText.text = FormatTime(timer.TimeLeft);
         if (timer.hasFinished)
         {
             buttonCosechar.gameObject.SetActive(true);
@@ -44,8 +45,15 @@ public class CultivoSlotUI : MonoBehaviour
         }
     }
 
+    private string FormatTime(float time)
+    {
+        int minutes = Mathf.FloorToInt(time / 60F);
+        int seconds = Mathf.FloorToInt(time - minutes * 60);
+        return string.Format("{0:0}:{1:00}", minutes, seconds);
+    }
+
     public void Cosechar()
     {
-        Debug.Log("[TODO] Cosechando planta...");
+        InvernaderoManager.Instance.CosecharPlanta(cultivoSlotInfo);
     }
 }

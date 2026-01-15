@@ -45,7 +45,7 @@ public class PlantData : ItemData
 
     [Header("Crecimiento")]
     public SemillaCiclo semillaCiclo;
-    public int tiempoCrecimientoMinutos; 
+    public float tiempoCrecimientoMinutos;
     public int energiaConsumo;
     public int cosechaCantidad;
 

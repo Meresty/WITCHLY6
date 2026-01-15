@@ -99,7 +99,7 @@ public class PlantAreaDetailView : MonoBehaviour
         if (plantInfoText != null)
         {
             string cycleType = data.semillaCiclo == SemillaCiclo.Perenne ? "Perenne (∞)" : "Replantar";
-            int minutes = data.tiempoCrecimientoMinutos;
+            float minutes = data.tiempoCrecimientoMinutos;
 
             plantInfoText.text = $"<b>Tipo:</b> {cycleType}\n" +
                                 $"<b>Tiempo base:</b> {minutes} min\n" +

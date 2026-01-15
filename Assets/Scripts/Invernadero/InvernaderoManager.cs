@@ -137,4 +137,18 @@ public class InvernaderoManager : MonoBehaviour
         InventorySystem.Instance.RemoveSeed(plantaTipo, 1);
     }
 
+    public void CosecharPlanta(CultivoSlotInfo slotInfo)
+    {
+        if (!slotInfo.isOccupied || !slotInfo.timer.hasFinished)
+        {
+            Debug.LogWarning("No se puede cosechar: Slot no ocupado o planta no lista");
+            return;
+        }
+
+        PlantData plantData = plantDatabase.GetPlantas(slotInfo.plantaTipo);
+        InventorySystem.Instance.AddPlant(plantData.plantaTipo, PlantaCalidad.Estandar, 1);
+        slotInfo.isOccupied = false;
+        slotInfo.timer.Reset(0);
+    }
+
 }

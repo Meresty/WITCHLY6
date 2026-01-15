@@ -28,7 +28,7 @@ MonoBehaviour:
     semillaSprite: {fileID: 1639117514337336417, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}
     frutoSprite: {fileID: 3144707607413309124, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
-    tiempoCrecimientoMinutos: 0
+    tiempoCrecimientoMinutos: 1
     energiaConsumo: 0
     cosechaCantidad: 0
   - nombre: Falsibaya
@@ -46,7 +46,7 @@ MonoBehaviour:
     semillaSprite: {fileID: 8341670268560739888, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}
     frutoSprite: {fileID: 7769131342665995938, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
-    tiempoCrecimientoMinutos: 0
+    tiempoCrecimientoMinutos: 2
     energiaConsumo: 0
     cosechaCantidad: 0
   - nombre: Drakonia
@@ -64,7 +64,7 @@ MonoBehaviour:
     semillaSprite: {fileID: -3726113340208717667, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}
     frutoSprite: {fileID: -6017750437960063451, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
-    tiempoCrecimientoMinutos: 0
+    tiempoCrecimientoMinutos: 2
     energiaConsumo: 0
     cosechaCantidad: 0
   - nombre: Eldebria
@@ -82,7 +82,7 @@ MonoBehaviour:
     semillaSprite: {fileID: 8636291974338579882, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}
     frutoSprite: {fileID: -2188078002575295142, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
-    tiempoCrecimientoMinutos: 0
+    tiempoCrecimientoMinutos: 1.5
     energiaConsumo: 0
     cosechaCantidad: 0
   - nombre: Jiveria
@@ -100,7 +100,7 @@ MonoBehaviour:
     semillaSprite: {fileID: 4618484782213255994, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}
     frutoSprite: {fileID: 2105267316751674198, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
-    tiempoCrecimientoMinutos: 0
+    tiempoCrecimientoMinutos: 1.5
     energiaConsumo: 0
     cosechaCantidad: 0
   - nombre: Lirien
@@ -118,6 +118,6 @@ MonoBehaviour:
     semillaSprite: {fileID: 3478803527628270165, guid: b1a451c154f26784e9c4dc0fcc0fef25, type: 3}
     frutoSprite: {fileID: -1692550596250065869, guid: 96022ca98a65bc8458ccb4371288b636, type: 3}
     semillaCiclo: 0
-    tiempoCrecimientoMinutos: 0
+    tiempoCrecimientoMinutos: 1.3
     energiaConsumo: 0
     cosechaCantidad: 0
