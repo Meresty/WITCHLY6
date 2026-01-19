@@ -1039,7 +1039,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Respuesta:'
+  m_text: "Escribe tu contrase\xF1a:"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cc5d4fcfeefefa143820bbac2b80a0ae, type: 2}
   m_sharedMaterial: {fileID: -6589749821280351475, guid: cc5d4fcfeefefa143820bbac2b80a0ae, type: 2}
@@ -1818,8 +1818,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf056ceae13e392438b0ef0018b11eb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startPanel: {fileID: 0}
-  registerPanel: {fileID: 0}
 --- !u!114 &1697148488
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2304,7 +2302,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Nombre de usuario:'
+  m_text: "Escribe tu nueva contrase\xF1a:"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cc5d4fcfeefefa143820bbac2b80a0ae, type: 2}
   m_sharedMaterial: {fileID: -6589749821280351475, guid: cc5d4fcfeefefa143820bbac2b80a0ae, type: 2}

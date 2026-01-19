@@ -1,104 +1,214 @@
-using UnityEngine;
+﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
-/// <summary>
-/// Del caldero
-/// </summary>
 public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager instancia;
 
-    [System.Serializable]
-    public class InventoryItem
+    public event Action OnInventoryChanged;
+
+    [Serializable]
+    public class InventoryEntry
     {
         public ItemSO item;
         public int cantidad;
     }
 
-    public List<InventoryItem> items = new List<InventoryItem>();
+    [Header("Debug - Inventario actual")]
+    [SerializeField] private List<InventoryEntry> items = new List<InventoryEntry>();
 
-    void Awake()
+    private readonly Dictionary<ItemSO, InventoryEntry> index = new Dictionary<ItemSO, InventoryEntry>();
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void AutoBoot()
     {
-        if (instancia == null)
+        if (instancia != null) return;
+
+        var existing = FindObjectOfType<InventoryManager>();
+        if (existing != null)
         {
-            instancia = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
+            instancia = existing;
             return;
         }
+
+        var go = new GameObject("InventoryManager");
+        go.AddComponent<InventoryManager>();
     }
 
-
-    public void AddItem(ItemSO item, int cantidad)
+    private void Awake()
     {
-        var existente = items.Find(i => i.item == item);
-        if (existente == null)
+        if (instancia != null && instancia != this)
         {
-            items.Add(new InventoryItem
+            instancia.AbsorbFrom(this);
+            Destroy(this);
+            return;
+        }
+
+        instancia = this;
+        DontDestroyOnLoad(gameObject);
+        RebuildIndex();
+    }
+
+    private void RaiseChanged()
+    {
+        OnInventoryChanged?.Invoke();
+    }
+
+    private void RebuildIndex()
+    {
+        index.Clear();
+
+        for (int i = items.Count - 1; i >= 0; i--)
+        {
+            var e = items[i];
+            if (e == null || e.item == null)
             {
-                item = item,
-                cantidad = cantidad
-            });
+                items.RemoveAt(i);
+                continue;
+            }
+
+            if (index.TryGetValue(e.item, out var existing) && existing != null)
+            {
+                existing.cantidad += e.cantidad;
+                items.RemoveAt(i);
+                continue;
+            }
+
+            index[e.item] = e;
         }
-        else
+    }
+
+    private InventoryEntry GetOrCreate(ItemSO item)
+    {
+        if (item == null) return null;
+
+        if (!index.TryGetValue(item, out var entry) || entry == null)
         {
-            existente.cantidad += cantidad;
+            entry = new InventoryEntry { item = item, cantidad = 0 };
+            items.Add(entry);
+            index[item] = entry;
         }
+
+        return entry;
     }
 
-    public bool HasItem(ItemSO item)
+    private void RemoveEntry(ItemSO item)
     {
-        var inv = items.Find(i => i.item == item);
-        return inv != null && inv.cantidad > 0;
+        if (item == null) return;
+        if (!index.TryGetValue(item, out var entry) || entry == null) return;
+
+        items.Remove(entry);
+        index.Remove(item);
     }
 
-
-
-    public bool HasItem(ItemSO item, int cantidadRequerida)
+    public void AddItem(ItemSO item, int cantidad = 1)
     {
-        var inv = items.Find(i => i.item == item);
-        return inv != null && inv.cantidad >= cantidadRequerida;
+        if (item == null) return;
+        if (cantidad == 0) return;
+
+        var entry = GetOrCreate(item);
+        entry.cantidad += cantidad;
+
+        if (entry.cantidad <= 0)
+            RemoveEntry(item);
+
+        RaiseChanged();
     }
 
+    public void SetItemCount(ItemSO item, int nuevoConteo)
+    {
+        if (item == null) return;
 
+        if (nuevoConteo <= 0)
+        {
+            RemoveEntry(item);
+            RaiseChanged();
+            return;
+        }
+
+        var entry = GetOrCreate(item);
+        entry.cantidad = nuevoConteo;
+
+        RaiseChanged();
+    }
+
+    public bool HasItem(ItemSO item, int cantidadRequerida = 1)
+    {
+        if (item == null) return false;
+        if (cantidadRequerida <= 0) return true;
+
+        if (!index.TryGetValue(item, out var entry) || entry == null) return false;
+        return entry.cantidad >= cantidadRequerida;
+    }
 
     public int GetItemCount(ItemSO item)
     {
-        var inv = items.Find(i => i.item == item);
-        return inv != null ? inv.cantidad : 0;
+        if (item == null) return 0;
+        if (!index.TryGetValue(item, out var entry) || entry == null) return 0;
+        return entry.cantidad;
     }
 
-
-
-    public void RemoveItem(ItemSO item, int cantidad = 1)
+    public bool RemoveItem(ItemSO item, int cantidad = 1)
     {
-        var inv = items.Find(i => i.item == item);
-        if (inv != null)
-        {
-            inv.cantidad -= cantidad;
-            if (inv.cantidad <= 0)
-                items.Remove(inv);
-        }
+        if (item == null) return false;
+        if (cantidad <= 0) return true;
+
+        if (!index.TryGetValue(item, out var entry) || entry == null) return false;
+        if (entry.cantidad < cantidad) return false;
+
+        entry.cantidad -= cantidad;
+
+        if (entry.cantidad <= 0)
+            RemoveEntry(item);
+
+        RaiseChanged();
+        return true;
     }
 
     public bool TryConsumeItems(List<ItemSO> receta)
     {
-        foreach (var itemReceta in receta)
+        if (receta == null || receta.Count == 0) return true;
+
+        Dictionary<ItemSO, int> needed = new Dictionary<ItemSO, int>();
+
+        for (int i = 0; i < receta.Count; i++)
         {
-            if (!HasItem(itemReceta))
-            {
-                Debug.Log("No tienes: " + itemReceta.name);
-                return false;
-            }
+            var it = receta[i];
+            if (it == null) continue;
+
+            needed.TryGetValue(it, out int c);
+            needed[it] = c + 1;
         }
 
-        foreach (var itemReceta in receta)
-        {
-            RemoveItem(itemReceta, 1);
-        }
+        foreach (var kv in needed)
+            if (!HasItem(kv.Key, kv.Value)) return false;
+
+        foreach (var kv in needed)
+            RemoveItem(kv.Key, kv.Value);
+
         return true;
+    }
+
+    public List<InventoryEntry> GetEntriesSnapshot()
+    {
+        return new List<InventoryEntry>(items);
+    }
+
+    private void AbsorbFrom(InventoryManager other)
+    {
+        if (other == null) return;
+
+        other.RebuildIndex();
+
+        foreach (var e in other.items)
+        {
+            if (e == null || e.item == null) continue;
+
+            var mine = GetOrCreate(e.item);
+            mine.cantidad = Mathf.Max(mine.cantidad, e.cantidad);
+        }
+
+        RaiseChanged();
     }
 }

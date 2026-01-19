@@ -1,8 +1,11 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
 
 public class ElegirPocion : MonoBehaviour
 {
@@ -28,7 +31,7 @@ public class ElegirPocion : MonoBehaviour
     public Image imagenIngrediente3;
     public TextMeshProUGUI textoIngrediente3;
 
-    [Header("Botón de Preparación")]
+    [Header("BotÃ³n de PreparaciÃ³n")]
     public Button botonPrepararPocion;
     public TextMeshProUGUI textoBotonPreparar;
 
@@ -36,55 +39,43 @@ public class ElegirPocion : MonoBehaviour
     public GameObject panelAdvertencia;
     public TextMeshProUGUI textoAdvertencia;
 
-    [Header("Configuración")]
+    [Header("ConfiguraciÃ³n")]
     public string nombreEscenaCaldero = "Caldero";
 
     private PocionSO pocionSeleccionada;
 
-    void Awake()
+    private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        if (Instance == null) Instance = this;
+        else { Destroy(gameObject); return; }
     }
 
-    void Start()
+    private void Start()
     {
-
-        if (InventoryManager.instancia == null)
-        {
-            Debug.LogError("[ELEGIR POCIÓN] ¡No hay InventoryManager! Asegúrate de tener el GameObject en la primera escena.");
-        }
-
+        // Boton preparar
         if (botonPrepararPocion != null)
         {
+            botonPrepararPocion.onClick.RemoveAllListeners();
             botonPrepararPocion.onClick.AddListener(OnClickPrepararPocion);
         }
 
-        if (panelAdvertencia != null)
-        {
-            panelAdvertencia.SetActive(false);
-        }
+        // Panel advertencia
+        if (panelAdvertencia != null) panelAdvertencia.SetActive(false);
 
+        // Generar UI
         GenerarGridPociones();
         LimpiarPanelDetalles();
+
+        // Sync inicial (por si entraste directo al menu)
+        SyncCalderoInventoryDesdeInvernadero();
     }
 
-    void LimpiarPanelDetalles()
+    private void LimpiarPanelDetalles()
     {
-        if (imagenPocionGrande != null)
-            imagenPocionGrande.enabled = false;
+        if (imagenPocionGrande != null) imagenPocionGrande.enabled = false;
 
-        if (textoNombrePocion != null)
-            textoNombrePocion.text = "Selecciona una poción";
-
-        if (textoEfectoPocion != null)
-            textoEfectoPocion.text = "---";
+        if (textoNombrePocion != null) textoNombrePocion.text = "Selecciona una pociÃ³n";
+        if (textoEfectoPocion != null) textoEfectoPocion.text = "---";
 
         if (imagenIngrediente1 != null) imagenIngrediente1.enabled = false;
         if (imagenIngrediente2 != null) imagenIngrediente2.enabled = false;
@@ -94,32 +85,30 @@ public class ElegirPocion : MonoBehaviour
         if (textoIngrediente2 != null) textoIngrediente2.text = "???";
         if (textoIngrediente3 != null) textoIngrediente3.text = "???";
 
-        if (botonPrepararPocion != null)
-            botonPrepararPocion.interactable = false;
+        SetBotonPreparar(false, "...");
     }
 
-    void GenerarGridPociones()
+    private void SetBotonPreparar(bool enabled, string txt)
+    {
+        if (botonPrepararPocion != null) botonPrepararPocion.interactable = enabled;
+        if (textoBotonPreparar != null) textoBotonPreparar.text = txt;
+    }
+
+    private void GenerarGridPociones()
     {
         if (contenedorGridPociones == null || slotPocionPrefab == null)
         {
-            Debug.LogError("[MENÚ POCIONES] Falta asignar contenedor o prefab!");
+            Debug.LogError("[ELEGIR POCIÃ“N] Falta asignar contenedorGridPociones o slotPocionPrefab.");
             return;
         }
 
-        foreach (Transform child in contenedorGridPociones)
-        {
-            Destroy(child.gameObject);
-        }
+        for (int i = contenedorGridPociones.childCount - 1; i >= 0; i--)
+            Destroy(contenedorGridPociones.GetChild(i).gameObject);
 
         for (int i = 0; i < todasLasPociones.Count; i++)
         {
             PocionSO pocion = todasLasPociones[i];
-
-            if (pocion == null)
-            {
-                Debug.LogWarning($"[MENÚ POCIONES] Poción en índice {i} es null!");
-                continue;
-            }
+            if (pocion == null) continue;
 
             GameObject slot = Instantiate(slotPocionPrefab, contenedorGridPociones);
 
@@ -131,39 +120,34 @@ public class ElegirPocion : MonoBehaviour
             else
             {
                 Image imagen = slot.GetComponent<Image>();
-                if (imagen != null)
-                {
-                    imagen.sprite = pocion.icon;
-                }
+                if (imagen != null) imagen.sprite = pocion.icon;
 
                 Button boton = slot.GetComponent<Button>();
                 if (boton != null)
                 {
                     PocionSO pocionRef = pocion;
+                    boton.onClick.RemoveAllListeners();
                     boton.onClick.AddListener(() => SeleccionarPocion(pocionRef));
                 }
             }
         }
-
-        Debug.Log($"[MENÚ POCIONES] Generadas {todasLasPociones.Count} pociones en el grid");
     }
 
     public void SeleccionarPocion(PocionSO pocion)
     {
-        if (pocion == null)
-        {
-            Debug.LogWarning("[MENÚ POCIONES] Poción null seleccionada");
-            return;
-        }
+        if (pocion == null) return;
 
         pocionSeleccionada = pocion;
-        Debug.Log($"[MENÚ POCIONES] Poción seleccionada: {pocion.pocionNombre}");
 
         MostrarDetallesPocion(pocion);
+
+        // ðŸ‘‡ CLAVE: antes de verificar, sync (InventorySystem -> InventoryManager)
+        SyncCalderoInventoryDesdeInvernadero();
+
         VerificarIngredientesDisponibles(pocion);
     }
 
-    void MostrarDetallesPocion(PocionSO pocion)
+    private void MostrarDetallesPocion(PocionSO pocion)
     {
         if (imagenPocionGrande != null)
         {
@@ -171,150 +155,80 @@ public class ElegirPocion : MonoBehaviour
             imagenPocionGrande.enabled = true;
         }
 
-        if (textoNombrePocion != null)
-        {
-            textoNombrePocion.text = pocion.pocionNombre;
-        }
-
-        if (textoEfectoPocion != null)
-        {
-            textoEfectoPocion.text = $"<b>Efecto:</b> {pocion.efecto}";
-        }
+        if (textoNombrePocion != null) textoNombrePocion.text = pocion.pocionNombre;
+        if (textoEfectoPocion != null) textoEfectoPocion.text = $"<b>Efecto:</b> {pocion.efecto}";
 
         // Ingrediente 1 (Suero)
-        if (pocion.suero != null)
-        {
-            if (imagenIngrediente1 != null)
-            {
-                imagenIngrediente1.sprite = pocion.suero.icon;
-                imagenIngrediente1.enabled = true;
-            }
-            if (textoIngrediente1 != null)
-            {
-                textoIngrediente1.text = pocion.suero.itemNombre;
-            }
-        }
-        else
-        {
-            if (imagenIngrediente1 != null) imagenIngrediente1.enabled = false;
-            if (textoIngrediente1 != null) textoIngrediente1.text = "???";
-        }
+        SetIngredienteUI(pocion.suero, imagenIngrediente1, textoIngrediente1);
 
         // Ingrediente 2
-        if (pocion.ingrediente1 != null)
-        {
-            if (imagenIngrediente2 != null)
-            {
-                imagenIngrediente2.sprite = pocion.ingrediente1.icon;
-                imagenIngrediente2.enabled = true;
-            }
-            if (textoIngrediente2 != null)
-            {
-                textoIngrediente2.text = pocion.ingrediente1.itemNombre;
-            }
-        }
-        else
-        {
-            if (imagenIngrediente2 != null) imagenIngrediente2.enabled = false;
-            if (textoIngrediente2 != null) textoIngrediente2.text = "???";
-        }
+        SetIngredienteUI(pocion.ingrediente1, imagenIngrediente2, textoIngrediente2);
 
         // Ingrediente 3
-        if (pocion.ingrediente2 != null)
+        SetIngredienteUI(pocion.ingrediente2, imagenIngrediente3, textoIngrediente3);
+    }
+
+    private void SetIngredienteUI(ItemSO item, Image img, TextMeshProUGUI txt)
+    {
+        if (item != null)
         {
-            if (imagenIngrediente3 != null)
-            {
-                imagenIngrediente3.sprite = pocion.ingrediente2.icon;
-                imagenIngrediente3.enabled = true;
-            }
-            if (textoIngrediente3 != null)
-            {
-                textoIngrediente3.text = pocion.ingrediente2.itemNombre;
-            }
+            if (img != null) { img.sprite = item.icon; img.enabled = true; }
+            if (txt != null) txt.text = item.itemNombre;
         }
         else
         {
-            if (imagenIngrediente3 != null) imagenIngrediente3.enabled = false;
-            if (textoIngrediente3 != null) textoIngrediente3.text = "???";
+            if (img != null) img.enabled = false;
+            if (txt != null) txt.text = "???";
         }
     }
 
-    /// <summary>
-    /// ACTUALIZADO: Ahora usa InventoryManager.instancia
-    /// </summary>
-    void VerificarIngredientesDisponibles(PocionSO pocion)
+    private void VerificarIngredientesDisponibles(PocionSO pocion)
     {
-        // CAMBIO PRINCIPAL: Usar la instancia singleton
         if (InventoryManager.instancia == null)
         {
-            Debug.LogError("[MENÚ POCIONES] InventoryManager no existe!");
-            if (botonPrepararPocion != null)
-                botonPrepararPocion.interactable = false;
+            Debug.LogWarning("[ELEGIR POCIÃ“N] InventoryManager.instancia es null. BotÃ³n deshabilitado.");
+            SetBotonPreparar(false, "...");
             return;
         }
 
-        List<string> ingredientesFaltantes = new List<string>();
+        List<string> faltantes = new List<string>();
 
-        // Verificar suero
-        if (pocion.suero != null && !InventoryManager.instancia.HasItem(pocion.suero))
+        if (!HasItem1(pocion.suero)) faltantes.Add(pocion.suero.itemNombre);
+        if (!HasItem1(pocion.ingrediente1)) faltantes.Add(pocion.ingrediente1.itemNombre);
+        if (!HasItem1(pocion.ingrediente2)) faltantes.Add(pocion.ingrediente2.itemNombre);
+
+        if (faltantes.Count > 0)
         {
-            ingredientesFaltantes.Add(pocion.suero.itemNombre);
-        }
-
-        // Verificar ingrediente 1
-        if (pocion.ingrediente1 != null && !InventoryManager.instancia.HasItem(pocion.ingrediente1))
-        {
-            ingredientesFaltantes.Add(pocion.ingrediente1.itemNombre);
-        }
-
-        // Verificar ingrediente 2
-        if (pocion.ingrediente2 != null && !InventoryManager.instancia.HasItem(pocion.ingrediente2))
-        {
-            ingredientesFaltantes.Add(pocion.ingrediente2.itemNombre);
-        }
-
-        if (ingredientesFaltantes.Count > 0)
-        {
-            if (botonPrepararPocion != null)
-            {
-                botonPrepararPocion.interactable = false;
-            }
-
-            if (textoBotonPreparar != null)
-            {
-                textoBotonPreparar.text = "...";
-            }
-
-            if (textoAdvertencia != null)
-            {
-                textoAdvertencia.text = "Falta:\n\n" + string.Join("\n", ingredientesFaltantes);
-            }
-
-            Debug.LogWarning($"[MENÚ POCIONES] Faltan ingredientes: {string.Join(", ", ingredientesFaltantes)}");
+            SetBotonPreparar(false, "...");
+            if (textoAdvertencia != null) textoAdvertencia.text = "Falta:\n\n" + string.Join("\n", faltantes);
         }
         else
         {
-            if (botonPrepararPocion != null)
-            {
-                botonPrepararPocion.interactable = true;
-            }
-
-            if (textoBotonPreparar != null)
-            {
-                textoBotonPreparar.text = "Preparar";
-            }
-
-            Debug.Log($"[MENÚ POCIONES]  Todos los ingredientes disponibles para {pocion.pocionNombre}");
+            SetBotonPreparar(true, "Preparar");
+            if (textoAdvertencia != null) textoAdvertencia.text = "";
         }
     }
 
-    void OnClickPrepararPocion()
+    private bool HasItem1(ItemSO item)
+    {
+        if (item == null) return true; // si no requiere, ok
+        if (InventoryManager.instancia == null) return false;
+
+        // No asumo que tengas HasItem(item, cantidad). Me voy por GetItemCount.
+        int c = InventoryManager.instancia.GetItemCount(item);
+        return c >= 1;
+    }
+
+    private void OnClickPrepararPocion()
     {
         if (pocionSeleccionada == null)
         {
-            MostrarAdvertencia("Elige una poción primero");
+            MostrarAdvertencia("Elige una pociÃ³n primero");
             return;
         }
+
+        // Sync final por seguridad
+        SyncCalderoInventoryDesdeInvernadero();
 
         if (!TieneTodosLosIngredientes(pocionSeleccionada))
         {
@@ -325,46 +239,152 @@ public class ElegirPocion : MonoBehaviour
         PlayerPrefs.SetString("PocionSeleccionada", pocionSeleccionada.pocionNombre);
         PlayerPrefs.Save();
 
-        Debug.Log($"[MENÚ POCIONES] Preparando {pocionSeleccionada.pocionNombre} - Cargando caldero...");
-
         SceneManager.LoadScene(nombreEscenaCaldero);
     }
 
-    bool TieneTodosLosIngredientes(PocionSO pocion)
+    private bool TieneTodosLosIngredientes(PocionSO pocion)
     {
-        if (InventoryManager.instancia == null) return false;
-
-        bool tieneSuero = pocion.suero == null || InventoryManager.instancia.HasItem(pocion.suero);
-        bool tieneIng1 = pocion.ingrediente1 == null || InventoryManager.instancia.HasItem(pocion.ingrediente1);
-        bool tieneIng2 = pocion.ingrediente2 == null || InventoryManager.instancia.HasItem(pocion.ingrediente2);
-
-        return tieneSuero && tieneIng1 && tieneIng2;
+        return HasItem1(pocion.suero) && HasItem1(pocion.ingrediente1) && HasItem1(pocion.ingrediente2);
     }
 
-    void MostrarAdvertencia(string mensaje)
+    private void MostrarAdvertencia(string mensaje)
     {
-        if (panelAdvertencia != null)
+        if (panelAdvertencia == null) return;
+
+        panelAdvertencia.SetActive(true);
+        if (textoAdvertencia != null) textoAdvertencia.text = mensaje;
+
+        CancelInvoke(nameof(OcultarAdvertencia));
+        Invoke(nameof(OcultarAdvertencia), 2f);
+    }
+
+    private void OcultarAdvertencia()
+    {
+        if (panelAdvertencia != null) panelAdvertencia.SetActive(false);
+    }
+
+    // =========================================================
+    // SYNC: InventorySystem -> InventoryManager (plantas + sueros)
+    // =========================================================
+
+    private void SyncCalderoInventoryDesdeInvernadero()
+    {
+        if (InventorySystem.Instance == null)
         {
-            panelAdvertencia.SetActive(true);
+            Debug.LogWarning("[ELEGIR POCIÃ“N] InventorySystem.Instance es null (no hay inventario del invernadero).");
+            return;
+        }
 
-            if (textoAdvertencia != null)
-            {
-                textoAdvertencia.text = mensaje;
-            }
+        if (InventoryManager.instancia == null)
+        {
+            Debug.LogWarning("[ELEGIR POCIÃ“N] InventoryManager.instancia es null (no hay inventario del caldero).");
+            return;
+        }
 
-            Invoke(nameof(OcultarAdvertencia), 2f);
+        // Construimos el set de ItemSO que importan (solo los que usan las pociones)
+        HashSet<ItemSO> needed = new HashSet<ItemSO>();
+        for (int i = 0; i < todasLasPociones.Count; i++)
+        {
+            var p = todasLasPociones[i];
+            if (p == null) continue;
+
+            if (p.suero != null) needed.Add(p.suero);
+            if (p.ingrediente1 != null) needed.Add(p.ingrediente1);
+            if (p.ingrediente2 != null) needed.Add(p.ingrediente2);
+        }
+
+        // Para cada ItemSO requerido, calculamos cantidad REAL en InventorySystem
+        foreach (var itemSO in needed)
+        {
+            if (itemSO == null) continue;
+
+            int desired = GetCountFromInventorySystem(itemSO);
+            SetAbsoluteCountInInventoryManager(itemSO, desired);
         }
     }
 
-    void OcultarAdvertencia()
+    private int GetCountFromInventorySystem(ItemSO itemSO)
     {
-        if (panelAdvertencia != null)
+        var inv = InventorySystem.Instance;
+        if (inv == null || itemSO == null) return 0;
+
+        // Intento 1: si el nombre coincide con PlantaTipo, sumo todas las calidades
+        if (TryGetPlantTotal(inv, itemSO.itemNombre, out int totalPlant))
+            return totalPlant;
+
+        // Intento 2: si no es planta, lo trato como suero por nombre (tolerante a acentos)
+        return GetSerumCount(inv, itemSO.itemNombre);
+    }
+
+    private bool TryGetPlantTotal(InventorySystem inv, string itemNombre, out int total)
+    {
+        total = 0;
+        if (inv == null || string.IsNullOrWhiteSpace(itemNombre)) return false;
+
+        if (!Enum.TryParse<PlantaTipo>(itemNombre, true, out var tipo)) return false;
+        if (tipo == PlantaTipo.NONE) return false;
+
+        foreach (PlantaCalidad q in Enum.GetValues(typeof(PlantaCalidad)))
+            total += inv.GetPlantCount(tipo, q);
+
+        return true;
+    }
+
+    private int GetSerumCount(InventorySystem inv, string itemNombre)
+    {
+        if (inv == null || string.IsNullOrWhiteSpace(itemNombre)) return 0;
+
+        string key = NormKey(itemNombre);
+
+        for (int i = 0; i < inv.sueros.Count; i++)
         {
-            panelAdvertencia.SetActive(false);
+            var s = inv.sueros[i];
+            if (s == null) continue;
+
+            if (NormKey(s.sueroNombre) == key)
+                return s.cantidad;
         }
+
+        return 0;
+    }
+
+    private void SetAbsoluteCountInInventoryManager(ItemSO itemSO, int desired)
+    {
+        if (itemSO == null) return;
+        if (desired < 0) desired = 0;
+
+        int current = InventoryManager.instancia.GetItemCount(itemSO);
+        int delta = desired - current;
+
+        if (delta > 0) InventoryManager.instancia.AddItem(itemSO, delta);
+        else if (delta < 0) InventoryManager.instancia.RemoveItem(itemSO, -delta);
+    }
+
+    private static string NormKey(string s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return "";
+        s = s.Trim();
+
+        // Quita acentos: "EnergÃ­a" -> "Energia"
+        string formD = s.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder(formD.Length);
+
+        foreach (char ch in formD)
+        {
+            var uc = CharUnicodeInfo.GetUnicodeCategory(ch);
+            if (uc != UnicodeCategory.NonSpacingMark) sb.Append(ch);
+        }
+
+        return sb.ToString()
+            .Normalize(NormalizationForm.FormC)
+            .Trim()
+            .ToLowerInvariant();
     }
 }
 
+// ------------------------------------------------------------
+// Slot de pociÃ³n (igual que el tuyo, solo un poquito mÃ¡s limpio)
+// ------------------------------------------------------------
 public class SlotPocion : MonoBehaviour
 {
     public Image imagenPocion;
@@ -378,16 +398,10 @@ public class SlotPocion : MonoBehaviour
         pocion = pocionData;
         menu = menuRef;
 
-        if (imagenPocion == null)
-            imagenPocion = GetComponent<Image>();
+        if (imagenPocion == null) imagenPocion = GetComponent<Image>();
+        if (botonSlot == null) botonSlot = GetComponent<Button>();
 
-        if (imagenPocion != null && pocion != null)
-        {
-            imagenPocion.sprite = pocion.icon;
-        }
-
-        if (botonSlot == null)
-            botonSlot = GetComponent<Button>();
+        if (imagenPocion != null && pocion != null) imagenPocion.sprite = pocion.icon;
 
         if (botonSlot != null)
         {
@@ -396,11 +410,9 @@ public class SlotPocion : MonoBehaviour
         }
     }
 
-    void OnClick()
+    private void OnClick()
     {
         if (menu != null && pocion != null)
-        {
             menu.SeleccionarPocion(pocion);
-        }
     }
 }
