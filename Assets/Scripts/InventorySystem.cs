@@ -201,6 +201,11 @@ public class InventorySystem : MonoBehaviour
         var plant = plantas.Find(p => p.plantaTipo == type && p.calidad == quality);
         return plant != null && plant.cantidad >= amount;
     }
+    public bool HasPlant(PlantaTipo type)
+    {
+        var plant = plantas.Find(p => p.plantaTipo == type);
+        return plant != null;
+    }
 
     /// <summary>
     /// Remueve plantas del inventario
@@ -507,7 +512,10 @@ public class InventorySystem : MonoBehaviour
         }
 
         // Cargar monedas
-        coins = PlayerPrefs.GetInt("Coins", 0);
+        if (PlayerPrefs.HasKey("Coins"))
+        {
+            coins = PlayerPrefs.GetInt("Coins", 0);
+        }        
 
         Debug.Log($"Inventario cargado: {plantas.Count} tipos de plantas, {semillas.Count} tipos de semillas, {sueros.Count} sueros, {coins} monedas");
     }

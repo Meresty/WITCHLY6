@@ -26,6 +26,7 @@ public class InventoryInvUI : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
         else
         {

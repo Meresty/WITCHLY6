@@ -244,6 +244,7 @@ public class ElegirPocion : MonoBehaviour
     /// </summary>
     void VerificarIngredientesDisponibles(PocionSO pocion)
     {
+        Debug.Log("Verificando ingredientes");
         // CAMBIO PRINCIPAL: Usar la instancia singleton
         if (InventoryManager.instancia == null)
         {
@@ -256,22 +257,34 @@ public class ElegirPocion : MonoBehaviour
         List<string> ingredientesFaltantes = new List<string>();
 
         // Verificar suero
-        if (pocion.suero != null && !InventoryManager.instancia.HasItem(pocion.suero))
+        /*if (pocion.suero != null && !InventoryManager.instancia.HasItem(pocion.suero))
         {
             ingredientesFaltantes.Add(pocion.suero.itemNombre);
+            InventorySystem.Instance.AddSerum("Suero de Atadura", 3);
+        }*/
+        if (pocion.suero != null && !InventorySystem.Instance.HasSerum(pocion.suero.itemNombre))
+        {
+            ingredientesFaltantes.Add(pocion.suero.itemNombre);
+            InventorySystem.Instance.AddSerum("Suero de Atadura", 3);
         }
 
+        PlantaTipo enumIngrediente = (PlantaTipo)System.Enum.Parse(typeof(PlantaTipo), pocion.ingrediente1.itemNombre);
         // Verificar ingrediente 1
-        if (pocion.ingrediente1 != null && !InventoryManager.instancia.HasItem(pocion.ingrediente1))
+        if (pocion.ingrediente1 != null && !InventorySystem.Instance.HasPlant(enumIngrediente))
         {
             ingredientesFaltantes.Add(pocion.ingrediente1.itemNombre);
+            InventorySystem.Instance.AddPlant(PlantaTipo.Lirien, PlantaCalidad.Estandar, 3);
         }
 
+        enumIngrediente = (PlantaTipo)System.Enum.Parse(typeof(PlantaTipo), pocion.ingrediente2.itemNombre);
         // Verificar ingrediente 2
-        if (pocion.ingrediente2 != null && !InventoryManager.instancia.HasItem(pocion.ingrediente2))
+        if (pocion.ingrediente2 != null && !InventorySystem.Instance.HasPlant(enumIngrediente))
         {
             ingredientesFaltantes.Add(pocion.ingrediente2.itemNombre);
+            InventorySystem.Instance.AddPlant(PlantaTipo.Lumina, PlantaCalidad.Estandar, 3);
         }
+
+        Debug.Log("Ingredientes Faltantes" + ingredientesFaltantes.Count);
 
         if (ingredientesFaltantes.Count > 0)
         {
@@ -289,7 +302,12 @@ public class ElegirPocion : MonoBehaviour
             {
                 textoAdvertencia.text = "Falta:\n\n" + string.Join("\n", ingredientesFaltantes);
             }
+            for(int i =0; i < ingredientesFaltantes.Count; i++)
+            {
 
+                
+            }
+            
             Debug.LogWarning($"[MENÚ POCIONES] Faltan ingredientes: {string.Join(", ", ingredientesFaltantes)}");
         }
         else
@@ -334,9 +352,11 @@ public class ElegirPocion : MonoBehaviour
     {
         if (InventoryManager.instancia == null) return false;
 
-        bool tieneSuero = pocion.suero == null || InventoryManager.instancia.HasItem(pocion.suero);
-        bool tieneIng1 = pocion.ingrediente1 == null || InventoryManager.instancia.HasItem(pocion.ingrediente1);
-        bool tieneIng2 = pocion.ingrediente2 == null || InventoryManager.instancia.HasItem(pocion.ingrediente2);
+        bool tieneSuero = pocion.suero == null || InventorySystem.Instance.HasSerum(pocion.suero.itemNombre);
+        PlantaTipo enumIngrediente = (PlantaTipo)System.Enum.Parse(typeof(PlantaTipo), pocion.ingrediente1.itemNombre);
+        bool tieneIng1 = pocion.ingrediente1 == null || InventorySystem.Instance.HasPlant(enumIngrediente);
+        enumIngrediente = (PlantaTipo)System.Enum.Parse(typeof(PlantaTipo), pocion.ingrediente2.itemNombre);
+        bool tieneIng2 = pocion.ingrediente2 == null || InventorySystem.Instance.HasPlant(enumIngrediente);
 
         return tieneSuero && tieneIng1 && tieneIng2;
     }
