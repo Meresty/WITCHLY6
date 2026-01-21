@@ -608,7 +608,7 @@ public class UI_OrdenDeCompra : MonoBehaviour
 
             if (o.tipo == TipoProducto.Semilla)
             {
-                // Nota: tu InventorySystem no guarda calidad en semillas, aqui solo se agrega por tipo
+                
                 inv.AddSemilla(o.plantaTipo, amount);
                 return true;
             }
