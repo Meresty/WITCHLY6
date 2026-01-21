@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
 using System.Collections.Generic;
-using System;
+using TMPro;
+using UnityEngine;
 
 [System.Serializable]
 public class InventoryItem
@@ -37,8 +38,24 @@ public class InventorySystem : MonoBehaviour
     public List<InventoryItem> plantas = new List<InventoryItem>();
     public List<SeedItem> semillas = new List<SeedItem>();
     public List<SerumItem> sueros = new List<SerumItem>();
-
-    public int coins = 0;
+    [SerializeField]
+    TextMeshPro uiCoins;
+    [SerializeField]
+    private int _coins;
+    public int coins
+    {
+        get
+        {
+            Debug.Log("Hola");
+            return _coins;
+        }
+        set
+        {
+            Debug.Log("Modifique coins");
+            uiCoins.text = value.ToString();
+            _coins = value;
+        }
+    }
 
     [Header("Referencias")]
     public PlantaBD plantBD;

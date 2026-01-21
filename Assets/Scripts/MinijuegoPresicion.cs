@@ -84,12 +84,13 @@ public class MinijuegoPresicion : MonoBehaviour
 
     public void IniciarMinijuego(int _step, ItemInfo _item)
     {
+        panelBloqueo.SetActive(false);
         step = _step;
         itemInRisk = _item;
         minijuegoActivo = true;
         flechaEnMovimiento = true;
 
-        miniJuegoPanel.SetActive(true);
+        uiPresicion.SetActive(true);
 
         CalcularLimites();
         PosicionarFlechaInicial();

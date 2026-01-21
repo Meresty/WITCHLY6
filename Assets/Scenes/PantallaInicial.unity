@@ -313,7 +313,6 @@ GameObject:
   - component: {fileID: 223269951}
   - component: {fileID: 223269950}
   - component: {fileID: 223269949}
-  - component: {fileID: 223269954}
   m_Layer: 5
   m_Name: CanvasCam
   m_TagString: Untagged
@@ -461,20 +460,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
---- !u!114 &223269954
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 223269947}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d37d6e8be7d88ae459e6f6bbeec22f6e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _coins: 0
-  uiCoins: {fileID: 1048789708}
 --- !u!1001 &259595308
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1536,7 +1521,8 @@ MonoBehaviour:
   plantas: []
   semillas: []
   sueros: []
-  coins: 0
+  uiCoins: {fileID: 1048789708}
+  _coins: 0
   plantBD: {fileID: 11400000, guid: 7e4af753f08acdc4eb432a2a579b9909, type: 2}
   sueroBD: {fileID: 11400000, guid: dddeab91cc41dd14b8f114a42be96db1, type: 2}
   plantaToItemMapping: []

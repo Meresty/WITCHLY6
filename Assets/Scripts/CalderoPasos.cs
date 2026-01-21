@@ -178,6 +178,7 @@ public class CalderoLogic : MonoBehaviour
                 InventoryManager.instancia.AddItem(potion.itemPocion, 1);
                 ReiniciarCaldero();
             }
+            uiCaldero.SetActive(false);
         
         }
     }
@@ -194,7 +195,7 @@ public class CalderoLogic : MonoBehaviour
             
             if (textoResultado != null)
                 textoResultado.text = "¡3 errores!\nIngredientes perdidos sin oportunidad";
-
+            uiCaldero.SetActive(false);
             StartCoroutine(BloquearPantallaYEsperarClick());
             return;
         }
