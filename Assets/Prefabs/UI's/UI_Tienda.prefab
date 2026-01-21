@@ -36,6 +36,77 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 28}
   m_Pivot: {x: 0.5, y: 1}
+--- !u!1 &693421646746984087
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7384367589976732819}
+  - component: {fileID: 7659837630189367417}
+  m_Layer: 0
+  m_Name: TiendaController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7384367589976732819
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 693421646746984087}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -932.5053, y: -544.71564, z: 14.257634}
+  m_LocalScale: {x: 2.4678664, y: 2.4678664, z: 2.4678664}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7946708377383591043}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7659837630189367417
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 693421646746984087}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 835981a406ae8f24bb453291f12dd831, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  esController: 1
+  content: {fileID: 1606528443057938392}
+  cardPrefab: {fileID: 1337884308797970677, guid: 557a56aa0699bc0498e13b54a3f64802, type: 3}
+  plantaDB: {fileID: 11400000, guid: 7e4af753f08acdc4eb432a2a579b9909, type: 2}
+  sueroDB: {fileID: 11400000, guid: dddeab91cc41dd14b8f114a42be96db1, type: 2}
+  walletBehaviour: {fileID: 0}
+  inventoryBehaviour: {fileID: 5184471641370557766, guid: c4147b8d815ca9343ae492517be4e16d, type: 3}
+  maxProductos: 12
+  cantidadMinMax: {x: 1, y: 10}
+  refreshCadaHoras: 2
+  fluctuacionMin: 0.05
+  fluctuacionMax: 0.09
+  probEstandar: 0
+  probPlata: 0
+  probOro: 0
+  multEstandar: 1
+  multPlata: 1.5
+  multOro: 2
+  vendorNames: []
+  cantidadObjeto: 0
+  costoObjeto: 0
+  iconoObjeto: {fileID: 0}
+  nombreVendedor: {fileID: 0}
+  nombreObjeto: {fileID: 0}
+  text_cantidadObjeto: {fileID: 0}
+  text_costoObjeto: {fileID: 0}
+  buyButton: {fileID: 0}
 --- !u!1 &856238419489327320
 GameObject:
   m_ObjectHideFlags: 0
@@ -156,7 +227,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1939688352346254125}
   m_HandleRect: {fileID: 261397436702697049}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -390,6 +461,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1606528443057938392}
   - component: {fileID: 4435326440536052148}
+  - component: {fileID: 121354001587831472}
   m_Layer: 5
   m_Name: Content
   m_TagString: Untagged
@@ -414,7 +486,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: -0.000061035156}
-  m_SizeDelta: {x: 0, y: 300}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &4435326440536052148
 MonoBehaviour:
@@ -442,6 +514,20 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &121354001587831472
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1471381682260925660}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_HorizontalFit: 0
+  m_VerticalFit: 2
 --- !u!1 &1818625218615189347
 GameObject:
   m_ObjectHideFlags: 0
@@ -1933,6 +2019,7 @@ RectTransform:
   - {fileID: 2320975108026118280}
   - {fileID: 6269426494395943434}
   - {fileID: 5548665652371264270}
+  - {fileID: 7384367589976732819}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

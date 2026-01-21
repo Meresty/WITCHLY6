@@ -1,40 +1,40 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+using System;
 
 public class MonedasManager : MonoBehaviour
 {
     public static MonedasManager Instance { get; private set; }
 
-    private int monedas = 0;
+    private const string KEY_COINS = "PlayerCoins";
+    [SerializeField] private int monedas = 0;
 
+  
     public delegate void OnCoinsChanged(int newCoins);
     public static event OnCoinsChanged CambioMonedas;
 
-    void Awake()
+    private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            ActualizarMonedas();
+
+            CargarMonedas();
+            CambioMonedas?.Invoke(monedas);
         }
         else
         {
             Destroy(gameObject);
         }
-    } 
-
-
-    public int GetMonedas()
-    {
-        return monedas;
     }
 
+  
+    public int GetMonedas() => monedas;
 
-    public void AñadirMonedas(int amount)
+    public void AnadirMonedas(int amount)
     {
+        if (amount <= 0) return;
+
         monedas += amount;
         GuardarMonedas();
         CambioMonedas?.Invoke(monedas);
@@ -42,33 +42,37 @@ public class MonedasManager : MonoBehaviour
 
     public bool GastarMonedas(int amount)
     {
-        if (monedas >= amount)
-        {
-            monedas -= amount;
-            GuardarMonedas();
-            CambioMonedas?.Invoke(monedas);
-            return true;
-        }
-        return false;
+        if (amount <= 0) return false;
+
+        if (monedas < amount)
+            return false;
+
+        monedas -= amount;
+        GuardarMonedas();
+        CambioMonedas?.Invoke(monedas);
+        return true;
     }
-
-
-    private void GuardarMonedas()
-    {
-        PlayerPrefs.SetInt("PlayerCoins", monedas);
-        PlayerPrefs.Save();
-    }
-
-    private void ActualizarMonedas()
-    {
-        monedas = PlayerPrefs.GetInt("PlayerCoins", 0);
-    }
-
 
     public void ResetMonedas()
     {
         monedas = 0;
-        ActualizarMonedas();
+        GuardarMonedas();
         CambioMonedas?.Invoke(monedas);
     }
+
+    private void GuardarMonedas()
+    {
+        PlayerPrefs.SetInt(KEY_COINS, monedas);
+        PlayerPrefs.Save();
+    }
+
+    private void CargarMonedas()
+    {
+        monedas = PlayerPrefs.GetInt(KEY_COINS, 0);
+    }
+
+  
+    public void AddCoins(int amount) => AnadirMonedas(amount);
+    public bool RemoveCoins(int amount) => GastarMonedas(amount);
+    public int Coins => monedas;
 }

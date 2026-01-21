@@ -36,6 +36,17 @@ MonoBehaviour:
     heightModifier: 1
     sueroSprite: {fileID: -7653906039105187158, guid: 1df0f041d1fb5cd4998a391156e3e293, type: 3}
   - nombre: Suero de Atadura
+    descripcion: Peligroso puede congelar todo.
+    precioVentaEstandar: 0
+    precioVentaPlata: 0
+    precioVentaOro: 0
+    precioCompraEstandar: 0
+    precioCompraPlata: 0
+    precioCompraOro: 0
+    widthModifier: 0.4
+    heightModifier: 1
+    sueroSprite: {fileID: 5605272706321183056, guid: 1df0f041d1fb5cd4998a391156e3e293, type: 3}
+  - nombre: Suero de Congelamiento
     descripcion: "Dota de energ\xEDa. Es dulce y colorido."
     precioVentaEstandar: 0
     precioVentaPlata: 0
