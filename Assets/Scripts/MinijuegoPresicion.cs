@@ -8,6 +8,8 @@ public class MinijuegoPresicion : MonoBehaviour
 {
     [Header("Referencias UI")]
     [SerializeField] private GameObject miniJuegoPanel;
+    [SerializeField] private GameObject uiPresicion;
+    [SerializeField] private CalderoLogic uiCaldero;
     [SerializeField] private RectTransform flecha;
     [SerializeField] private Image imgBarra;
     [SerializeField] private Button btnParar;
@@ -32,7 +34,8 @@ public class MinijuegoPresicion : MonoBehaviour
     [SerializeField] private GameObject panelBloqueo;
     [SerializeField] private TextMeshProUGUI txtClickParaSalir;
 
-
+    int step = 0;
+    ItemInfo itemInRisk;
     private bool flechaEnMovimiento = false;
     private bool minijuegoActivo = false;
     private float direccion = 1f;
@@ -44,17 +47,15 @@ public class MinijuegoPresicion : MonoBehaviour
 
     void Start()
     {
-        btnParar.onClick.AddListener(PararFlecha);
-
-
-        modoEscena = PlayerPrefs.HasKey("CalderoStep");
-
-        if (modoEscena)
-        {
-            IniciarMinijuego(null);
-        }
-
         Debug.Log("Ancho real barra: " + imgBarra.rectTransform.rect.width);
+    }
+    private void OnEnable()
+    {
+        btnParar.onClick.AddListener(PararFlecha);
+    }
+    private void OnDisable()
+    {
+        btnParar.onClick.RemoveListener(PararFlecha);
     }
 
     void Update()
@@ -81,9 +82,10 @@ public class MinijuegoPresicion : MonoBehaviour
         flecha.anchoredPosition = new Vector2(nuevaX, flecha.anchoredPosition.y);
     }
 
-    public void IniciarMinijuego(System.Action<bool> alCompletar)
+    public void IniciarMinijuego(int _step, ItemInfo _item)
     {
-        alCompletarMinijuego = alCompletar;
+        step = _step;
+        itemInRisk = _item;
         minijuegoActivo = true;
         flechaEnMovimiento = true;
 
@@ -98,10 +100,6 @@ public class MinijuegoPresicion : MonoBehaviour
 
         btnParar.interactable = true;
     }
-
-
-
-
 
     void CalcularLimites()
     {
@@ -119,10 +117,6 @@ public class MinijuegoPresicion : MonoBehaviour
     }
 
 
-
-
-
-
     void PosicionarFlechaInicial()
     {
         float posicionInicial = Random.Range(0, 2) == 0 ? limiteIzquierdo : limiteDerecho;
@@ -130,11 +124,6 @@ public class MinijuegoPresicion : MonoBehaviour
 
         direccion = Random.Range(0, 2) == 0 ? 1f : -1f;
     }
-
-
-
-
-
 
     void PararFlecha()
     {
@@ -145,10 +134,6 @@ public class MinijuegoPresicion : MonoBehaviour
 
         VerificarPosicionFlecha();
     }
-
-
-
-
 
 
     void VerificarPosicionFlecha()
@@ -169,36 +154,41 @@ public class MinijuegoPresicion : MonoBehaviour
     }
 
 
-
-
-
-
     void OnExitoMinijuego()
     {
         txtResultado.text = mensajeExito;
         txtResultado.color = Color.green;
-
+        step = 0;
+        itemInRisk = null;
         StartCoroutine(AnimacionExito());
         StartCoroutine(CerrarMinijuegoDespuesDeDelay(true));
+        uiCaldero.ProcesarResultadoMinijuego(true);
     }
-
-
-
-
 
 
     void OnFalloMinijuego()
     {
         txtResultado.text = mensajeFallido;
         txtResultado.color = Color.red;
+        switch (step)
+        {
+            case 0:
+                InventorySystem.Instance.RemoveSerum(itemInRisk.itemNombre,1);
+                break;
+            case 1:
+                InventorySystem.Instance.RemovePlant(itemInRisk.plantaTipo,itemInRisk.calidad, 1);
+                break;
+            case 2:
+                InventorySystem.Instance.RemovePlant(itemInRisk.plantaTipo, itemInRisk.calidad, 1);
+                break;
+        }
+        step = 0;
+        itemInRisk = null;
 
         StartCoroutine(AnimacionFallo());
         StartCoroutine(BloquearPantallaYEsperarClick());
+        uiCaldero.ProcesarResultadoMinijuego(false);
     }
-
-
-
-
 
 
     IEnumerator BloquearPantallaYEsperarClick()
@@ -238,14 +228,7 @@ public class MinijuegoPresicion : MonoBehaviour
     {
         Debug.Log("Regresando a escena inicial por fallo en minijuego");
 
-        PlayerPrefs.DeleteKey("MinijuegoExito");
-        PlayerPrefs.DeleteKey("CalderoStep");
-        PlayerPrefs.DeleteKey("CalderoErrores");
-        PlayerPrefs.DeleteKey("PocionActual");
-        PlayerPrefs.DeleteKey("IngredientesAgregados");
-        PlayerPrefs.Save();
-
-        SceneManager.LoadScene(nombreEscenaInicial);
+        uiPresicion.SetActive(false);
     }
 
 
@@ -306,17 +289,6 @@ public class MinijuegoPresicion : MonoBehaviour
 
         miniJuegoPanel.SetActive(false);
         minijuegoActivo = false;
-
-
-
-        if (modoEscena)
-        {
-            FinalizarMinijuego(exito);
-        }
-        else
-        {
-            alCompletarMinijuego?.Invoke(exito);
-        }
     }
 
 
@@ -331,7 +303,7 @@ public class MinijuegoPresicion : MonoBehaviour
         PlayerPrefs.SetInt("MinijuegoExito", exito ? 1 : 0);
         PlayerPrefs.Save();
 
-        SceneManager.LoadScene(nombreEscenaCaldero);
+        uiPresicion.SetActive(false);
     }
 
 

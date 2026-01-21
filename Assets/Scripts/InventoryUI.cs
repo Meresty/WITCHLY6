@@ -135,18 +135,6 @@ public class InventoryUI : MonoBehaviour
         }
     }
 
-    void UsarItemEnCaldero(ItemSO item)
-    {
-        if (CalderoLogic.instancia != null)
-        {
-            CalderoLogic.instancia.AddIngredient(item);
-            Debug.Log($"[InventoryUI] Item '{item.itemNombre}' enviado a CalderoLogic");
-        }
-        else
-        {
-            Debug.LogWarning("[InventoryUI] CalderoLogic no está activo en esta escena!");
-        }
-    }
 
     public void AddItem(ItemSO item, int cantidad)
     {

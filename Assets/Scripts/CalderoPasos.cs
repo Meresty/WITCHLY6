@@ -24,36 +24,33 @@ public class CalderoLogic : MonoBehaviour
     public GameObject iconoIngredientePrefab;
     public Image iconoPocionResultado;
     public TextMeshProUGUI textoResultado;
+    public TextMeshProUGUI textoPaso1;
+    public TextMeshProUGUI textoPaso2;
+    public TextMeshProUGUI textoPaso3;
     public Button Btn_back;
 
     private PocionSO potion;
     private int step = 0;
     private int vecesEquivocado = 0; // Cuenta cuántas veces eligió ingrediente incorrecto
     private float descuentoPrecio = 0f; // Descuento acumulado
-    private List<ItemSO> ingredientesAgregados = new List<ItemSO>();
+    private List<ItemInfo> ingredientesAgregados = new List<ItemInfo>();
 
 
     [Header("Bloqueo en Fallo")]
     [SerializeField] private GameObject panelBloqueo;
     [SerializeField] private TextMeshProUGUI txtClickParaSalir;
-    [SerializeField] private string nombreEscenaInicial = "PantallaInicial";
+    [SerializeField] private GameObject uiCaldero;
+    [SerializeField] private MinijuegoPresicion uiMinijuego;
 
-    void Start()
+    public void IniciarCaldero(string nombrePocion)
     {
         if (InventoryManager.instancia == null)
-        {
-            Debug.LogError("⚠️ Carga desde pantalla inicial para que cargue el InventoryManager");
-        }
-
-        CargarPocionSeleccionada();
-
-        if (PlayerPrefs.HasKey("MinijuegoExito"))
-        {
-            ProcesarResultadoMinijuego();
-        }
-        else
-        {
-            if (potion != null)
+            {
+                Debug.LogError("⚠️ Carga desde pantalla inicial para que cargue el InventoryManager");
+            }
+        uiCaldero.SetActive(true);
+        CargarPocionSeleccionada(nombrePocion);
+        if (potion != null)
             {
                 if (iconoPocionResultado != null)
                     iconoPocionResultado.sprite = potion.icon;
@@ -70,37 +67,14 @@ public class CalderoLogic : MonoBehaviour
             {
                 Debug.LogError("⚠️ (caldero) No carga poción");
             }
-
             ActualizarUI();
-        }
     }
 
-    void ProcesarResultadoMinijuego()
+    public void ProcesarResultadoMinijuego(bool _exito)
     {
-        CargarPocionSeleccionada();
+        //CargarPocionSeleccionada();
 
-        bool exito = PlayerPrefs.GetInt("MinijuegoExito") == 1;
-        step = PlayerPrefs.GetInt("CalderoStep", 0);
-        vecesEquivocado = PlayerPrefs.GetInt("VecesEquivocado", 0);
-        descuentoPrecio = PlayerPrefs.GetFloat("DescuentoPrecio", 0f);
-
-        // ✅ NUEVO: Verificar si los ingredientes ya fueron eliminados
-        bool yaEliminados = PlayerPrefs.GetInt("IngredientesYaEliminados", 0) == 1;
-
-        string ingredientesGuardados = PlayerPrefs.GetString("IngredientesAgregados", "");
-        if (!string.IsNullOrEmpty(ingredientesGuardados))
-        {
-            string[] nombres = ingredientesGuardados.Split(',');
-            foreach (string nombre in nombres)
-            {
-                if (potion.suero != null && potion.suero.itemNombre == nombre)
-                    ingredientesAgregados.Add(potion.suero);
-                else if (potion.ingrediente1 != null && potion.ingrediente1.itemNombre == nombre)
-                    ingredientesAgregados.Add(potion.ingrediente1);
-                else if (potion.ingrediente2 != null && potion.ingrediente2.itemNombre == nombre)
-                    ingredientesAgregados.Add(potion.ingrediente2);
-            }
-        }
+        bool exito = _exito;
 
         if (exito)
         {
@@ -120,32 +94,8 @@ public class CalderoLogic : MonoBehaviour
             if (textoResultado != null)
                 textoResultado.text = "¡Fallaste el minijuego!\nIngredientes perdidos :(";
 
-
-            if (!yaEliminados && InventoryManager.instancia != null)
-            {
-                foreach (var ingred in ingredientesAgregados)
-                {
-                    InventoryManager.instancia.RemoveItem(ingred, 1);
-                    Debug.Log($"❌ Ingrediente '{ingred.itemNombre}' eliminado por fallo en minijuego");
-                }
-            }
-            else if (yaEliminados)
-            {
-                Debug.Log("ℹ️ Ingredientes ya fueron eliminados previamente (3 fallos)");
-            }
-
             StartCoroutine(BloquearPantallaYEsperarClick());
         }
-
-
-        PlayerPrefs.DeleteKey("MinijuegoExito");
-        PlayerPrefs.DeleteKey("CalderoStep");
-        PlayerPrefs.DeleteKey("PocionActual");
-        PlayerPrefs.DeleteKey("IngredientesAgregados");
-        PlayerPrefs.DeleteKey("VecesEquivocado");
-        PlayerPrefs.DeleteKey("DescuentoPrecio");
-        PlayerPrefs.DeleteKey("IngredientesYaEliminados"); 
-        PlayerPrefs.Save();
 
         if (notaUI != null && potion != null)
             notaUI.MostrarReceta(potion);
@@ -153,7 +103,7 @@ public class CalderoLogic : MonoBehaviour
         ActualizarUI();
     }
 
-    public void AddIngredient(ItemSO item)
+    public void AddIngredient(ItemInfo item)
     {
         if (step >= 3)
         {
@@ -161,30 +111,45 @@ public class CalderoLogic : MonoBehaviour
                 textoResultado.text = "¡Poción ya completada!";
             return;
         }
+        Debug.Log(potion.suero.itemNombre);
+        ItemInfo esperado = new ItemInfo();
+        if (step == 0) esperado.itemNombre = potion.suero.itemNombre;
+        if (step == 1) esperado.itemNombre = potion.ingrediente1.itemNombre;
+        if (step == 2) esperado.itemNombre = potion.ingrediente2.itemNombre;
 
-        ItemSO esperado = null;
-        if (step == 0) esperado = potion.suero;
-        if (step == 1) esperado = potion.ingrediente1;
-        if (step == 2) esperado = potion.ingrediente2;
-
-        if (item == esperado)
+        if (item.itemNombre == esperado.itemNombre)
         {
             OnIngredienteCorrecto(item);
         }
         else
         {
-            OnIngredienteIncorrecto();
+            OnIngredienteIncorrecto(item);
         }
     }
 
-    void OnIngredienteCorrecto(ItemSO item)
+    void OnIngredienteCorrecto(ItemInfo item)
     {
         if (InventoryManager.instancia != null)
         {
-            InventoryManager.instancia.RemoveItem(item);
+            InventorySystem.Instance.RemovePlant(item.plantaTipo,item.calidad,1);
         }
 
         ingredientesAgregados.Add(item);
+        switch (step)
+        {
+            case 0:
+                InventorySystem.Instance.RemoveSerum(item.itemNombre,1);
+                textoPaso1.text = "<s>" + textoPaso1.text + "</s>";
+                break; 
+            case 1:
+                InventorySystem.Instance.RemovePlant(item.plantaTipo, item.calidad, 1);
+                textoPaso2.text = "<s>" + textoPaso2.text + "</s>";
+                break;
+            case 2:
+                InventorySystem.Instance.RemovePlant(item.plantaTipo, item.calidad, 1);
+                textoPaso3.text = "<s>" + textoPaso3.text + "</s>";
+                break;
+        }
         step++;
 
         Debug.Log("✅ Ingrediente correcto");
@@ -211,12 +176,13 @@ public class CalderoLogic : MonoBehaviour
             if (InventoryManager.instancia != null && potion != null && potion.itemPocion != null)
             {
                 InventoryManager.instancia.AddItem(potion.itemPocion, 1);
+                ReiniciarCaldero();
             }
         
         }
     }
 
-    void OnIngredienteIncorrecto()
+    void OnIngredienteIncorrecto(ItemInfo item)
     {
         vecesEquivocado++;
 
@@ -225,21 +191,9 @@ public class CalderoLogic : MonoBehaviour
             Debug.Log("Te equivocaste 3 veces. ¡Pierdes ingredientes sin minijuego!");
 
             // ⚠️ CAMBIO: Solo eliminamos ingredientes AQUÍ (no en minijuego)
-            if (InventoryManager.instancia != null)
-            {
-                foreach (var ing in ingredientesAgregados)
-                {
-                    InventoryManager.instancia.RemoveItem(ing, 1);
-                    Debug.Log($"❌ Ingrediente '{ing.itemNombre}' eliminado por 3 fallos");
-                }
-            }
-
+            
             if (textoResultado != null)
                 textoResultado.text = "¡3 errores!\nIngredientes perdidos sin oportunidad";
-
-            // ✅ NUEVO: Marcamos que ya se eliminaron los ingredientes
-            PlayerPrefs.SetInt("IngredientesYaEliminados", 1);
-            PlayerPrefs.Save();
 
             StartCoroutine(BloquearPantallaYEsperarClick());
             return;
@@ -250,23 +204,7 @@ public class CalderoLogic : MonoBehaviour
         if (textoResultado != null)
             textoResultado.text = $"¡Incorrecto! (Error {vecesEquivocado}/2)\nCargando minijuego...";
 
-        // Guardar estado
-        PlayerPrefs.SetInt("CalderoStep", step);
-        PlayerPrefs.SetInt("VecesEquivocado", vecesEquivocado);
-        PlayerPrefs.SetFloat("DescuentoPrecio", descuentoPrecio);
-        PlayerPrefs.SetString("PocionActual", potion.pocionNombre);
-
-        string ingredientesStr = "";
-        foreach (var ing in ingredientesAgregados)
-        {
-            if (ingredientesStr != "") ingredientesStr += ",";
-            ingredientesStr += ing.itemNombre;
-        }
-        PlayerPrefs.SetString("IngredientesAgregados", ingredientesStr);
-
-        PlayerPrefs.Save();
-
-        SceneManager.LoadScene(nombreEscenaMinijuego);
+        uiMinijuego.IniciarMinijuego(step, item);
     }
 
     void ActualizarUI()
@@ -301,9 +239,9 @@ public class CalderoLogic : MonoBehaviour
             notaUI.LimpiarNota();
     }
 
-    void CargarPocionSeleccionada()
+    void CargarPocionSeleccionada(string _nombrePocion)
     {
-        string nombrePocion = PlayerPrefs.GetString("PocionSeleccionada", "");
+        string nombrePocion = _nombrePocion;
 
         if (string.IsNullOrEmpty(nombrePocion))
         {
@@ -335,12 +273,6 @@ public class CalderoLogic : MonoBehaviour
 
         return precioFinal;
     }
-
-
-
-
-
-
 
 
     IEnumerator BloquearPantallaYEsperarClick()
@@ -401,9 +333,6 @@ public class CalderoLogic : MonoBehaviour
         }
     }
 
-
-
-
     void RegresarAEscenaInicial()
     {
         Debug.Log("Regresando a escena inicial por 3 fallos");
@@ -415,6 +344,6 @@ public class CalderoLogic : MonoBehaviour
         PlayerPrefs.DeleteKey("IngredientesAgregados");
         PlayerPrefs.Save();
 
-        SceneManager.LoadScene(nombreEscenaInicial);
+        uiCaldero.SetActive(false);
     }
 }

@@ -2,6 +2,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static UnityEditor.Progress;
 
 public class InventarioDetailsUI : MonoBehaviour
 {
@@ -13,6 +14,8 @@ public class InventarioDetailsUI : MonoBehaviour
     public TMP_Text itemDescriptionText;
     public TMP_Text calidadText;
     public Button plantarButton;
+    public Button calderoButton;
+    ItemInfo currentItem;
 
     private void Awake()
     {
@@ -32,9 +35,23 @@ public class InventarioDetailsUI : MonoBehaviour
         calidadText.text = "";
         itemIcon.gameObject.SetActive(false);
     }
+    public void OnButtonClick()
+    {
+        Debug.Log("Button clicked from script!");
+    }
+
+    public void AñadirAlCaldero()
+    {
+        if (currentItem == null || CalderoLogic.instancia == null)
+            return;
+        CalderoLogic.instancia.AddIngredient(currentItem);
+        transform.parent.gameObject.SetActive(false);
+        Debug.Log($"[InventoryUI] Item '{currentItem.itemNombre}' enviado a CalderoLogic");
+    }
 
     public void ShowItemDetails(ItemInfo item)
     {
+        currentItem = item;
         itemIcon.gameObject.SetActive(true);
         itemIcon.sprite = item.icon;
         itemNameText.text = item.itemNombre;

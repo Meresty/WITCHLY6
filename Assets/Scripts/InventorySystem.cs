@@ -428,7 +428,7 @@ public class InventorySystem : MonoBehaviour
     /// </summary>
     private void SyncPlantToCaldero(PlantaTipo tipo, PlantaCalidad calidad, int cantidad)
     {
-        if (InventoryManager.instancia == null)
+        /*if (InventoryManager.instancia == null)
         {
             Debug.LogWarning("[InventorySystem] InventoryManager no está disponible aún");
             return;
@@ -443,7 +443,7 @@ public class InventorySystem : MonoBehaviour
         else
         {
             Debug.LogWarning($"⚠️ No hay ItemSO mapeado para {tipo} ({calidad})");
-        }
+        }*/
     }
 
     /// <summary>

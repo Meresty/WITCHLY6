@@ -340,12 +340,9 @@ public class ElegirPocion : MonoBehaviour
             return;
         }
 
-        PlayerPrefs.SetString("PocionSeleccionada", pocionSeleccionada.pocionNombre);
-        PlayerPrefs.Save();
-
         Debug.Log($"[MENÚ POCIONES] Preparando {pocionSeleccionada.pocionNombre} - Cargando caldero...");
 
-        SceneManager.LoadScene(nombreEscenaCaldero);
+        CalderoLogic.instancia.IniciarCaldero(pocionSeleccionada.pocionNombre);
     }
 
     bool TieneTodosLosIngredientes(PocionSO pocion)

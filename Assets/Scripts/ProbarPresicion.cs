@@ -53,7 +53,7 @@ public class ProbadorMinijuego : MonoBehaviour
         }
 
         Debug.Log("Llamando a IniciarMinijuego...");
-        minijuegoPrecision.IniciarMinijuego(ResultadoMinijuego);
+        //minijuegoPrecision.IniciarMinijuego(ResultadoMinijuego);
     }
 
     void ResultadoMinijuego(bool exito)
