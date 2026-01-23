@@ -386,7 +386,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemSlotPrefab: {fileID: 6720480316045280527, guid: 03fda70fd1b728e44a587a30afb2f7fd, type: 3}
-  content: {fileID: 1410054938}
+  semillasContent: {fileID: 0}
+  plantasContent: {fileID: 0}
+  suerosContent: {fileID: 0}
 --- !u!4 &247258214
 Transform:
   m_ObjectHideFlags: 0
@@ -953,7 +955,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1273460056
 RectTransform:
   m_ObjectHideFlags: 0
