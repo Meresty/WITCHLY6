@@ -1,9 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-/// <summary>
-/// Del caldero
-/// </summary>
 public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager instancia;
@@ -27,21 +24,17 @@ public class InventoryManager : MonoBehaviour
         else
         {
             Destroy(gameObject);
-            return;
         }
     }
 
-
-    public void AddItem(ItemSO item, int cantidad)
+    public void AddItem(ItemSO item, int cantidad = 1)
     {
+        if (item == null) return;
+
         var existente = items.Find(i => i.item == item);
         if (existente == null)
         {
-            items.Add(new InventoryItem
-            {
-                item = item,
-                cantidad = cantidad
-            });
+            items.Add(new InventoryItem { item = item, cantidad = cantidad });
         }
         else
         {
@@ -49,56 +42,29 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    public bool HasItem(ItemSO item)
+    public bool HasItem(ItemSO item, int cantidadRequerida = 1)
     {
-        var inv = items.Find(i => i.item == item);
-        return inv != null && inv.cantidad > 0;
-    }
-
-
-
-    public bool HasItem(ItemSO item, int cantidadRequerida)
-    {
+        if (item == null) return false;
         var inv = items.Find(i => i.item == item);
         return inv != null && inv.cantidad >= cantidadRequerida;
     }
 
-
-
     public int GetItemCount(ItemSO item)
     {
+        if (item == null) return 0;
         var inv = items.Find(i => i.item == item);
         return inv != null ? inv.cantidad : 0;
     }
 
-
-
     public void RemoveItem(ItemSO item, int cantidad = 1)
     {
+        if (item == null) return;
+
         var inv = items.Find(i => i.item == item);
-        if (inv != null)
-        {
-            inv.cantidad -= cantidad;
-            if (inv.cantidad <= 0)
-                items.Remove(inv);
-        }
-    }
+        if (inv == null) return;
 
-    public bool TryConsumeItems(List<ItemSO> receta)
-    {
-        foreach (var itemReceta in receta)
-        {
-            if (!HasItem(itemReceta))
-            {
-                Debug.Log("No tienes: " + itemReceta.name);
-                return false;
-            }
-        }
-
-        foreach (var itemReceta in receta)
-        {
-            RemoveItem(itemReceta, 1);
-        }
-        return true;
+        inv.cantidad -= cantidad;
+        if (inv.cantidad <= 0)
+            items.Remove(inv);
     }
 }

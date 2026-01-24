@@ -296,6 +296,8 @@ GameObject:
   - component: {fileID: 6830364973390352531}
   - component: {fileID: 6326846924186484466}
   - component: {fileID: 7541738472910261628}
+  - component: {fileID: -7978874102908299558}
+  - component: {fileID: -2007360508221865894}
   m_Layer: 5
   m_Name: ItemSlot
   m_TagString: Untagged
@@ -407,6 +409,30 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!225 &-7978874102908299558
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6720480316045280527}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &-2007360508221865894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6720480316045280527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b7b712e16d5de440a1b1cd7c0df3ad3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7005731268192735725
 GameObject:
   m_ObjectHideFlags: 0

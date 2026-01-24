@@ -21,14 +21,28 @@ public class SerumItem
 public class SeedItem
 {
     public PlantaTipo plantaTipo;
-    public int cantidad;
+    public int cantidad; // -1 = infinito
 }
 
-/// <summary>
-/// Sistema de inventario del invernadero
-/// Maneja plantas, semillas, sueros y monedas
-/// SINCRONIZA con InventoryManager del caldero
-/// </summary>
+[System.Serializable]
+public class PlantaItemSOMapping
+{
+    public PlantaTipo tipo;
+    public PlantaCalidad calidad;
+    public ItemSO itemSO;
+}
+
+[System.Serializable]
+public class SueroItemSOMapping
+{
+    public string sueroNombre;
+    public ItemSO itemSO;
+}
+
+[System.Serializable] public class PlantsList { public List<InventoryItem> items; }
+[System.Serializable] public class SeedsList { public List<SeedItem> items; }
+[System.Serializable] public class SerumsList { public List<SerumItem> items; }
+
 public class InventorySystem : MonoBehaviour
 {
     public static InventorySystem Instance { get; private set; }
@@ -37,16 +51,15 @@ public class InventorySystem : MonoBehaviour
     public List<InventoryItem> plantas = new List<InventoryItem>();
     public List<SeedItem> semillas = new List<SeedItem>();
     public List<SerumItem> sueros = new List<SerumItem>();
-
     public int coins = 0;
 
     [Header("Referencias")]
     public PlantaBD plantBD;
     public SueroDB sueroBD;
 
-    [Header("Conexión con Caldero")]
-    [Tooltip("Asigna los ItemSO correspondientes a cada planta")]
+    [Header("Conexion con Caldero")]
     public PlantaItemSOMapping[] plantaToItemMapping;
+    public SueroItemSOMapping[] sueroToItemMapping;
 
     public event Action OnInventoryChanged;
 
@@ -66,23 +79,18 @@ public class InventorySystem : MonoBehaviour
 
     void InitializeInventory()
     {
-        // Verificar si es la primera vez que se juega
         if (!PlayerPrefs.HasKey("FirstTime"))
         {
-            Debug.Log("Primera vez jugando - Inicializando inventario inicial");
-
-            // RQF58: Inventario inicial
             AddSerum("Suero de Fuerza", 1);
             AddSerum("Suero de Energía", 1);
+
             AddPlant(PlantaTipo.Drakonia, PlantaCalidad.Estandar, 5);
             AddPlant(PlantaTipo.Drakonia, PlantaCalidad.Plata, 5);
             AddPlant(PlantaTipo.Falsibaya, PlantaCalidad.Estandar, 5);
             AddPlant(PlantaTipo.Drakonia, PlantaCalidad.Oro, 5);
+
             AddSemilla(PlantaTipo.Falsibaya, -1);
             AddSemilla(PlantaTipo.Drakonia, -1);
-
-            // RQF61: Drakonia y Falsibaya siempre disponibles (son perennes)
-            // Ya están en el inventario inicial
 
             PlayerPrefs.SetInt("FirstTime", 1);
             PlayerPrefs.Save();
@@ -91,511 +99,335 @@ public class InventorySystem : MonoBehaviour
         {
             LoadInventory();
         }
-    }
 
-    #region SEMILLAS
-
-    /// <summary>
-    /// Añade semillas al inventario
-    /// </summary>
-    public void AddSemilla(PlantaTipo type, int amount)
-    {
-        var existing = semillas.Find(s => s.plantaTipo == type);
-        if (existing != null)
-        {
-            existing.cantidad += amount;
-        }
-        else
-        {
-            semillas.Add(new SeedItem
-            {
-                plantaTipo = type,
-                cantidad = amount
-            });
-        }
+        SyncAllToCaldero();
         OnInventoryChanged?.Invoke();
-        SaveInventory();
-
-        Debug.Log($"Añadidas {amount} semillas de {type}");
     }
 
-    /// <summary>
-    /// Verifica si tiene suficientes semillas
-    /// </summary>
+    // -------------------------
+    // COMPAT: lo que te falta
+    // -------------------------
     public bool HasSeed(PlantaTipo type, int amount = 1)
     {
         var seed = semillas.Find(s => s.plantaTipo == type);
-        return seed != null && seed.cantidad >= amount;
+        if (seed == null) return false;
+        if (seed.cantidad == -1) return true;
+        return seed.cantidad >= amount;
     }
 
-    /// <summary>
-    /// Remueve semillas del inventario
-    /// </summary>
-    public bool RemoveSeed(PlantaTipo type, int amount = 1)
-    {
-        var seed = semillas.Find(s => s.plantaTipo == type);
-        if (seed != null && (seed.cantidad >= amount || amount == -1))
-        {
-            seed.cantidad -= amount;
-            if (seed.cantidad == 0)
-            {
-                semillas.Remove(seed);
-            }
-            if (amount == -1)
-                seed.cantidad = -1;
-
-            OnInventoryChanged?.Invoke();
-            SaveInventory();
-            return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// Obtiene la cantidad de semillas de un tipo
-    /// </summary>
     public int GetSeedCount(PlantaTipo type)
     {
         var seed = semillas.Find(s => s.plantaTipo == type);
         return seed != null ? seed.cantidad : 0;
     }
 
-    #endregion
-
-    #region PLANTAS
-
-    /// <summary>
-    /// Añade plantas al inventario Y LAS SINCRONIZA CON EL CALDERO
-    /// </summary>
-    public void AddPlant(PlantaTipo type, PlantaCalidad quality, int amount)
-    {
-        var existing = plantas.Find(p => p.plantaTipo == type && p.calidad == quality);
-        if (existing != null)
-        {
-            existing.cantidad += amount;
-        }
-        else
-        {
-            plantas.Add(new InventoryItem
-            {
-                plantaTipo = type,
-                calidad = quality,
-                cantidad = amount
-            });
-        }
-
-        // ⭐ SINCRONIZAR CON CALDERO
-        SyncPlantToCaldero(type, quality, amount);
-
-        OnInventoryChanged?.Invoke();
-        SaveInventory();
-
-        Debug.Log($"Añadidas {amount} plantas {type} de calidad {quality}");
-    }
-
-    /// <summary>
-    /// Verifica si tiene suficientes plantas
-    /// </summary>
     public bool HasPlant(PlantaTipo type, PlantaCalidad quality, int amount = 1)
     {
         var plant = plantas.Find(p => p.plantaTipo == type && p.calidad == quality);
         return plant != null && plant.cantidad >= amount;
     }
+
     public bool HasPlant(PlantaTipo type)
     {
-        var plant = plantas.Find(p => p.plantaTipo == type);
-        return plant != null;
+        return plantas.Exists(p => p.plantaTipo == type && p.cantidad > 0);
     }
 
-    /// <summary>
-    /// Remueve plantas del inventario
-    /// </summary>
-    public bool RemovePlant(PlantaTipo type, PlantaCalidad quality, int amount = 1)
-    {
-        var plant = plantas.Find(p => p.plantaTipo == type && p.calidad == quality);
-        if (plant != null && plant.cantidad >= amount)
-        {
-            plant.cantidad -= amount;
-            if (plant.cantidad == 0)
-            {
-                plantas.Remove(plant);
-            }
-            OnInventoryChanged?.Invoke();
-            SaveInventory();
-            return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// Obtiene la cantidad de plantas de un tipo y calidad
-    /// </summary>
     public int GetPlantCount(PlantaTipo type, PlantaCalidad quality)
     {
         var plant = plantas.Find(p => p.plantaTipo == type && p.calidad == quality);
         return plant != null ? plant.cantidad : 0;
     }
 
-    #endregion
-
-    #region SUEROS
-
-    /// <summary>
-    /// Añade sueros al inventario
-    /// </summary>
-    public void AddSerum(string serumName, int amount)
+    // Para scripts viejos (CalderoDangerZone, etc.)
+    public ItemSO ResolveItemSO(ItemInfo info)
     {
-        var existing = sueros.Find(s => s.sueroNombre == serumName);
+        if (info == null) return null;
+
+        // Planta (tiene tipo y calidad)
+        if (info.plantaTipo != PlantaTipo.NONE && info.calidad != PlantaCalidad.NONE)
+            return GetItemSOForPlant(info.plantaTipo, info.calidad);
+
+        // Suero (por nombre)
+        if (info.plantaTipo == PlantaTipo.NONE)
+            return GetItemSOForSerum(info.itemNombre);
+
+        // Semilla: normalmente no hay ItemSO (regresa null => incorrect drop)
+        return null;
+    }
+
+    // -------------------------
+    // MAPS
+    // -------------------------
+    public ItemSO GetItemSOForPlant(PlantaTipo tipo, PlantaCalidad calidad)
+    {
+        if (plantaToItemMapping == null) return null;
+        foreach (var m in plantaToItemMapping)
+            if (m.tipo == tipo && m.calidad == calidad)
+                return m.itemSO;
+        return null;
+    }
+
+    public ItemSO GetItemSOForSerum(string sueroNombre)
+    {
+        if (string.IsNullOrEmpty(sueroNombre)) return null;
+        if (sueroToItemMapping == null) return null;
+
+        foreach (var m in sueroToItemMapping)
+            if (m != null && string.Equals(m.sueroNombre, sueroNombre, StringComparison.OrdinalIgnoreCase))
+                return m.itemSO;
+
+        return null;
+    }
+
+    public bool ConsumeMappedItem(ItemSO itemSO, int amount = 1)
+    {
+        if (itemSO == null) return false;
+
+        if (plantaToItemMapping != null)
+        {
+            foreach (var m in plantaToItemMapping)
+                if (m != null && m.itemSO == itemSO)
+                    return RemovePlant(m.tipo, m.calidad, amount);
+        }
+
+        if (sueroToItemMapping != null)
+        {
+            foreach (var m in sueroToItemMapping)
+                if (m != null && m.itemSO == itemSO)
+                    return RemoveSerum(m.sueroNombre, amount);
+        }
+
+        if (InventoryManager.instancia != null)
+        {
+            InventoryManager.instancia.RemoveItem(itemSO, amount);
+            return true;
+        }
+
+        return false;
+    }
+
+    // -------------------------
+    // SEMILLAS
+    // -------------------------
+    public void AddSemilla(PlantaTipo type, int amount)
+    {
+        var existing = semillas.Find(s => s.plantaTipo == type);
         if (existing != null)
         {
-            existing.cantidad += amount;
+            if (existing.cantidad == -1 || amount == -1)
+                existing.cantidad = -1;
+            else
+                existing.cantidad += amount;
         }
         else
         {
-            sueros.Add(new SerumItem { sueroNombre = serumName, cantidad = amount });
+            semillas.Add(new SeedItem { plantaTipo = type, cantidad = amount });
         }
+
         OnInventoryChanged?.Invoke();
         SaveInventory();
-
-        Debug.Log($"Añadidos {amount} {serumName}");
     }
 
-    /// <summary>
-    /// Verifica si tiene suficientes sueros
-    /// </summary>
-    public bool HasSerum(string serumName, int amount = 1)
+    public bool RemoveSeed(PlantaTipo type, int amount = 1)
     {
-        var serum = sueros.Find(s => s.sueroNombre == serumName);
-        return serum != null && serum.cantidad >= amount;
-    }
+        var seed = semillas.Find(s => s.plantaTipo == type);
+        if (seed == null) return false;
 
-    /// <summary>
-    /// Remueve sueros del inventario
-    /// </summary>
-    public bool RemoveSerum(string serumName, int amount = 1)
-    {
-        var serum = sueros.Find(s => s.sueroNombre == serumName);
-        if (serum != null && serum.cantidad >= amount)
+        if (amount == -1)
         {
-            serum.cantidad -= amount;
-            if (serum.cantidad == 0)
-            {
-                sueros.Remove(serum);
-            }
+            seed.cantidad = -1;
             OnInventoryChanged?.Invoke();
             SaveInventory();
             return true;
         }
-        return false;
+
+        if (seed.cantidad == -1) return true;
+        if (seed.cantidad < amount) return false;
+
+        seed.cantidad -= amount;
+        if (seed.cantidad <= 0) semillas.Remove(seed);
+
+        OnInventoryChanged?.Invoke();
+        SaveInventory();
+        return true;
     }
 
-    /// <summary>
-    /// Obtiene la cantidad de un suero
-    /// </summary>
+    // -------------------------
+    // PLANTAS
+    // -------------------------
+    public void AddPlant(PlantaTipo type, PlantaCalidad quality, int amount)
+    {
+        var existing = plantas.Find(p => p.plantaTipo == type && p.calidad == quality);
+        if (existing != null) existing.cantidad += amount;
+        else plantas.Add(new InventoryItem { plantaTipo = type, calidad = quality, cantidad = amount });
+
+        ItemSO so = GetItemSOForPlant(type, quality);
+        if (so != null && InventoryManager.instancia != null)
+            InventoryManager.instancia.AddItem(so, amount);
+
+        OnInventoryChanged?.Invoke();
+        SaveInventory();
+    }
+
+    public bool RemovePlant(PlantaTipo type, PlantaCalidad quality, int amount = 1)
+    {
+        var plant = plantas.Find(p => p.plantaTipo == type && p.calidad == quality);
+        if (plant == null) return false;
+        if (plant.cantidad < amount) return false;
+
+        plant.cantidad -= amount;
+        if (plant.cantidad <= 0) plantas.Remove(plant);
+
+        ItemSO so = GetItemSOForPlant(type, quality);
+        if (so != null && InventoryManager.instancia != null)
+            InventoryManager.instancia.RemoveItem(so, amount);
+
+        OnInventoryChanged?.Invoke();
+        SaveInventory();
+        return true;
+    }
+
+    // -------------------------
+    // SUEROS
+    // -------------------------
+    public void AddSerum(string serumName, int amount)
+    {
+        var existing = sueros.Find(s => s.sueroNombre == serumName);
+        if (existing != null) existing.cantidad += amount;
+        else sueros.Add(new SerumItem { sueroNombre = serumName, cantidad = amount });
+
+        ItemSO so = GetItemSOForSerum(serumName);
+        if (so != null && InventoryManager.instancia != null)
+            InventoryManager.instancia.AddItem(so, amount);
+
+        OnInventoryChanged?.Invoke();
+        SaveInventory();
+    }
+
+    public bool RemoveSerum(string serumName, int amount = 1)
+    {
+        var serum = sueros.Find(s => s.sueroNombre == serumName);
+        if (serum == null) return false;
+        if (serum.cantidad < amount) return false;
+
+        serum.cantidad -= amount;
+        if (serum.cantidad <= 0) sueros.Remove(serum);
+
+        ItemSO so = GetItemSOForSerum(serumName);
+        if (so != null && InventoryManager.instancia != null)
+            InventoryManager.instancia.RemoveItem(so, amount);
+
+        OnInventoryChanged?.Invoke();
+        SaveInventory();
+        return true;
+    }
+
     public int GetSerumCount(string serumName)
     {
         var serum = sueros.Find(s => s.sueroNombre == serumName);
         return serum != null ? serum.cantidad : 0;
     }
 
-    #endregion
-
-    #region MONEDAS
-
-    /// <summary>
-    /// Añade monedas al inventario
-    /// </summary>
+    // -------------------------
+    // MONEDAS
+    // -------------------------
     public void AddCoins(int amount)
     {
         coins += amount;
         OnInventoryChanged?.Invoke();
         SaveInventory();
-
-        Debug.Log($"Añadidas {amount} monedas. Total: {coins}");
     }
 
-    /// <summary>
-    /// Gasta monedas del inventario
-    /// </summary>
     public bool SpendCoins(int amount)
     {
-        if (coins >= amount)
-        {
-            coins -= amount;
-            OnInventoryChanged?.Invoke();
-            SaveInventory();
-
-            Debug.Log($"Gastadas {amount} monedas. Restante: {coins}");
-            return true;
-        }
-
-        Debug.LogWarning($"Monedas insuficientes. Necesitas {amount}, tienes {coins}");
-        return false;
+        if (coins < amount) return false;
+        coins -= amount;
+        OnInventoryChanged?.Invoke();
+        SaveInventory();
+        return true;
     }
 
-    #endregion
-
-    #region VENTA DE ITEMS
-
-    /// <summary>
-    /// RQF59: Vende plantas por monedas según la tabla de precios
-    /// </summary>
+    // -------------------------
+    // VENTAS (para tus otros UIs)
+    // -------------------------
     public void SellPlant(PlantaTipo type, PlantaCalidad quality, int amount)
     {
-        if (RemovePlant(type, quality, amount))
-        {
-            PlantData data = plantBD.GetPlantas(type);
-            if (data != null)
-            {
-                int price = quality == PlantaCalidad.Estandar ? data.precioVentaEstandar :
-                           quality == PlantaCalidad.Plata ? data.precioVentaPlata :
-                           data.precioVentaOro;
+        if (plantBD == null) return;
+        if (!RemovePlant(type, quality, amount)) return;
 
-                AddCoins(price * amount);
+        PlantData data = plantBD.GetPlantas(type);
+        if (data == null) return;
 
-                Debug.Log($"Vendidas {amount} {type} ({quality}) por {price * amount} monedas");
-            }
-        }
+        int price = quality == PlantaCalidad.Estandar ? data.precioVentaEstandar :
+                    quality == PlantaCalidad.Plata ? data.precioVentaPlata :
+                    data.precioVentaOro;
+
+        AddCoins(price * amount);
     }
 
-    /// <summary>
-    /// Vende semillas por monedas
-    /// </summary>
     public void SellSeed(PlantaTipo type, int amount)
     {
-        if (RemoveSeed(type, amount))
-        {
-            PlantData data = plantBD.GetPlantas(type);
-            if (data != null)
-            {
-                AddCoins(data.precioCompraEstandar * amount);
+        if (plantBD == null) return;
+        if (!RemoveSeed(type, amount)) return;
 
-                Debug.Log($"Vendidas {amount} semillas de {type} por {data.precioCompraEstandar * amount} monedas");
-            }
-        }
-    }
-
-    /// <summary>
-    /// Compra plantas del mercado (RQF52)
-    /// </summary>
-    public bool BuyPlant(PlantaTipo type, PlantaCalidad quality, int amount = 1)
-    {
         PlantData data = plantBD.GetPlantas(type);
-        if (data == null) return false;
+        if (data == null) return;
 
-        int price = quality == PlantaCalidad.Estandar ? data.precioCompraEstandar :
-                   quality == PlantaCalidad.Plata ? data.precioCompraPlata :
-                   data.precioCompraOro;
-
-        int totalCost = price * amount;
-
-        if (SpendCoins(totalCost))
-        {
-            AddPlant(type, quality, amount);
-            Debug.Log($"Compradas {amount} {type} ({quality}) por {totalCost} monedas");
-            return true;
-        }
-
-        return false;
+        AddCoins(data.precioCompraEstandar * amount);
     }
 
-    /// <summary>
-    /// Compra semillas del mercado
-    /// </summary>
-    public bool BuySeed(PlantaTipo type, int amount = 1)
+    // -------------------------
+    // SYNC
+    // -------------------------
+    void SyncAllToCaldero()
     {
-        PlantData data = plantBD.GetPlantas(type);
-        if (data == null) return false;
+        if (InventoryManager.instancia == null) return;
 
-        int totalCost = data.precioCompraEstandar * amount;
-
-        if (SpendCoins(totalCost))
+        foreach (var p in plantas)
         {
-            AddSemilla(type, amount);
-            Debug.Log($"Compradas {amount} semillas de {type} por {totalCost} monedas");
-            return true;
+            ItemSO so = GetItemSOForPlant(p.plantaTipo, p.calidad);
+            if (so != null) InventoryManager.instancia.AddItem(so, p.cantidad);
         }
 
-        return false;
-    }
-
-    #endregion
-
-    #region SINCRONIZACIÓN CON CALDERO
-
-    /// <summary>
-    /// Sincroniza las plantas del invernadero con el inventario del caldero
-    /// </summary>
-    private void SyncPlantToCaldero(PlantaTipo tipo, PlantaCalidad calidad, int cantidad)
-    {
-        if (InventoryManager.instancia == null)
+        foreach (var s in sueros)
         {
-            Debug.LogWarning("[InventorySystem] InventoryManager no está disponible aún");
-            return;
-        }
-
-        ItemSO itemSO = GetItemSOForPlant(tipo, calidad);
-        if (itemSO != null)
-        {
-            InventoryManager.instancia.AddItem(itemSO, cantidad);
-            Debug.Log($"✅ Sincronizado: {cantidad}x {tipo} ({calidad}) → Caldero");
-        }
-        else
-        {
-            Debug.LogWarning($"⚠️ No hay ItemSO mapeado para {tipo} ({calidad})");
+            ItemSO so = GetItemSOForSerum(s.sueroNombre);
+            if (so != null) InventoryManager.instancia.AddItem(so, s.cantidad);
         }
     }
 
-    /// <summary>
-    /// Obtiene el ItemSO correspondiente a una planta
-    /// </summary>
-    private ItemSO GetItemSOForPlant(PlantaTipo tipo, PlantaCalidad calidad)
-    {
-        foreach (var mapping in plantaToItemMapping)
-        {
-            if (mapping.tipo == tipo && mapping.calidad == calidad)
-            {
-                return mapping.itemSO;
-            }
-        }
-        return null;
-    }
-
-    #endregion
-
-    #region GUARDADO/CARGA
-
+    // -------------------------
+    // SAVE/LOAD
+    // -------------------------
     void SaveInventory()
     {
-        // Guardar plantas
         PlayerPrefs.SetString("Plants", JsonUtility.ToJson(new PlantsList { items = plantas }));
-
-        // Guardar semillas
         PlayerPrefs.SetString("Seeds", JsonUtility.ToJson(new SeedsList { items = semillas }));
-
-        // Guardar sueros
         PlayerPrefs.SetString("Serums", JsonUtility.ToJson(new SerumsList { items = sueros }));
-
-        // Guardar monedas
         PlayerPrefs.SetInt("Coins", coins);
-
         PlayerPrefs.Save();
     }
 
     void LoadInventory()
     {
-        // Cargar plantas
         if (PlayerPrefs.HasKey("Plants"))
         {
-            string json = PlayerPrefs.GetString("Plants");
-            PlantsList data = JsonUtility.FromJson<PlantsList>(json);
-            if (data != null && data.items != null)
-                plantas = data.items;
+            var data = JsonUtility.FromJson<PlantsList>(PlayerPrefs.GetString("Plants"));
+            plantas = data != null && data.items != null ? data.items : new List<InventoryItem>();
         }
 
-        // Cargar semillas
         if (PlayerPrefs.HasKey("Seeds"))
         {
-            string json = PlayerPrefs.GetString("Seeds");
-            SeedsList data = JsonUtility.FromJson<SeedsList>(json);
-            if (data != null && data.items != null)
-                semillas = data.items;
+            var data = JsonUtility.FromJson<SeedsList>(PlayerPrefs.GetString("Seeds"));
+            semillas = data != null && data.items != null ? data.items : new List<SeedItem>();
         }
 
-        // Cargar sueros
         if (PlayerPrefs.HasKey("Serums"))
         {
-            string json = PlayerPrefs.GetString("Serums");
-            SerumsList data = JsonUtility.FromJson<SerumsList>(json);
-            if (data != null && data.items != null)
-                sueros = data.items;
+            var data = JsonUtility.FromJson<SerumsList>(PlayerPrefs.GetString("Serums"));
+            sueros = data != null && data.items != null ? data.items : new List<SerumItem>();
         }
 
-        // Cargar monedas
-        if (PlayerPrefs.HasKey("Coins"))
-        {
-            coins = PlayerPrefs.GetInt("Coins", 0);
-        }        
-
-        Debug.Log($"Inventario cargado: {plantas.Count} tipos de plantas, {semillas.Count} tipos de semillas, {sueros.Count} sueros, {coins} monedas");
+        coins = PlayerPrefs.GetInt("Coins", 0);
     }
-
-    #endregion
-
-    #region MÉTODOS DE UTILIDAD
-
-    /// <summary>
-    /// Limpia todo el inventario (para testing)
-    /// </summary>
-    [ContextMenu("Limpiar Todo el Inventario")]
-    public void ClearInventory()
-    {
-        plantas.Clear();
-        semillas.Clear();
-        sueros.Clear();
-        coins = 0;
-        OnInventoryChanged?.Invoke();
-        SaveInventory();
-
-        Debug.Log("Inventario limpiado");
-    }
-
-    /// <summary>
-    /// Imprime el inventario completo en la consola
-    /// </summary>
-    [ContextMenu("Imprimir Inventario")]
-    public void PrintInventory()
-    {
-        Debug.Log("=== INVENTARIO COMPLETO ===");
-
-        Debug.Log($"\nMONEDAS: {coins}");
-
-        Debug.Log("\nPLANTAS:");
-        foreach (var plant in plantas)
-        {
-            Debug.Log($"  - {plant.plantaTipo} ({plant.calidad}): {plant.cantidad}");
-        }
-
-        Debug.Log("\nSEMILLAS:");
-        foreach (var seed in semillas)
-        {
-            Debug.Log($"  - {seed.plantaTipo}: {seed.cantidad}");
-        }
-
-        Debug.Log("\nSUEROS:");
-        foreach (var serum in sueros)
-        {
-            Debug.Log($"  - {serum.sueroNombre}: {serum.cantidad}");
-        }
-    }
-
-    #endregion
-}
-
-// ⭐ NUEVA CLASE: Mapeo entre plantas del invernadero y ItemSO del caldero
-[System.Serializable]
-public class PlantaItemSOMapping
-{
-    public PlantaTipo tipo;
-    public PlantaCalidad calidad;
-    public ItemSO itemSO;
-}
-
-// Clases auxiliares para serialización
-[System.Serializable]
-public class PlantsList
-{
-    public List<InventoryItem> items;
-}
-
-[System.Serializable]
-public class SeedsList
-{
-    public List<SeedItem> items;
-}
-
-[System.Serializable]
-public class SerumsList
-{
-    public List<SerumItem> items;
 }
