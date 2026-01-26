@@ -3,21 +3,21 @@ using UnityEngine;
 
 public static class CartasConfig
 {
-    public const string POCION_AMOR = "Poción de Amor";
+    public const string POCION_AMOR = "Pocion de Amor";
     public const string ELIXIR_MUSA = "Elixir de la Musa";
     public const string VERITALIXIR = "Veritalixir";
     public const string ESENCIA_SOL = "Esencia del Sol";
     public const string REVITALIZANTE = "Revitalizante";
     public const string ESENCIA_SABIO = "Escencia del Sabio";
-    public const string POCION_METAMORFICA = "Poción Metamórfica";
-    public const string ELIXIR_SANACION = "Elixir de Sanación";
+    public const string POCION_METAMORFICA = "Pocion Metamorfica";
+    public const string ELIXIR_SANACION = "Elixir de Sanacion";
     public const string ELIXIR_SUBMARINO = "Elixir Submarino";
-    public const string POCION_VALOR_INFALIBLE = "Poción de Valor Infalible";
-    public const string BREBAJE_GUARDIAN = "Brebaje de Guardián";
-    public const string ELIXIR_PURIFICACION = "Elixir de Purificación";
+    public const string POCION_VALOR_INFALIBLE = "Pocion de Valor Infalible";
+    public const string BREBAJE_GUARDIAN = "Brebaje de Guardion";
+    public const string ELIXIR_PURIFICACION = "Elixir de Purificacion";
     public const string ESENCIA_LUNA = "Esencia de Luna";
-    public const string POCION_RUPTURA = "Poción de Ruptura";
-    public const string SERENIDAD_LIQUIDA = "Serenidad Líquida";
+    public const string POCION_RUPTURA = "Pocion de Ruptura";
+    public const string SERENIDAD_LIQUIDA = "Serenidad Liquida";
 
 
     public static readonly string[] POCIONES_INTRO_ETAPA1 = new[]
@@ -40,29 +40,29 @@ public static class CartasConfig
     {
         var cartas = new List<CartaData>();
 
-        //Poción de Valor Infalible
+        //Pociï¿½n de Valor Infalible
         cartas.Add(new CartaData
         {
             numero = 1,
             etapa = CartaStage.Etapa1,
             titulo = "Necesito valor para hablar",
             textoCarta =
-@"Brujita del buzón:
+@"Brujita del buzï¿½n:
 
-Mañana tengo que hablar con mi jefe para pedirle un ascenso, 
+Maï¿½ana tengo que hablar con mi jefe para pedirle un ascenso, 
 pero solo de pensarlo me pongo nervioso. Siempre me quedo 
-callado aunque sepa que merezco más.
+callado aunque sepa que merezco mï¿½s.
 
-¿Podrías prepararme algo que me dé el valor suficiente para 
+ï¿½Podrï¿½as prepararme algo que me dï¿½ el valor suficiente para 
 decir lo que pienso sin temblar?
 
-— Cliente nervioso",
+ï¿½ Cliente nervioso",
             pocionRequerida = POCION_VALOR_INFALIBLE,
             calidad = PotionQuality.Estandar,
             recompensaBase = 29
         });
 
-        //Poción Revitalizante
+        //Pociï¿½n Revitalizante
         cartas.Add(new CartaData
         {
             numero = 2,
@@ -71,20 +71,20 @@ decir lo que pienso sin temblar?
             textoCarta =
 @"Hechicera:
 
-Trabajo todo el día en el mercado y, cuando llego a casa, ya no 
-me queda energía ni para cenar. Los médicos dicen que estoy sano,
+Trabajo todo el dï¿½a en el mercado y, cuando llego a casa, ya no 
+me queda energï¿½a ni para cenar. Los mï¿½dicos dicen que estoy sano,
 pero yo me siento agotado todo el tiempo.
 
 Quiero volver a sentirme con fuerzas para atender a mis clientes 
 sin arrastrar los pies.
 
-— Mercader exhausto",
+ï¿½ Mercader exhausto",
             pocionRequerida = REVITALIZANTE,
             calidad = PotionQuality.Estandar,
             recompensaBase = 29
         });
 
-        //Poción Metamórfica
+        //Pociï¿½n Metamï¿½rfica
         cartas.Add(new CartaData
         {
             numero = 3,
@@ -93,19 +93,19 @@ sin arrastrar los pies.
             textoCarta =
 @"Bruja:
 
-El próximo festival de máscaras se acerca y quiero ir sin que nadie 
+El prï¿½ximo festival de mï¿½scaras se acerca y quiero ir sin que nadie 
 me reconozca. No quiero problemas con cierta gente que me debe dinero.
 
-Necesito algo que me permita cambiar mi apariencia física por un día, 
+Necesito algo que me permita cambiar mi apariencia fï¿½sica por un dï¿½a, 
 solo para disfrutar del festival en paz.
 
-— Comerciante anónimo",
+ï¿½ Comerciante anï¿½nimo",
             pocionRequerida = POCION_METAMORFICA,
             calidad = PotionQuality.Estandar,
             recompensaBase = 27
         });
 
-        //Elixir de Sanación
+        //Elixir de Sanaciï¿½n
         cartas.Add(new CartaData
         {
             numero = 4,
@@ -118,10 +118,10 @@ Desde hace semanas tengo una fiebre que va y viene.
 Las hierbas comunes ya no me hacen efecto y el curandero del pueblo 
 dice que es algo ''persistente''.
 
-Me hablaron de tus pociones. ¿Tienes alguna que ayude a curar 
+Me hablaron de tus pociones. ï¿½Tienes alguna que ayude a curar 
 enfermedades que simplemente no se quieren ir?
 
-— Paciente desesperado",
+ï¿½ Paciente desesperado",
             pocionRequerida = ELIXIR_SANACION,
             calidad = PotionQuality.Estandar,
             recompensaBase = 43
@@ -136,34 +136,34 @@ enfermedades que simplemente no se quieren ir?
             textoCarta =
 @"Hechicera:
 
-No me pasa nada grave… pero todos los días siento un peso en el pecho.
+No me pasa nada graveï¿½ pero todos los dï¿½as siento un peso en el pecho.
 No tengo ganas de salir, ni de ver a mis amigos, ni de hacer nada.
 
-¿Existirá alguna poción que ayude a alejar esta tristeza y 
-recordarme que todavía hay cosas bonitas?
+ï¿½Existirï¿½ alguna pociï¿½n que ayude a alejar esta tristeza y 
+recordarme que todavï¿½a hay cosas bonitas?
 
-— Vecina apagada",
+ï¿½ Vecina apagada",
             pocionRequerida = ESENCIA_SOL,
             calidad = PotionQuality.Estandar,
             recompensaBase = 32
         });
 
-        //Serenidad Líquida
+        //Serenidad Lï¿½quida
         cartas.Add(new CartaData
         {
             numero = 6,
             etapa = CartaStage.Etapa1,
-            titulo = "Estrés al borde del colapso",
+            titulo = "Estrï¿½s al borde del colapso",
             textoCarta =
 @"Bruja del bosque:
 
 Entre el trabajo, la familia y las deudas siento que mi cabeza 
-está a punto de explotar. Apenas duermo y siempre estoy tenso.
+estï¿½ a punto de explotar. Apenas duermo y siempre estoy tenso.
 
 Necesito algo que me ayude a relajarme de verdad, sin dejarme 
-medio dormido todo el día.
+medio dormido todo el dï¿½a.
 
-— Artesano estresado",
+ï¿½ Artesano estresado",
             pocionRequerida = SERENIDAD_LIQUIDA,
             calidad = PotionQuality.Estandar,
             recompensaBase = 36
@@ -178,13 +178,13 @@ medio dormido todo el día.
             textoCarta =
 @"Bruja:
 
-En unos días tengo un examen para entrar a la academia de magia teórica.
+En unos dï¿½as tengo un examen para entrar a la academia de magia teï¿½rica.
 Estudio, pero mi mente se distrae y nada se me queda.
 
-¿Podrías crear una poción que mejore mi concentración mientras estudio,
+ï¿½Podrï¿½as crear una pociï¿½n que mejore mi concentraciï¿½n mientras estudio,
 sin volverme un zombi?
 
-— Aprendiz preocupado",
+ï¿½ Aprendiz preocupado",
             pocionRequerida = ESENCIA_SABIO,
             calidad = PotionQuality.Estandar,
             recompensaBase = 39
@@ -201,12 +201,12 @@ sin volverme un zombi?
 
 Se rumora que en el fondo del lago hay un cofre antiguo. 
 Ya intentamos bucear varias veces, pero el aire no alcanza 
-y el agua es muy fría.
+y el agua es muy frï¿½a.
 
 Si tuvieras algo que nos permitiera respirar bajo el agua 
-por un tiempo, podríamos intentar recuperarlo.
+por un tiempo, podrï¿½amos intentar recuperarlo.
 
-— Aventurero curioso",
+ï¿½ Aventurero curioso",
             pocionRequerida = ELIXIR_SUBMARINO,
             calidad = PotionQuality.Estandar,
             recompensaBase = 34
@@ -221,13 +221,13 @@ por un tiempo, podríamos intentar recuperarlo.
             textoCarta =
 @"Hechicera:
 
-Creo que uno de mis empleados está robando de la caja, 
+Creo que uno de mis empleados estï¿½ robando de la caja, 
 pero nunca lo puedo agarrar en el momento.
 
-¿Tienes alguna poción que obligue a decir la verdad durante una charla?
-Solo la usaré en una ''cata gratuita'' de bebidas.
+ï¿½Tienes alguna pociï¿½n que obligue a decir la verdad durante una charla?
+Solo la usarï¿½ en una ''cata gratuita'' de bebidas.
 
-— Dueño desconfiado",
+ï¿½ Dueï¿½o desconfiado",
             pocionRequerida = VERITALIXIR,
             calidad = PotionQuality.Estandar,
             recompensaBase = 33
@@ -243,12 +243,12 @@ Solo la usaré en una ''cata gratuita'' de bebidas.
 @"Bruja:
 
 Cada noche doy vueltas y vueltas en la cama. 
-Cuando por fin duermo, ya está amaneciendo.
+Cuando por fin duermo, ya estï¿½ amaneciendo.
 
-¿Podrías prepararme algo que mejore mi sueño sin dejarme 
-mareado al día siguiente?
+ï¿½Podrï¿½as prepararme algo que mejore mi sueï¿½o sin dejarme 
+mareado al dï¿½a siguiente?
 
-— Panadero insomne",
+ï¿½ Panadero insomne",
             pocionRequerida = ESENCIA_LUNA,
             calidad = PotionQuality.Estandar,
             recompensaBase = 34
@@ -259,39 +259,39 @@ mareado al día siguiente?
         {
             numero = 11,
             etapa = CartaStage.Etapa1,
-            titulo = "Inspiración bloqueada",
+            titulo = "Inspiraciï¿½n bloqueada",
             textoCarta =
-@"Hechicera del buzón:
+@"Hechicera del buzï¿½n:
 
 Soy pintora y llevo semanas sin poder terminar un solo cuadro. 
 Las ideas se me escapan y el lienzo sigue en blanco.
 
 Dicen que tienes un elixir que despierta la creatividad. 
-¿Podrías prepararme uno?
+ï¿½Podrï¿½as prepararme uno?
 
-— Artista bloqueada",
+ï¿½ Artista bloqueada",
             pocionRequerida = ELIXIR_MUSA,
             calidad = PotionQuality.Estandar,
             recompensaBase = 41
         });
 
-        //Elixir de Purificación
+        //Elixir de Purificaciï¿½n
         cartas.Add(new CartaData
         {
             numero = 12,
             etapa = CartaStage.Etapa1,
-            titulo = "Maldición familiar",
+            titulo = "Maldiciï¿½n familiar",
             textoCarta =
 @"Bruja:
 
-En mi familia todos nacemos con una pequeña marca en el brazo 
+En mi familia todos nacemos con una pequeï¿½a marca en el brazo 
 que arde cuando estamos cerca de cierto lugar del bosque. 
-Creemos que es una maldición antigua.
+Creemos que es una maldiciï¿½n antigua.
 
-Busco una poción que ayude a romper maldiciones sin hacer daño 
+Busco una pociï¿½n que ayude a romper maldiciones sin hacer daï¿½o 
 a los que la bebemos.
 
-— Heredero inquieto",
+ï¿½ Heredero inquieto",
             pocionRequerida = ELIXIR_PURIFICACION,
             calidad = PotionQuality.Estandar,
             recompensaBase = 45
@@ -316,35 +316,35 @@ a los que la bebemos.
             textoCarta =
 @"Hechicera:
 
-Mañana pelearé en un duelo público contra el mejor espadachín de la ciudad.
-Sé defenderme, pero frente a tanta gente me tiemblan las manos.
+Maï¿½ana pelearï¿½ en un duelo pï¿½blico contra el mejor espadachï¿½n de la ciudad.
+Sï¿½ defenderme, pero frente a tanta gente me tiemblan las manos.
 
-Necesito una versión mejorada de esa poción que da valentía.
+Necesito una versiï¿½n mejorada de esa pociï¿½n que da valentï¿½a.
 Si es posible, de calidad Plata. No puedo permitirme fallar.
 
-— Retador nervioso",
+ï¿½ Retador nervioso",
             pocionRequerida = POCION_VALOR_INFALIBLE,
             calidad = PotionQuality.Plata,
             recompensaBase = 29
         });
 
-        //Elixir de Sanación
+        //Elixir de Sanaciï¿½n
         cartas.Add(new CartaData
         {
             numero = 14,
             etapa = CartaStage.Etapa2,
-            titulo = "Curar a todo un escuadrón",
+            titulo = "Curar a todo un escuadrï¿½n",
             textoCarta =
-@"Bruja del buzón:
+@"Bruja del buzï¿½n:
 
-Formo parte de la guardia de la ciudad y varios compañeros
-resultaron heridos en la última patrulla. 
+Formo parte de la guardia de la ciudad y varios compaï¿½eros
+resultaron heridos en la ï¿½ltima patrulla. 
 Las curaciones comunes no son suficientes.
 
-Busco un elixir de sanación más potente, de calidad Plata,
+Busco un elixir de sanaciï¿½n mï¿½s potente, de calidad Plata,
 para repartirlo entre todos.
 
-— Capitán preocupado",
+ï¿½ Capitï¿½n preocupado",
             pocionRequerida = ELIXIR_SANACION,
             calidad = PotionQuality.Plata,
             recompensaBase = 43
@@ -355,18 +355,18 @@ para repartirlo entre todos.
         {
             numero = 15,
             etapa = CartaStage.Etapa2,
-            titulo = "Taberna sin alegría",
+            titulo = "Taberna sin alegrï¿½a",
             textoCarta =
 @"Hechicera:
 
-Mi taberna solía estar llena de risas, pero últimamente
+Mi taberna solï¿½a estar llena de risas, pero ï¿½ltimamente
 los clientes llegan apagados y se van en silencio.
-Ni la música ni el vino les anima.
+Ni la mï¿½sica ni el vino les anima.
 
 Quisiera una Esencia del Sol de calidad Plata para
-servirla en pequeñas dosis a mis clientes más tristes.
+servirla en pequeï¿½as dosis a mis clientes mï¿½s tristes.
 
-— Tabernera preocupada",
+ï¿½ Tabernera preocupada",
             pocionRequerida = ESENCIA_SOL,
             calidad = PotionQuality.Plata,
             recompensaBase = 32
@@ -381,14 +381,14 @@ servirla en pequeñas dosis a mis clientes más tristes.
             textoCarta =
 @"Bruja:
 
-El alcalde no ha dormido bien en meses y eso está
+El alcalde no ha dormido bien en meses y eso estï¿½
 afectando sus decisiones para el pueblo.
 Los remedios normales ya no le hacen efecto.
 
 Necesitamos una Esencia de Luna de la mejor calidad,
 Oro, para que pueda descansar de verdad.
 
-— Secretaria del ayuntamiento",
+ï¿½ Secretaria del ayuntamiento",
             pocionRequerida = ESENCIA_LUNA,
             calidad = PotionQuality.Oro,
             recompensaBase = 34
@@ -404,19 +404,19 @@ Oro, para que pueda descansar de verdad.
 @"Brujita:
 
 Soy maestro en la academia y debo preparar un examen
-para más de cien estudiantes. Entre tanto papeleo 
+para mï¿½s de cien estudiantes. Entre tanto papeleo 
 ya no puedo concentrarme en lo importante.
 
 Necesito una Escencia del Sabio de calidad Plata
-para terminar el examen sin olvidar ningún detalle.
+para terminar el examen sin olvidar ningï¿½n detalle.
 
-— Maestro abrumado",
+ï¿½ Maestro abrumado",
             pocionRequerida = ESENCIA_SABIO,
             calidad = PotionQuality.Plata,
             recompensaBase = 39
         });
 
-        //Serenidad Líquida
+        //Serenidad Lï¿½quida
         cartas.Add(new CartaData
         {
             numero = 18,
@@ -425,19 +425,19 @@ para terminar el examen sin olvidar ningún detalle.
             textoCarta =
 @"Bruja del bosque:
 
-Tengo más encargos de armas de los que puedo manejar.
-Trabajo día y noche, y si dejo de producir me arruino.
+Tengo mï¿½s encargos de armas de los que puedo manejar.
+Trabajo dï¿½a y noche, y si dejo de producir me arruino.
 
-Quiero una Serenidad Líquida de calidad Plata
-que me quite el estrés sin quitarme las ganas de trabajar.
+Quiero una Serenidad Lï¿½quida de calidad Plata
+que me quite el estrï¿½s sin quitarme las ganas de trabajar.
 
-— Herrero agotado",
+ï¿½ Herrero agotado",
             pocionRequerida = SERENIDAD_LIQUIDA,
             calidad = PotionQuality.Plata,
             recompensaBase = 36
         });
 
-        //Poción de Amor
+        //Pociï¿½n de Amor
         cartas.Add(new CartaData
         {
             numero = 19,
@@ -447,14 +447,14 @@ que me quite el estrés sin quitarme las ganas de trabajar.
 @"Hechicera confidencial:
 
 Trabajo como sirviente en el palacio y estoy enamorado
-de alguien que jamás se fijaría en mí.
-No quiero obligar a nadie, solo llamar su atención
+de alguien que jamï¿½s se fijarï¿½a en mï¿½.
+No quiero obligar a nadie, solo llamar su atenciï¿½n
 por una noche de baile.
 
-Me hablaron de una Poción de Amor muy refinada.
-Si existe una versión de calidad Oro, pagaré lo que haga falta.
+Me hablaron de una Pociï¿½n de Amor muy refinada.
+Si existe una versiï¿½n de calidad Oro, pagarï¿½ lo que haga falta.
 
-— Sirviente enamorado",
+ï¿½ Sirviente enamorado",
             pocionRequerida = POCION_AMOR,
             calidad = PotionQuality.Oro,
             recompensaBase = 44
@@ -467,15 +467,15 @@ Si existe una versión de calidad Oro, pagaré lo que haga falta.
             etapa = CartaStage.Etapa2,
             titulo = "Obra de teatro en crisis",
             textoCarta =
-@"Bruja del buzón:
+@"Bruja del buzï¿½n:
 
 Soy dramaturga y el estreno de mi nueva obra es en una semana.
-Los actores ya están listos, pero el final simplemente no me convence.
+Los actores ya estï¿½n listos, pero el final simplemente no me convence.
 
 Necesito un Elixir de la Musa de calidad Plata
 para encontrar la escena perfecta antes del estreno.
 
-— Autora desesperada",
+ï¿½ Autora desesperada",
             pocionRequerida = ELIXIR_MUSA,
             calidad = PotionQuality.Plata,
             recompensaBase = 41
@@ -490,19 +490,19 @@ para encontrar la escena perfecta antes del estreno.
             textoCarta =
 @"Hechicera:
 
-Se celebrará un juicio público por un robo importante.
+Se celebrarï¿½ un juicio pï¿½blico por un robo importante.
 Hay varios sospechosos y todos mienten mejor que hablan.
 
 Necesitamos un Veritalixir de calidad Oro
 para asegurarnos de que al menos uno de ellos diga la verdad.
 
-— Juez de la ciudad",
+ï¿½ Juez de la ciudad",
             pocionRequerida = VERITALIXIR,
             calidad = PotionQuality.Oro,
             recompensaBase = 33
         });
 
-        //Brebaje de Guardián
+        //Brebaje de Guardiï¿½n
         cartas.Add(new CartaData
         {
             numero = 22,
@@ -511,19 +511,19 @@ para asegurarnos de que al menos uno de ellos diga la verdad.
             textoCarta =
 @"Bruja del bosque:
 
-Estoy intentando vender una vieja mansión, pero los espíritus
+Estoy intentando vender una vieja mansiï¿½n, pero los espï¿½ritus
 que la habitan espantan a cualquier comprador que se acerca.
 
-Necesito un Brebaje de Guardián de calidad Plata
-para ahuyentar a los espíritus y por fin cerrar la venta.
+Necesito un Brebaje de Guardiï¿½n de calidad Plata
+para ahuyentar a los espï¿½ritus y por fin cerrar la venta.
 
-— Agente inmobiliario frustrado",
+ï¿½ Agente inmobiliario frustrado",
             pocionRequerida = BREBAJE_GUARDIAN,
             calidad = PotionQuality.Plata,
             recompensaBase = 37
         });
 
-        // Elixir de Purificación
+        // Elixir de Purificaciï¿½n
         cartas.Add(new CartaData
         {
             numero = 23,
@@ -532,14 +532,14 @@ para ahuyentar a los espíritus y por fin cerrar la venta.
             textoCarta =
 @"Bruja:
 
-Compré una reliquia antigua en el mercado negro
+Comprï¿½ una reliquia antigua en el mercado negro
 y desde entonces escucho susurros cada noche.
-Estoy seguro de que está maldita.
+Estoy seguro de que estï¿½ maldita.
 
-Busco un Elixir de Purificación de calidad Oro
+Busco un Elixir de Purificaciï¿½n de calidad Oro
 para limpiar la reliquia sin destruirla.
 
-— Coleccionista imprudente",
+ï¿½ Coleccionista imprudente",
             pocionRequerida = ELIXIR_PURIFICACION,
             calidad = PotionQuality.Oro,
             recompensaBase = 45
@@ -550,40 +550,40 @@ para limpiar la reliquia sin destruirla.
         {
             numero = 24,
             etapa = CartaStage.Etapa2,
-            titulo = "Exploración de cuevas marinas",
+            titulo = "Exploraciï¿½n de cuevas marinas",
             textoCarta =
 @"Saludos, hechicera:
 
 Un equipo de exploradores y yo queremos mapear una red de cuevas
-bajo el acantilado. El mar es agitado y el aire se acaba rápido.
+bajo el acantilado. El mar es agitado y el aire se acaba rï¿½pido.
 
 Necesitamos Elixir Submarino de calidad Plata
-para poder permanecer más tiempo bajo el agua.
+para poder permanecer mï¿½s tiempo bajo el agua.
 
-— Explorador marino",
+ï¿½ Explorador marino",
             pocionRequerida = ELIXIR_SUBMARINO,
             calidad = PotionQuality.Plata,
             recompensaBase = 34
         });
 
-        //Poción de Ruptura
+        //Pociï¿½n de Ruptura
         cartas.Add(new CartaData
         {
             numero = 25,
             etapa = CartaStage.Etapa2,
-            titulo = "Relación que hace daño",
+            titulo = "Relaciï¿½n que hace daï¿½o",
             textoCarta =
-@"Bruja del buzón:
+@"Bruja del buzï¿½n:
 
-Estoy atrapada en una relación que me hace daño,
+Estoy atrapada en una relaciï¿½n que me hace daï¿½o,
 pero cada vez que intento terminar, vuelvo a caer en lo mismo.
 
-Me dijeron que existe una Poción de Ruptura
-que ayuda a cortar lazos dañinos. 
+Me dijeron que existe una Pociï¿½n de Ruptura
+que ayuda a cortar lazos daï¿½inos. 
 Si puedes prepararla en calidad Oro, quiero estar segura
-de que esta será la última vez.
+de que esta serï¿½ la ï¿½ltima vez.
 
-— Corazón cansado",
+ï¿½ Corazï¿½n cansado",
             pocionRequerida = POCION_RUPTURA,
             calidad = PotionQuality.Oro,
             recompensaBase = 33
@@ -598,34 +598,34 @@ de que esta será la última vez.
             textoCarta =
 @"Hechicera:
 
-Participaré en una carrera de resistencia en la montaña.
+Participarï¿½ en una carrera de resistencia en la montaï¿½a.
 No quiero hacer trampa, solo asegurarme de no colapsar a mitad del camino.
 
 Busco un Revitalizante de calidad Oro
 que me ayude a mantener el ritmo hasta el final.
 
-— Corredor entusiasmado",
+ï¿½ Corredor entusiasmado",
             pocionRequerida = REVITALIZANTE,
             calidad = PotionQuality.Oro,
             recompensaBase = 29
         });
 
-        //Poción Metamórfica
+        //Pociï¿½n Metamï¿½rfica
         cartas.Add(new CartaData
         {
             numero = 27,
             etapa = CartaStage.Etapa2,
-            titulo = "Escapar de los paparazzi mágicos",
+            titulo = "Escapar de los paparazzi mï¿½gicos",
             textoCarta =
 @"Bruja:
 
-Desde que publiqué mi libro de hechizos, no puedo caminar
-por la ciudad sin que todos me reconozcan y pidan autógrafos.
+Desde que publiquï¿½ mi libro de hechizos, no puedo caminar
+por la ciudad sin que todos me reconozcan y pidan autï¿½grafos.
 
-Quiero una Poción Metamórfica de calidad Plata
-para poder salir un día normal sin ser perseguida.
+Quiero una Pociï¿½n Metamï¿½rfica de calidad Plata
+para poder salir un dï¿½a normal sin ser perseguida.
 
-— Autora famosa",
+ï¿½ Autora famosa",
             pocionRequerida = POCION_METAMORFICA,
             calidad = PotionQuality.Plata,
             recompensaBase = 27
@@ -642,7 +642,7 @@ para poder salir un día normal sin ser perseguida.
     {
         var cartas = new List<CartaData>();
 
-        //Poción de Ruptura
+        //Pociï¿½n de Ruptura
         cartas.Add(new CartaData
         {
             numero = 28,
@@ -652,58 +652,58 @@ para poder salir un día normal sin ser perseguida.
 @"Oferta especial:
 
 En este pergamino se encuentra la receta completa
-de una Poción de Ruptura, usada antiguamente por magas
-que querían cortar lazos peligrosos.
+de una Pociï¿½n de Ruptura, usada antiguamente por magas
+que querï¿½an cortar lazos peligrosos.
 
-Si compras esta carta, aprenderás a preparar la poción
-y podrás aceptar encargos que la requieran.
+Si compras esta carta, aprenderï¿½s a preparar la pociï¿½n
+y podrï¿½s aceptar encargos que la requieran.
 
-— Vendedor misterioso",
+ï¿½ Vendedor misterioso",
             pocionRequerida = POCION_RUPTURA,
             calidad = PotionQuality.Estandar,
             recompensaBase = 66
         });
 
-        //Brebaje de Guardián
+        //Brebaje de Guardiï¿½n
         cartas.Add(new CartaData
         {
             numero = 29,
             etapa = CartaStage.Especial,
-            titulo = "Manual del guardián espiritual",
+            titulo = "Manual del guardiï¿½n espiritual",
             textoCarta =
 @"Hechicera:
 
 Este cuadernillo contiene invocaciones y notas antiguas
-sobre cómo preparar un Brebaje de Guardián,
-capaz de espantar espíritus molestos.
+sobre cï¿½mo preparar un Brebaje de Guardiï¿½n,
+capaz de espantar espï¿½ritus molestos.
 
-Comprando esta carta podrás elaborar la poción
+Comprando esta carta podrï¿½s elaborar la pociï¿½n
 y atender pedidos relacionados con casas embrujadas.
 
-— Anticuario del mercado",
+ï¿½ Anticuario del mercado",
             pocionRequerida = BREBAJE_GUARDIAN,
             calidad = PotionQuality.Estandar,
 
             recompensaBase = 74
         });
 
-        //Poción de Amor
+        //Pociï¿½n de Amor
         cartas.Add(new CartaData
         {
             numero = 30,
             etapa = CartaStage.Especial,
-            titulo = "Tratado sobre vínculos del corazón",
+            titulo = "Tratado sobre vï¿½nculos del corazï¿½n",
             textoCarta =
-@"Bruja del buzón:
+@"Bruja del buzï¿½n:
 
-Dentro de esta carta se esconde la fórmula
-de una Poción de Amor cuidadosamente equilibrada.
+Dentro de esta carta se esconde la fï¿½rmula
+de una Pociï¿½n de Amor cuidadosamente equilibrada.
 No obliga a nadie, solo resalta sentimientos que ya existen.
 
-Si decides comprarla, podrás preparar esta poción
+Si decides comprarla, podrï¿½s preparar esta pociï¿½n
 y recibir encargos muy bien pagados relacionados con el amor.
 
-— Archivista romántico",
+ï¿½ Archivista romï¿½ntico",
             pocionRequerida = POCION_AMOR,
             calidad = PotionQuality.Estandar,
             recompensaBase = 88

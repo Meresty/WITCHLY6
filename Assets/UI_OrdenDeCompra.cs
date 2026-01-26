@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Object = System.Object;
 
 public class UI_OrdenDeCompra : MonoBehaviour
 {
@@ -523,6 +524,11 @@ public class UI_OrdenDeCompra : MonoBehaviour
             if (cantidadObjeto <= 0) return;
 
             var coins = FirebaseCoinsManager.Instance;
+            if (coins == null)
+            {
+              //  coins = FindAnyObjectByType(FirebaseCoinsManager.Instance.gameObject);
+            }
+
             var invFB = FirebaseInventoryManager.Instance;
 
             cardInventory = cardInventory != null ? cardInventory : InventorySystem.Instance;

@@ -29,7 +29,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Invernadero.unity
     guid: 1229dc841cf781a498f9c3cbf16f720b
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Parcela.unity
     guid: ea24723f42eff9c43ad3141820b7b57e
   - enabled: 1

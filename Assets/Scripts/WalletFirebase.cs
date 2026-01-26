@@ -14,6 +14,7 @@ public class WalletFirebase : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
+        Debug.Log("WalletFirebase.Awake");
         // compat: intenta recuperar username si el juego arranca directo a una escena
         FirebaseSession.LoadFromPrefs();
     }
@@ -21,7 +22,7 @@ public class WalletFirebase : MonoBehaviour
     private void OnEnable()
     {
         EnsureBind();
-        HookEvents();
+        HookEvents();  
         SyncLocal();
     }
 

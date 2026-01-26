@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Firebase.Database;
 using Firebase.Extensions;
+using Unity.VisualScripting;
 
 public class FirebaseCoinsManager : MonoBehaviour
 {
@@ -22,6 +23,7 @@ public class FirebaseCoinsManager : MonoBehaviour
 
     private void Awake()
     {
+        Debug.Log("FirebaseCoinsManager Awake");
         if (Instance != null) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
@@ -34,6 +36,8 @@ public class FirebaseCoinsManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        Debug.Log("FirebaseCoinsManager Destroyed");
+
         if (Instance == this)
         {
             Unbind();

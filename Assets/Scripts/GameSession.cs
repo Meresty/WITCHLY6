@@ -9,6 +9,8 @@ public class GameSession : MonoBehaviour
 
     private void Awake()
     {
+        Debug.Log("GameSession.Awake");
+        
         if (Instance != null)
         {
             Destroy(gameObject);

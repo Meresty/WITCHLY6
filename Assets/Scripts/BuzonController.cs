@@ -19,7 +19,10 @@ public class BuzonController : MonoBehaviour
     public CartaSlotUI slot2;
     public CartaSlotUI slot3;
 
-    [Header("Panel de detalle de carta")]
+    [Header("Panel de detalle de carta")] 
+    public GameObject panelPociones;
+
+    public GameObject backResCarta;
     public GameObject panelDetalle;
     public TMP_Text txtTituloCarta;
     public TMP_Text txtCuerpoCarta;
@@ -28,15 +31,15 @@ public class BuzonController : MonoBehaviour
     public Button btnElegirPocion;   
     public Button btnCerrar;     
 
-    [Header("Economía")]
-    public PlayerWallet playerWallet;
+    [Header("Economï¿½a")]
+    public WalletFirebase playerWallet;
 
     [Header("Recetas especiales desbloqueadas (cartas 28-30)")]
-    [Tooltip("Se pone en true cuando compras la carta especial de Poción de Ruptura")]
+    [Tooltip("Se pone en true cuando compras la carta especial de Pociï¿½n de Ruptura")]
     public bool recetaRupturaDesbloqueada;
-    [Tooltip("Se pone en true cuando compras la carta especial de Poción de Amor")]
+    [Tooltip("Se pone en true cuando compras la carta especial de Pociï¿½n de Amor")]
     public bool recetaAmorDesbloqueada;
-    [Tooltip("Se pone en true cuando compras la carta especial de Brebaje de Guardián")]
+    [Tooltip("Se pone en true cuando compras la carta especial de Brebaje de Guardiï¿½n")]
     public bool recetaGuardianDesbloqueada;
 
     [Header("DEBUG (opcional)")]
@@ -52,8 +55,8 @@ public class BuzonController : MonoBehaviour
     private List<CartaData> poolExcluidas;   
 
     private List<CartaData> cartasRondaActual; 
-    private CartaData cartaActual;             
-
+    private CartaData cartaActual;
+    private string potionNameSelect;
 
     private HashSet<int> cartasCompletadas;    
     private int cartasResueltasEnRonda = 0;
@@ -84,8 +87,35 @@ public class BuzonController : MonoBehaviour
         estadoActual = BuzonStage.Etapa1;
 
         ConfigurarBotonesPanel();
+        
+        if (playerWallet == null)
+        {
+            if (WalletFirebase.Instance != null)
+            {
+                playerWallet = WalletFirebase.Instance;
+            }
+            else
+            {
+                playerWallet = FindObjectOfType<WalletFirebase>();
 
+                if (playerWallet == null)
+                {
+                    var go = new GameObject("WalletFirebase");
+                    playerWallet = go.AddComponent<WalletFirebase>();
+                }
+            }
+        }
 
+        if (playerWallet == null)
+        {
+            Debug.LogError("[BuzonController] WalletFirebase not found in scene or via Singleton Instance!");
+        }
+        else
+        {
+            Debug.Log("player coins : " + playerWallet.Coins);
+
+        }
+        
         CrearRondaIntro();
 
     
@@ -114,6 +144,13 @@ public class BuzonController : MonoBehaviour
             btnElegirPocion.onClick.RemoveAllListeners();
             btnElegirPocion.onClick.AddListener(OnElegirPocion);
         }
+    }
+
+    public void GetNamePocion(string name)
+    {
+        potionNameSelect = name;
+        Debug.Log("Potion name : " +  potionNameSelect);
+        ProcesarEntrega(potionNameSelect, PotionQuality.Estandar);
     }
 
 
@@ -146,7 +183,9 @@ public class BuzonController : MonoBehaviour
         if (cartaActual == null)
             return;
 
+        panelPociones.gameObject.SetActive(true);
         Debug.Log($"[Buzon] Abrir inventario para carta #{cartaActual.numero} ({cartaActual.pocionRequerida}).");
+        
     }
 
 
@@ -157,14 +196,23 @@ public class BuzonController : MonoBehaviour
             Debug.LogWarning("[Buzon] No hay carta activa al procesar entrega.");
             return;
         }
+        
+        Debug.Log("Entrega Procesada :  " +  pocionEntregada +"  " + calidadEntregada.ToString() );
+        
+        panelPociones.gameObject.SetActive(false);
+
 
         string mensaje;
         int recompensa = CalcularRecompensa(cartaActual, pocionEntregada, calidadEntregada, out mensaje);
+        
+        Debug.Log("Recompensa potion: " + recompensa);
 
 
         if (playerWallet != null)
         {
             playerWallet.AddCoins(recompensa);
+            Debug.LogWarning("Monedas asignadas : " + recompensa);
+
         }
         else
         {
@@ -175,17 +223,13 @@ public class BuzonController : MonoBehaviour
 
         if (txtResultadoCarta != null)
         {
+            backResCarta.gameObject.SetActive(true);
             txtResultadoCarta.text = $"{mensaje}\n\nRecompensa: {recompensa} monedas.";
         }
-
-
+        
 
         MarcarCartaCompletada(cartaActual);
         cartasResueltasEnRonda++;
-
-
-
-
 
         if (cartasResueltasEnRonda >= cartasRondaActual.Count)
         {
@@ -202,8 +246,8 @@ public class BuzonController : MonoBehaviour
         if (pocionEntregada != carta.pocionRequerida)
         {
             mensaje =
-                $"La poción entregada NO era la correcta.\n" +
-                $"El cliente pidió: {carta.pocionRequerida}.\n" +
+                $"La pociï¿½n entregada NO era la correcta.\n" +
+                $"El cliente pidiï¿½: {carta.pocionRequerida}.\n" +
                 $"Solo recibes 10 monedas.";
             return 10;
         }
@@ -220,9 +264,9 @@ public class BuzonController : MonoBehaviour
             int recompensa = Mathf.Max(0, basePrice - penalizacion);
 
             mensaje =
-                $"Entregaste la poción correcta ({carta.pocionRequerida}), " +
+                $"Entregaste la pociï¿½n correcta ({carta.pocionRequerida}), " +
                 $"pero con calidad {calidadEntregada}, inferior a la requerida ({carta.calidad}).\n" +
-                $"Se aplica una penalización del 20% del precio ({penalizacion} monedas).";
+                $"Se aplica una penalizaciï¿½n del 20% del precio ({penalizacion} monedas).";
 
             return recompensa;
         }
@@ -232,9 +276,9 @@ public class BuzonController : MonoBehaviour
             int recompensa = CalcularRecompensaConBonus(basePrice, carta.calidad);
 
             mensaje =
-                $"¡Entrega correcta!\n" +
-                $"Poción: {carta.pocionRequerida}\n" +
-                $"Calidad: {calidadEntregada} (justo lo que pidió el cliente).";
+                $"ï¿½Entrega correcta!\n" +
+                $"Pociï¿½n: {carta.pocionRequerida}\n" +
+                $"Calidad: {calidadEntregada} (justo lo que pidiï¿½ el cliente).";
 
             return recompensa;
         }
@@ -245,7 +289,7 @@ public class BuzonController : MonoBehaviour
 
             mensaje =
                 $"Entregaste una calidad superior ({calidadEntregada}) a la requerida ({carta.calidad}).\n" +
-                $"No hay penalización, pero tampoco recibes el bono extra por esa calidad superior.";
+                $"No hay penalizaciï¿½n, pero tampoco recibes el bono extra por esa calidad superior.";
 
             return recompensa;
         }
@@ -347,7 +391,7 @@ public class BuzonController : MonoBehaviour
 
         return seleccion;
     }
-
+    
     public void TerminarRondaYCrearOtra()
     {
         if (cartasRondaActual == null || cartasRondaActual.Count == 0)
