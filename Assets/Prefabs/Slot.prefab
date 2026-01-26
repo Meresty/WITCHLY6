@@ -89,6 +89,8 @@ GameObject:
   - component: {fileID: 3976074503168588222}
   - component: {fileID: 7138981445434560449}
   - component: {fileID: 2349465057802908577}
+  - component: {fileID: 4580930835322179858}
+  - component: {fileID: 6319501745118909527}
   m_Layer: 5
   m_Name: Slot
   m_TagString: Untagged
@@ -195,6 +197,30 @@ MonoBehaviour:
   image: {fileID: 2609441575926482320}
   timerText: {fileID: 8804369871489357893}
   buttonCosechar: {fileID: 3151206503453806768}
+--- !u!225 &4580930835322179858
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5352200397101708192}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &6319501745118909527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5352200397101708192}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b7b712e16d5de440a1b1cd7c0df3ad3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6008182460369031927
 GameObject:
   m_ObjectHideFlags: 0

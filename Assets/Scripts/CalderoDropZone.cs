@@ -8,13 +8,18 @@ public class CalderoDropZone : MonoBehaviour, IDropHandler
         if (eventData == null || eventData.pointerDrag == null) return;
 
         var drag = eventData.pointerDrag.GetComponent<DraggableInventorySlot>();
+        if (drag == null) drag = eventData.pointerDrag.GetComponentInParent<DraggableInventorySlot>();
         if (drag == null) return;
 
-        // Permite dropear cualquier cosa:
-        // Si no hay ItemSO (ej. semilla), llegara null y CalderoLogic lo tratara como incorrecto => Presicion
-        if (CalderoLogic.instancia != null)
+        if (CalderoLogic.instancia == null) return;
+
+        ItemSO itemSO = drag.BoundItemSO;   
+        if (itemSO == null)
         {
-            CalderoLogic.instancia.AddIngredient(drag.BoundItemSO);
+            CalderoLogic.instancia.ForceIncorrectDrop();
+            return;
         }
+
+        CalderoLogic.instancia.AddIngredient(itemSO);
     }
 }

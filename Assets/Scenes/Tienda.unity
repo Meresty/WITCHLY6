@@ -122,71 +122,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &517419268
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 517419270}
-  - component: {fileID: 517419269}
-  - component: {fileID: 517419271}
-  m_Layer: 0
-  m_Name: GameSystems
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &517419269
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 517419268}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 417c899c7ab2eb74f82c46ccc155c93c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  plantas: []
-  semillas: []
-  sueros: []
-  coins: 0
-  plantBD: {fileID: 0}
-  sueroBD: {fileID: 0}
-  plantaToItemMapping: []
---- !u!4 &517419270
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 517419268}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 11.141073, y: -1.7232963, z: 5.777312}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &517419271
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 517419268}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 69e02ed15ea14fc4abdc9e27a047e60f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  monedas: 0
 --- !u!1 &737879639
 GameObject:
   m_ObjectHideFlags: 0
@@ -463,6 +398,30 @@ PrefabInstance:
       propertyPath: m_SizeDelta.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2253629606851576188, guid: e8b2f58ba338abf42b4e611275e20c1d, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2253629606851576188, guid: e8b2f58ba338abf42b4e611275e20c1d, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3847769801403381393, guid: e8b2f58ba338abf42b4e611275e20c1d, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3847769801403381393, guid: e8b2f58ba338abf42b4e611275e20c1d, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3847769801403381393, guid: e8b2f58ba338abf42b4e611275e20c1d, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4050553564450511815, guid: e8b2f58ba338abf42b4e611275e20c1d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5653830715539546198, guid: e8b2f58ba338abf42b4e611275e20c1d, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -480,13 +439,17 @@ PrefabInstance:
       value: UI_Tienda
       objectReference: {fileID: 0}
     - target: {fileID: 7659837630189367417, guid: e8b2f58ba338abf42b4e611275e20c1d, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7659837630189367417, guid: e8b2f58ba338abf42b4e611275e20c1d, type: 3}
       propertyPath: walletBehaviour
       value: 
-      objectReference: {fileID: 517419271}
+      objectReference: {fileID: 0}
     - target: {fileID: 7659837630189367417, guid: e8b2f58ba338abf42b4e611275e20c1d, type: 3}
       propertyPath: inventoryBehaviour
       value: 
-      objectReference: {fileID: 517419269}
+      objectReference: {fileID: 0}
     - target: {fileID: 7946708377383591043, guid: e8b2f58ba338abf42b4e611275e20c1d, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -584,4 +547,3 @@ SceneRoots:
   - {fileID: 6717520335091808408}
   - {fileID: 737879642}
   - {fileID: 1790175534}
-  - {fileID: 517419270}

@@ -23,6 +23,7 @@ public class InventorySlot : MonoBehaviour
         {
             Icono.sprite = item.icon;
             Icono.transform.localScale = new Vector3(item.widthModifier, item.heightModifier, 1f);
+            Icono.raycastTarget = true; // importante para drag
         }
 
         if (Cantidad != null)
@@ -54,7 +55,7 @@ public class InventorySlot : MonoBehaviour
             }
         }
 
-        // Bind para drag&drop
+        // Bind para drag & drop
         var drag = GetComponent<DraggableInventorySlot>();
         if (drag != null)
         {
@@ -65,7 +66,6 @@ public class InventorySlot : MonoBehaviour
     public void ShowDataInDetails()
     {
         if (currentItem == null) return;
-        Debug.Log($"[InventorySlot] Mostrando detalles para: {currentItem.itemNombre}");
         if (InventoryUI.Instance != null)
             InventoryUI.Instance.DisplayDetails(currentItem);
     }

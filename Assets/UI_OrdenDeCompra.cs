@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -26,11 +27,8 @@ public class UI_OrdenDeCompra : MonoBehaviour
     [SerializeField] private ScriptableObject plantaDB;
     [SerializeField] private ScriptableObject sueroDB;
 
-    [Header("Referencias (Monedas e Inventario)")]
-    [Tooltip("Arrastra aqui el GameObject que tenga MonedasManager.")]
-    [SerializeField] private MonedasManager walletBehaviour;
-
-    [Tooltip("Arrastra aqui el GameObject que tenga InventorySystem.")]
+    [Header("Referencias (Inventario)")]
+    [Tooltip("Arrastra aqui el GameObject que tenga InventorySystem (opcional, si no, usa Instance).")]
     [SerializeField] private InventorySystem inventoryBehaviour;
 
     [Header("Generacion")]
@@ -89,7 +87,7 @@ public class UI_OrdenDeCompra : MonoBehaviour
     private class Oferta
     {
         public string vendedor;
-        public string productoOriginal;  // se usa para inventario (para no romper nombres)
+        public string productoOriginal;
         public int cantidad;
         public int precioUnitario;
         public Sprite icono;
@@ -98,8 +96,7 @@ public class UI_OrdenDeCompra : MonoBehaviour
         public TipoProducto tipo;
         public Calidad calidad;
 
-        // para inventario
-        public PlantaTipo plantaTipo; // solo aplica a plantas/semillas
+        public PlantaTipo plantaTipo;
     }
 
     // =========================================================
@@ -121,7 +118,6 @@ public class UI_OrdenDeCompra : MonoBehaviour
         { "eldebria", 5 },
         { "jiveria", 6 },
         { "lirien", 8 },
-        // falsibaya N/A, drakonia N/A
     };
 
     private static readonly Dictionary<string, int> PRECIOS_SUEROS = new Dictionary<string, int>
@@ -132,9 +128,8 @@ public class UI_OrdenDeCompra : MonoBehaviour
         { "suero de energia", 15 },
     };
 
-    // =========================================================
-    // Unity Lifecycle
-    // =========================================================
+    private bool _comprando = false;
+
     private void Awake()
     {
         EnsureDefaultVendors();
@@ -176,7 +171,6 @@ public class UI_OrdenDeCompra : MonoBehaviour
             if (sr != null && sr.content != null) content = sr.content;
         }
 
-        if (walletBehaviour == null) walletBehaviour = MonedasManager.Instance;
         if (inventoryBehaviour == null) inventoryBehaviour = InventorySystem.Instance;
     }
 
@@ -190,9 +184,6 @@ public class UI_OrdenDeCompra : MonoBehaviour
         }
     }
 
-    // =========================================================
-    // Controller Render
-    // =========================================================
     private void RenderOrRefreshIfNeeded(bool force)
     {
         if (content == null || cardPrefab == null) return;
@@ -224,7 +215,7 @@ public class UI_OrdenDeCompra : MonoBehaviour
         {
             var card = Instantiate(cardPrefab, content);
             card.transform.localScale = Vector3.one;
-            card.SetupCard(ofertas[i], walletBehaviour, inventoryBehaviour);
+            card.SetupCard(ofertas[i], inventoryBehaviour);
         }
 
         Canvas.ForceUpdateCanvases();
@@ -232,9 +223,6 @@ public class UI_OrdenDeCompra : MonoBehaviour
             LayoutRebuilder.ForceRebuildLayoutImmediate(rt);
     }
 
-    // =========================================================
-    // Ofertas
-    // =========================================================
     private List<Oferta> BuildOfertasDesdeDBConTiposYPrecios()
     {
         var plantas = new List<object>();
@@ -245,7 +233,6 @@ public class UI_OrdenDeCompra : MonoBehaviour
 
         var catalogo = new List<(TipoProducto tipo, object source, string nombreOriginal)>();
 
-        // Plantas -> agrega Planta y (si hay precio) agrega Semilla
         for (int i = 0; i < plantas.Count; i++)
         {
             object obj = plantas[i];
@@ -260,7 +247,6 @@ public class UI_OrdenDeCompra : MonoBehaviour
                 catalogo.Add((TipoProducto.Semilla, obj, nombre));
         }
 
-        // Sueros
         for (int i = 0; i < sueros.Count; i++)
         {
             object obj = sueros[i];
@@ -302,15 +288,10 @@ public class UI_OrdenDeCompra : MonoBehaviour
 
             int qty = UnityEngine.Random.Range(cantidadMinMax.x, cantidadMinMax.y + 1);
 
-            // Resolver PlantaTipo para plantas/semillas (para poder guardar en inventario)
             PlantaTipo pt = default;
             if (entry.tipo != TipoProducto.Suero)
             {
-                if (!TryResolvePlantaTipo(entry.source, entry.nombreOriginal, out pt))
-                {
-                    // Si no se puede resolver, aun se muestra, pero comprar no agregara al inventario
-                    // (igual lo dejamos para que lo veas en consola)
-                }
+                TryResolvePlantaTipo(entry.source, entry.nombreOriginal, out pt);
             }
 
             result.Add(new Oferta
@@ -334,7 +315,6 @@ public class UI_OrdenDeCompra : MonoBehaviour
     {
         tipo = default;
 
-        // 1) buscar campo/prop de tipo PlantaTipo
         if (source != null)
         {
             var t = source.GetType();
@@ -358,7 +338,6 @@ public class UI_OrdenDeCompra : MonoBehaviour
             }
         }
 
-        // 2) parse por nombre
         string key = NormalizeKey(nombre);
         if (Enum.TryParse(key, true, out tipo))
             return true;
@@ -490,17 +469,15 @@ public class UI_OrdenDeCompra : MonoBehaviour
     }
 
     // =========================================================
-    // Card Setup + Comprar
+    // Card Setup + Comprar (FIREBASE)
     // =========================================================
-    private MonedasManager cardWallet;
     private InventorySystem cardInventory;
 
-    private void SetupCard(Oferta o, MonedasManager wallet, InventorySystem inventory)
+    private void SetupCard(Oferta o, InventorySystem inventory)
     {
         esController = false;
         oferta = o;
 
-        cardWallet = wallet != null ? wallet : MonedasManager.Instance;
         cardInventory = inventory != null ? inventory : InventorySystem.Instance;
 
         if (nombreVendedor != null) nombreVendedor.text = RemoveDiacritics(o.vendedor);
@@ -520,8 +497,6 @@ public class UI_OrdenDeCompra : MonoBehaviour
         costoObjeto = o.precioUnitario;
 
         if (text_cantidadObjeto != null) text_cantidadObjeto.text = cantidadObjeto.ToString();
-
-        // Solo numero, sin simbolos
         if (text_costoObjeto != null) text_costoObjeto.text = costoObjeto.ToString();
 
         if (iconoObjeto != null)
@@ -537,54 +512,118 @@ public class UI_OrdenDeCompra : MonoBehaviour
         }
     }
 
-    public void ComprarObjeto()
+    public async void ComprarObjeto()
     {
-        if (oferta == null) return;
-        if (cantidadObjeto <= 0) return;
+        if (_comprando) return;
+        _comprando = true;
 
-        cardWallet = cardWallet != null ? cardWallet : MonedasManager.Instance;
-        cardInventory = cardInventory != null ? cardInventory : InventorySystem.Instance;
-
-        if (cardWallet == null)
+        try
         {
-            Debug.LogError("[TIENDA] MonedasManager no esta disponible.");
-            return;
+            if (oferta == null) return;
+            if (cantidadObjeto <= 0) return;
+
+            var coins = FirebaseCoinsManager.Instance;
+            var invFB = FirebaseInventoryManager.Instance;
+
+            cardInventory = cardInventory != null ? cardInventory : InventorySystem.Instance;
+
+            if (coins == null)
+            {
+                Debug.LogError("[TIENDA] FirebaseCoinsManager.Instance es null.");
+                return;
+            }
+            if (cardInventory == null)
+            {
+                Debug.LogError("[TIENDA] InventorySystem.Instance es null.");
+                return;
+            }
+
+            // asegurar bind por si acaso
+            string username = (GameSession.Instance != null) ? GameSession.Instance.Username : "";
+            if (!string.IsNullOrEmpty(username))
+            {
+                if (!coins.IsBound) coins.BindUser(username);
+                if (invFB != null && !invFB.IsBound) invFB.BindUser(username);
+            }
+
+            int cost = Mathf.Max(1, oferta.precioUnitario);
+
+            bool paid = await coins.TrySpendCoinsAsync(cost);
+            if (!paid)
+            {
+                Debug.Log("[TIENDA] No alcanza o no hay bind. Costo: " + cost);
+                return;
+            }
+
+            bool addedLocal = AddToInventory(cardInventory, oferta, 1);
+            if (!addedLocal)
+            {
+                await coins.AddCoinsAsync(cost);
+                Debug.LogWarning("[TIENDA] No se pudo agregar al inventario local. Reembolso aplicado.");
+                return;
+            }
+
+            // guardar inventario en firebase (best-effort)
+            if (invFB != null && invFB.IsBound)
+            {
+                string itemKey = BuildFirebaseItemKey(oferta);
+                bool fbOk = await invFB.AddItemAsync(itemKey, 1);
+                if (!fbOk) Debug.LogWarning("[TIENDA] No se pudo guardar item en Firebase (pero local si).");
+            }
+
+            cantidadObjeto--;
+            oferta.cantidad = cantidadObjeto;
+
+            if (text_cantidadObjeto != null) text_cantidadObjeto.text = cantidadObjeto.ToString();
+
+            if (cantidadObjeto <= 0)
+                Destroy(gameObject);
+
+            ForceInventoryUIRefresh();
+
+            Debug.Log("[TIENDA] Compra OK: " + oferta.productoOriginal + " x1, costo " + cost);
         }
-        if (cardInventory == null)
+        finally
         {
-            Debug.LogError("[TIENDA] InventorySystem no esta disponible.");
-            return;
+            _comprando = false;
         }
+    }
 
-        int cost = Mathf.Max(1, oferta.precioUnitario);
+    private string BuildFirebaseItemKey(Oferta o)
+    {
+        if (o == null) return "unknown";
 
-        // 1) Cobrar
-        if (!cardWallet.GastarMonedas(cost))
+        if (o.tipo == TipoProducto.Suero)
         {
-            Debug.Log("[TIENDA] No alcanza el dinero. Costo: " + cost + " Coins: " + cardWallet.GetMonedas());
-            return;
+            string n = NormalizeKey(o.productoOriginal).Replace(" ", "_");
+            return "serum_" + n;
         }
 
-        // 2) Guardar en inventario
-        bool added = AddToInventory(cardInventory, oferta, 1);
-        if (!added)
+        string plant = o.plantaTipo.ToString().ToLowerInvariant();
+
+        if (o.tipo == TipoProducto.Semilla)
+            return "seed_" + plant;
+
+        string q = (o.calidad == Calidad.Plata) ? "plata" :
+                   (o.calidad == Calidad.Oro) ? "oro" : "estandar";
+
+        return "plant_" + plant + "_" + q;
+    }
+
+    private void ForceInventoryUIRefresh()
+    {
+        if (InventorySystem.Instance != null)
         {
-            // Reembolso
-            cardWallet.AnadirMonedas(cost);
-            Debug.LogWarning("[TIENDA] No pude agregar al inventario. Reembolso aplicado.");
-            return;
+            InventorySystem.Instance.SendMessage("RefreshUI", SendMessageOptions.DontRequireReceiver);
+            InventorySystem.Instance.SendMessage("UpdateUI", SendMessageOptions.DontRequireReceiver);
         }
 
-        // 3) Bajar stock
-        cantidadObjeto--;
-        oferta.cantidad = cantidadObjeto;
-
-        if (text_cantidadObjeto != null) text_cantidadObjeto.text = cantidadObjeto.ToString();
-
-        if (cantidadObjeto <= 0)
-            Destroy(gameObject);
-
-        Debug.Log("[TIENDA] Compra OK: " + oferta.productoOriginal + " x1, costo " + cost);
+        var invManager = FindObjectOfType<InventoryManager>();
+        if (invManager != null)
+        {
+            invManager.SendMessage("RefreshUI", SendMessageOptions.DontRequireReceiver);
+            invManager.SendMessage("UpdateUI", SendMessageOptions.DontRequireReceiver);
+        }
     }
 
     private bool AddToInventory(InventorySystem inv, Oferta o, int amount)
@@ -593,13 +632,11 @@ public class UI_OrdenDeCompra : MonoBehaviour
         {
             if (o.tipo == TipoProducto.Suero)
             {
-                // Evita duplicados por acentos: intenta usar el nombre que ya exista en el inventario
                 string nameToUse = ResolveSerumNameForInventory(inv, o.productoOriginal);
                 inv.AddSerum(nameToUse, amount);
                 return true;
             }
 
-            // Plantas/Semillas necesitan PlantaTipo
             if (!Enum.IsDefined(typeof(PlantaTipo), o.plantaTipo))
             {
                 Debug.LogWarning("[TIENDA] No pude resolver PlantaTipo para: " + o.productoOriginal);
@@ -608,12 +645,10 @@ public class UI_OrdenDeCompra : MonoBehaviour
 
             if (o.tipo == TipoProducto.Semilla)
             {
-                
                 inv.AddSemilla(o.plantaTipo, amount);
                 return true;
             }
 
-            // Planta
             PlantaCalidad q = MapCalidadToPlantaCalidad(o.calidad);
             inv.AddPlant(o.plantaTipo, q, amount);
             return true;
@@ -637,7 +672,7 @@ public class UI_OrdenDeCompra : MonoBehaviour
             if (s == null) continue;
 
             if (NormalizeKey(s.sueroNombre) == key)
-                return s.sueroNombre; // usa el nombre ya guardado (puede tener acento)
+                return s.sueroNombre;
         }
 
         return incomingName;

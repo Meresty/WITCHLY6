@@ -20,97 +20,84 @@ public class CalderoLogic : MonoBehaviour
 
     [Header("Configuracion")]
     public string nombreEscenaMinijuego = "Presicion";
-    [SerializeField] private string nombreEscenaInicial = "PantallaInicial";
-
-    [Header("UI")]
     public Transform contenedorIngredientes;
     public GameObject iconoIngredientePrefab;
     public Image iconoPocionResultado;
     public TextMeshProUGUI textoResultado;
 
-    [Header("Bloqueo en Fallo (opcional)")]
-    [SerializeField] private GameObject panelBloqueo;
-    [SerializeField] private TextMeshProUGUI txtClickParaSalir;
-
     private PocionSO potion;
     private int step = 0;
-    private int vecesEquivocado = 0;   // cuantas veces fallo antes de ir a minijuego
+    private int vecesEquivocado = 0;
     private float descuentoPrecio = 0f;
-    private List<ItemSO> ingredientesAgregados = new List<ItemSO>();
+
+    private readonly List<ItemSO> ingredientesAgregados = new List<ItemSO>();
+
+    [Header("Bloqueo en Fallo")]
+    [SerializeField] private GameObject panelBloqueo;
+    [SerializeField] private TextMeshProUGUI txtClickParaSalir;
+    [SerializeField] private string nombreEscenaInicial = "PantallaInicial";
 
     void Start()
     {
         CargarPocionSeleccionada();
 
-        // Si venimos de Presicion, aqui se procesa
-        if (PlayerPrefs.HasKey("MinijuegoExito"))
+        if (potion != null)
         {
-            ProcesarResultadoMinijuego();
-            return;
+            if (iconoPocionResultado != null) iconoPocionResultado.sprite = potion.icon;
+            if (textoResultado != null) textoResultado.text = $"Creando: {potion.pocionNombre}";
+            if (notaUI != null) notaUI.MostrarReceta(potion);
         }
 
-        PrepararUIInicial();
         ActualizarUI();
     }
 
-    // -----------------------------
-    // PUBLIC API (para DropZone)
-    // -----------------------------
-    public void AddIngredient(ItemSO item)
-    {
-        if (potion == null) return;
-
-        // Si llega null (ej: semilla o item sin mapping) => incorrecto directo
-        if (item == null)
-        {
-            ForceIncorrectDrop();
-            return;
-        }
-
-        if (step >= 3)
-        {
-            if (textoResultado != null) textoResultado.text = "¡Pocion ya completada!";
-            return;
-        }
-
-        ItemSO esperado = GetEsperadoPorPaso(step);
-
-        // si es correcto (mismo item y mismo orden)
-        if (item == esperado)
-        {
-            OnIngredienteCorrecto(item);
-        }
-        else
-        {
-            OnIngredienteIncorrecto();
-        }
-    }
-
-    // Compatibilidad: algunos scripts llaman esto
+    // Para drops sin mapping (ej: semilla)
     public void ForceIncorrectDrop()
     {
         OnIngredienteIncorrecto();
     }
 
-    // -----------------------------
-    // LOGICA DE CORRECTO / INCORRECTO
-    // -----------------------------
-    private void OnIngredienteCorrecto(ItemSO item)
+    // Esta la llama la zona roja
+    public void AddIngredient(ItemSO item)
     {
-        // Descontar del inventario real
+        if (potion == null) return;
+
+        if (step >= 3)
+        {
+            if (textoResultado != null) textoResultado.text = "Pocion ya completada";
+            return;
+        }
+
+        ItemSO esperado = null;
+        if (step == 0) esperado = potion.suero;
+        if (step == 1) esperado = potion.ingrediente1;
+        if (step == 2) esperado = potion.ingrediente2;
+
+        // Permite cualquier item:
+        // si no es el esperado (o esta fuera de orden) => minijuego
+        if (item == esperado)
+            OnIngredienteCorrecto(item);
+        else
+            OnIngredienteIncorrecto();
+    }
+
+    void OnIngredienteCorrecto(ItemSO item)
+    {
+        // Descarga del inventario real
+        bool consumed = false;
+
         if (InventorySystem.Instance != null)
-        {
-            InventorySystem.Instance.ConsumeMappedItem(item, 1);
-        }
-        else if (InventoryManager.instancia != null)
-        {
+            consumed = InventorySystem.Instance.ConsumeMappedItem(item, 1);
+
+        // Fallback por si no existe InventorySystem
+        if (!consumed && InventoryManager.instancia != null)
             InventoryManager.instancia.RemoveItem(item, 1);
-        }
 
         ingredientesAgregados.Add(item);
         step++;
 
-        if (textoResultado != null) textoResultado.text = $"¡Correcto! Paso {step}/3";
+        if (textoResultado != null)
+            textoResultado.text = $"Correcto! Paso {step}/3";
 
         ActualizarUI();
 
@@ -120,157 +107,33 @@ public class CalderoLogic : MonoBehaviour
 
             if (textoResultado != null)
             {
-                string textoDescuento = descuentoPrecio > 0 ? $"\n(Descuento aplicado: {descuentoPrecio * 100}%)" : "";
-                textoResultado.text = $"¡Pocion creada: {potion.pocionNombre}!{textoDescuento}";
+                string textoDescuento = descuentoPrecio > 0 ? $"\n(Descuento: {descuentoPrecio * 100}%)" : "";
+                textoResultado.text = $"Pocion creada: {potion.pocionNombre}{textoDescuento}";
             }
 
-            // Agregar la pocion al inventario del caldero
-            if (InventoryManager.instancia != null && potion.itemPocion != null)
-            {
+            // agrega pocion al inventario del caldero
+            if (InventoryManager.instancia != null && potion != null && potion.itemPocion != null)
                 InventoryManager.instancia.AddItem(potion.itemPocion, 1);
-            }
-
-            // Limpia estado de caldero (por si vuelves a dropear)
-            ClearSavedRunState();
         }
     }
 
-    private void OnIngredienteIncorrecto()
+    void OnIngredienteIncorrecto()
     {
         vecesEquivocado++;
 
-        GuardarEstadoParaMinijuego();
-
-        if (textoResultado != null)
-            textoResultado.text = $"¡Incorrecto! (Error {vecesEquivocado}/2)\nCargando minijuego...";
-
-        SceneManager.LoadScene(nombreEscenaMinijuego);
-    }
-
-    // -----------------------------
-    // MINIJUEGO RESULTADO
-    // -----------------------------
-    private void ProcesarResultadoMinijuego()
-    {
-        // Recargar la pocion
-        CargarPocionSeleccionada();
-
-        bool exito = PlayerPrefs.GetInt("MinijuegoExito", 0) == 1;
-
-        step = PlayerPrefs.GetInt("CalderoStep", 0);
-        vecesEquivocado = PlayerPrefs.GetInt("VecesEquivocado", 0);
-        descuentoPrecio = PlayerPrefs.GetFloat("DescuentoPrecio", 0f);
-
-        ingredientesAgregados.Clear();
-        CargarIngredientesAgregadosDePrefs();
-
-        PrepararUIInicial();
-
-        if (exito)
-        {
-            // ejemplo: descuento acumulable
-            descuentoPrecio += 0.20f;
-
-            if (textoResultado != null)
-                textoResultado.text = $"¡Salvado! Puedes intentar de nuevo\n(Descuento: {descuentoPrecio * 100}%)";
-        }
-        else
-        {
-            if (textoResultado != null)
-                textoResultado.text = "¡Fallaste el minijuego!\nIngredientes perdidos :(";
-
-            // Si fallo el minijuego, se pierden los ingredientes ya agregados
-            if (InventorySystem.Instance != null)
-            {
-                foreach (var ing in ingredientesAgregados)
-                    InventorySystem.Instance.ConsumeMappedItem(ing, 1);
-            }
-            else if (InventoryManager.instancia != null)
-            {
-                foreach (var ing in ingredientesAgregados)
-                    InventoryManager.instancia.RemoveItem(ing, 1);
-            }
-
-            // Opcional: bloquear pantalla y regresar
-            if (panelBloqueo != null)
-                StartCoroutine(BloquearPantallaYEsperarClick());
-        }
-
-        // Limpia la señal del minijuego, pero conserva step/errores/descuento por si sigues intentando
-        PlayerPrefs.DeleteKey("MinijuegoExito");
-        PlayerPrefs.Save();
-
-        ActualizarUI();
-    }
-
-    private void GuardarEstadoParaMinijuego()
-    {
         PlayerPrefs.SetInt("CalderoStep", step);
         PlayerPrefs.SetInt("VecesEquivocado", vecesEquivocado);
         PlayerPrefs.SetFloat("DescuentoPrecio", descuentoPrecio);
         PlayerPrefs.SetString("PocionActual", potion != null ? potion.pocionNombre : "");
-
-        // Guardar ingredientes agregados
-        string ingredientesStr = "";
-        foreach (var ing in ingredientesAgregados)
-        {
-            if (ing == null) continue;
-            if (ingredientesStr != "") ingredientesStr += ",";
-            ingredientesStr += ing.itemNombre;
-        }
-        PlayerPrefs.SetString("IngredientesAgregados", ingredientesStr);
-
         PlayerPrefs.Save();
+
+        if (textoResultado != null)
+            textoResultado.text = $"Incorrecto! (Error {vecesEquivocado})\nCargando minijuego...";
+
+        SceneManager.LoadScene(nombreEscenaMinijuego);
     }
 
-    private void CargarIngredientesAgregadosDePrefs()
-    {
-        if (potion == null) return;
-
-        string ingredientesGuardados = PlayerPrefs.GetString("IngredientesAgregados", "");
-        if (string.IsNullOrEmpty(ingredientesGuardados)) return;
-
-        string[] nombres = ingredientesGuardados.Split(',');
-        foreach (string nombre in nombres)
-        {
-            if (string.IsNullOrEmpty(nombre)) continue;
-
-            // Importante: buscamos dentro de la receta actual para recuperar referencias ItemSO
-            if (potion.suero != null && potion.suero.itemNombre == nombre) ingredientesAgregados.Add(potion.suero);
-            else if (potion.ingrediente1 != null && potion.ingrediente1.itemNombre == nombre) ingredientesAgregados.Add(potion.ingrediente1);
-            else if (potion.ingrediente2 != null && potion.ingrediente2.itemNombre == nombre) ingredientesAgregados.Add(potion.ingrediente2);
-        }
-    }
-
-    private void ClearSavedRunState()
-    {
-        PlayerPrefs.DeleteKey("CalderoStep");
-        PlayerPrefs.DeleteKey("VecesEquivocado");
-        PlayerPrefs.DeleteKey("DescuentoPrecio");
-        PlayerPrefs.DeleteKey("PocionActual");
-        PlayerPrefs.DeleteKey("IngredientesAgregados");
-        PlayerPrefs.Save();
-    }
-
-    // -----------------------------
-    // UI
-    // -----------------------------
-    private void PrepararUIInicial()
-    {
-        if (potion != null)
-        {
-            if (iconoPocionResultado != null) iconoPocionResultado.sprite = potion.icon;
-            if (notaUI != null) notaUI.MostrarReceta(potion);
-
-            // si no viene del minijuego, mostramos "Creando"
-            if (!PlayerPrefs.HasKey("MinijuegoExito"))
-            {
-                if (textoResultado != null) textoResultado.text = $"Creando: {potion.pocionNombre}";
-            }
-        }
-    }
-
-    private void ActualizarUI()
+    void ActualizarUI()
     {
         if (contenedorIngredientes == null || iconoIngredientePrefab == null) return;
 
@@ -279,44 +142,27 @@ public class CalderoLogic : MonoBehaviour
 
         foreach (var ing in ingredientesAgregados)
         {
-            if (ing == null) continue;
-
             var icono = Instantiate(iconoIngredientePrefab, contenedorIngredientes);
-            Image img = icono.GetComponent<Image>();
+            var img = icono.GetComponent<Image>();
             if (img != null) img.sprite = ing.icon;
         }
     }
 
-    // -----------------------------
-    // HELPERS
-    // -----------------------------
-    private ItemSO GetEsperadoPorPaso(int paso)
-    {
-        if (potion == null) return null;
-
-        if (paso == 0) return potion.suero;
-        if (paso == 1) return potion.ingrediente1;
-        if (paso == 2) return potion.ingrediente2;
-        return null;
-    }
-
-    private void CargarPocionSeleccionada()
+    void CargarPocionSeleccionada()
     {
         string nombrePocion = PlayerPrefs.GetString("PocionSeleccionada", "");
         if (string.IsNullOrEmpty(nombrePocion))
         {
             Debug.LogError("[CALDERO] No hay pocion seleccionada en PlayerPrefs!");
-            potion = null;
             return;
         }
 
         potion = todasLasPociones.Find(p => p.pocionNombre == nombrePocion);
-
         if (potion == null)
             Debug.LogError($"[CALDERO] No se encontro la pocion '{nombrePocion}' en la lista!");
     }
 
-    private float CalcularPrecioFinal()
+    float CalcularPrecioFinal()
     {
         if (potion == null) return 0f;
         float precioFinal = potion.precioBase * (1f - descuentoPrecio);
@@ -324,26 +170,19 @@ public class CalderoLogic : MonoBehaviour
         return precioFinal;
     }
 
-    // -----------------------------
-    // BLOQUEO (opcional)
-    // -----------------------------
-    private IEnumerator BloquearPantallaYEsperarClick()
+    // Si tu UI usa bloqueo, lo puedes reactivar aqui (opcional)
+    IEnumerator BloquearPantallaYEsperarClick()
     {
-        yield return new WaitForSecondsRealtime(1.5f);
-
         if (panelBloqueo != null) panelBloqueo.SetActive(true);
-        if (txtClickParaSalir != null) txtClickParaSalir.text = "Click para volver al menu";
+        if (txtClickParaSalir != null) txtClickParaSalir.gameObject.SetActive(true);
 
-        bool esperandoClick = true;
-        while (esperandoClick)
+        bool clicked = false;
+        while (!clicked)
         {
-            if (Input.GetMouseButtonDown(0) || Input.anyKeyDown)
-                esperandoClick = false;
+            if (Input.GetMouseButtonDown(0)) clicked = true;
             yield return null;
         }
 
-        // Limpia estado y vuelve
-        ClearSavedRunState();
         SceneManager.LoadScene(nombreEscenaInicial);
     }
 }

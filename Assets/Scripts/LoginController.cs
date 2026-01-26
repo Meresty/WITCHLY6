@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.UI;       // ?? IMPORTANTE para Image y Sprite
+using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 using Firebase.Database;
@@ -7,17 +7,17 @@ using Firebase.Database;
 public class LoginController : MonoBehaviour
 {
     [Header("Inputs (escena IniciarSesion)")]
-    public TMP_InputField usernameInput;       // IF_Username
-    public TMP_InputField passwordInput;       // IF_Contraseña
+    public TMP_InputField usernameInput;
+    public TMP_InputField passwordInput;
 
     [Header("Mensajes")]
-    public TextMeshProUGUI errorText;          // Text_ErrorLogin
+    public TextMeshProUGUI errorText;
 
     [Header("Visibilidad de contraseña")]
-    public TextMeshProUGUI togglePasswordText; // (opcional) Texto "Mostrar/Ocultar"
-    public Image togglePasswordImage;          // Imagen del ojito
-    public Sprite eyeOpenSprite;               // Sprite ojo ABIERTO
-    public Sprite eyeClosedSprite;             // Sprite ojo CERRADO
+    public TextMeshProUGUI togglePasswordText;
+    public Image togglePasswordImage;
+    public Sprite eyeOpenSprite;
+    public Sprite eyeClosedSprite;
 
     [Header("Escenas")]
     public string mainGameSceneName = "PantallaInicial";
@@ -33,9 +33,6 @@ public class LoginController : MonoBehaviour
         ApplyPasswordVisibility();
     }
 
-    // =====================
-    // Helpers para errores
-    // =====================
     private void ClearError()
     {
         if (errorText == null) return;
@@ -50,9 +47,6 @@ public class LoginController : MonoBehaviour
         errorText.gameObject.SetActive(true);
     }
 
-    // =====================
-    // Inicializar Firebase
-    // =====================
     private void TryInitUsersRef()
     {
         if (usersRef != null) return;
@@ -65,9 +59,7 @@ public class LoginController : MonoBehaviour
 
         try
         {
-            usersRef = FirebaseDatabase.DefaultInstance
-                                       .RootReference
-                                       .Child("users");
+            usersRef = FirebaseDatabase.DefaultInstance.RootReference.Child("users");
             Debug.Log("LoginController: usersRef inicializado.");
         }
         catch (System.Exception ex)
@@ -77,9 +69,6 @@ public class LoginController : MonoBehaviour
         }
     }
 
-    // =====================
-    // Toggle de contraseña
-    // =====================
     public void OnTogglePasswordVisibility()
     {
         isPasswordVisible = !isPasswordVisible;
@@ -90,18 +79,15 @@ public class LoginController : MonoBehaviour
     {
         if (passwordInput == null) return;
 
-        // Mostrar u ocultar caracteres
         passwordInput.contentType = isPasswordVisible
             ? TMP_InputField.ContentType.Standard
             : TMP_InputField.ContentType.Password;
 
         passwordInput.ForceLabelUpdate();
 
-        // (Opcional) cambiar texto "Mostrar"/"Ocultar"
         if (togglePasswordText != null)
             togglePasswordText.text = isPasswordVisible ? "Ocultar" : "Mostrar";
 
-        // Cambiar sprite del ojito
         if (togglePasswordImage != null)
         {
             if (isPasswordVisible && eyeOpenSprite != null)
@@ -111,9 +97,6 @@ public class LoginController : MonoBehaviour
         }
     }
 
-    // =====================
-    // Login
-    // =====================
     public async void OnClickLogin()
     {
         ClearError();
@@ -134,13 +117,12 @@ public class LoginController : MonoBehaviour
             }
         }
 
-        string username = usernameInput.text.Trim();
-        string password = passwordInput.text;
+        string username = usernameInput != null ? usernameInput.text.Trim() : "";
+        string password = passwordInput != null ? passwordInput.text : "";
 
-        // Campos vacíos
         if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
         {
-            ShowError("Falta nombre de usuario o contraseña.");
+            ShowError("Falta nombre de usuario o contrasena.");
             return;
         }
 
@@ -148,10 +130,9 @@ public class LoginController : MonoBehaviour
         {
             var snapshot = await usersRef.Child(username).GetValueAsync();
 
-            // Usuario no encontrado
             if (!snapshot.Exists)
             {
-                ShowError("Nombre de usuario y/o contraseña incorrectos, Intenta de nuevo");
+                ShowError("Nombre de usuario y/o contrasena incorrectos, intenta de nuevo");
                 return;
             }
 
@@ -160,29 +141,35 @@ public class LoginController : MonoBehaviour
 
             string passwordHash = CryptoUtils.Sha256(password);
 
-            // Contraseña incorrecta
             if (user.passwordHash != passwordHash)
             {
-                ShowError("Nombre de usuario y/o contraseña incorrectos, Intenta de nuevo");
+                ShowError("Nombre de usuario y/o contrasena incorrectos, intenta de nuevo");
                 return;
             }
 
-            // Login correcto
+            // 1) Guardar sesion
             if (GameSession.Instance != null)
                 GameSession.Instance.SetUser(user);
 
+            // 2) BIND A FIREBASE MANAGERS AHORA MISMO (CLAVE)
+            if (FirebaseCoinsManager.Instance != null)
+                FirebaseCoinsManager.Instance.BindUser(user.username);
+
+            if (FirebaseInventoryManager.Instance != null)
+                FirebaseInventoryManager.Instance.BindUser(user.username);
+
+            Debug.Log("[LOGIN] Bind listo para: " + user.username);
+
+            // 3) Cambiar escena
             SceneManager.LoadScene(mainGameSceneName);
         }
         catch (System.Exception ex)
         {
-            Debug.LogError("LoginController: Error al iniciar sesión: " + ex);
-            ShowError("Error al iniciar sesión.");
+            Debug.LogError("LoginController: Error al iniciar sesion: " + ex);
+            ShowError("Error al iniciar sesion.");
         }
     }
 
-    // =====================
-    // Ir a recuperar contraseña
-    // =====================
     public void OnClickGoToRecover()
     {
         SceneManager.LoadScene(recoverSceneName);

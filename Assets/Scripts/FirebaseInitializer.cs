@@ -5,6 +5,7 @@ using Firebase.Extensions;
 public class FirebaseInitializer : MonoBehaviour
 {
     public static bool IsReady { get; private set; }
+    public static bool Ready => IsReady; // alias por compatibilidad con scripts viejos
     public static DependencyStatus LastStatus { get; private set; }
 
     private void Awake()
@@ -19,6 +20,7 @@ public class FirebaseInitializer : MonoBehaviour
             .ContinueWithOnMainThread(task =>
             {
                 LastStatus = task.Result;
+
                 if (LastStatus == DependencyStatus.Available)
                 {
                     IsReady = true;
@@ -26,6 +28,7 @@ public class FirebaseInitializer : MonoBehaviour
                 }
                 else
                 {
+                    IsReady = false;
                     Debug.LogError($"No se pudieron resolver dependencias de Firebase: {LastStatus}");
                 }
             });

@@ -120,19 +120,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2622449520511756575}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 2165917501904504875}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: 
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!1 &1538050117255575929
 GameObject:
   m_ObjectHideFlags: 0
@@ -357,21 +345,29 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2165917501904504875}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 835981a406ae8f24bb453291f12dd831, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   esController: 0
   content: {fileID: 0}
-  cardPrefab: {fileID: 0}
-  plantaDB: {fileID: 0}
-  sueroDB: {fileID: 0}
-  vendedores: []
+  cardPrefab: {fileID: 1337884308797970677}
+  plantaDB: {fileID: 11400000, guid: 7e4af753f08acdc4eb432a2a579b9909, type: 2}
+  sueroDB: {fileID: 11400000, guid: dddeab91cc41dd14b8f114a42be96db1, type: 2}
+  inventoryBehaviour: {fileID: 0}
   maxProductos: 12
   cantidadMinMax: {x: 1, y: 10}
-  multiplicadorPrecio: 1
   refreshCadaHoras: 2
+  fluctuacionMin: 0.05
+  fluctuacionMax: 0.09
+  probEstandar: 70
+  probPlata: 20
+  probOro: 10
+  multEstandar: 1
+  multPlata: 1.15
+  multOro: 1.3
+  vendorNames: []
   cantidadObjeto: 0
   costoObjeto: 0
   iconoObjeto: {fileID: 7093814684791088960}
@@ -379,7 +375,7 @@ MonoBehaviour:
   nombreObjeto: {fileID: 604321483895412159}
   text_cantidadObjeto: {fileID: 5728265417901685118}
   text_costoObjeto: {fileID: 7702244099678695763}
-  buyButton: {fileID: 0}
+  buyButton: {fileID: 6121300669969531474}
 --- !u!1 &2207562161336366207
 GameObject:
   m_ObjectHideFlags: 0

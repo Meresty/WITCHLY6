@@ -8,20 +8,21 @@ public class CalderoDangerZone : MonoBehaviour, IDropHandler
         if (eventData == null || eventData.pointerDrag == null) return;
 
         var drag = eventData.pointerDrag.GetComponent<DraggableInventorySlot>();
+        if (drag == null) drag = eventData.pointerDrag.GetComponentInParent<DraggableInventorySlot>();
         if (drag == null) return;
-
-        // BoundItem existe por compatibilidad (alias de BoundItemSO)
-        ItemSO item = drag.BoundItem;
 
         if (CalderoLogic.instancia == null) return;
 
-        // Si no hay mapping (ej semilla) cuenta como incorrecto => Presicion
-        if (item == null)
+        // BoundItem/BoundItemSO ya existen por compat
+        ItemSO itemSO = drag.BoundItem;
+
+        // Si no hay mapping (ej: semilla u otro), cuenta como incorrecto
+        if (itemSO == null)
         {
             CalderoLogic.instancia.ForceIncorrectDrop();
             return;
         }
 
-        CalderoLogic.instancia.AddIngredient(item);
+        CalderoLogic.instancia.AddIngredient(itemSO);
     }
 }

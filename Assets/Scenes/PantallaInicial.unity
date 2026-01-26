@@ -804,6 +804,7 @@ MonoBehaviour:
   eldebriaSlots: []
   jiveriaSlots: []
   lirienSlots: []
+  slotsCountPorPlanta: 4
 --- !u!4 &345548170
 Transform:
   m_ObjectHideFlags: 0
@@ -1468,6 +1469,7 @@ MonoBehaviour:
   plantBD: {fileID: 11400000, guid: 7e4af753f08acdc4eb432a2a579b9909, type: 2}
   sueroBD: {fileID: 11400000, guid: dddeab91cc41dd14b8f114a42be96db1, type: 2}
   plantaToItemMapping: []
+  sueroToItemMapping: []
 --- !u!4 &573801381
 Transform:
   m_ObjectHideFlags: 0
@@ -1478,6 +1480,90 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 8.904398, y: 0, z: 90}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &929295068
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 929295073}
+  - component: {fileID: 929295072}
+  - component: {fileID: 929295071}
+  - component: {fileID: 929295070}
+  - component: {fileID: 929295069}
+  m_Layer: 0
+  m_Name: GameSystems
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &929295069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 929295068}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c85382fc7aa0ebb459988152a506bede, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &929295070
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 929295068}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f444277e43b25f4fbcf24846f5abcae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultCoinsOnNewUser: 10
+--- !u!114 &929295071
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 929295068}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 457d19640c86c1b4791b575b84926f69, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &929295072
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 929295068}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e450b8f4a4190364bbfac7ce292f93d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &929295073
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 929295068}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 9.443311, y: 1.374297, z: 1.9056351}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1727,6 +1813,7 @@ GameObject:
   - component: {fileID: 1048789707}
   - component: {fileID: 1048789709}
   - component: {fileID: 1048789708}
+  - component: {fileID: 1048789710}
   m_Layer: 0
   m_Name: txt_monedas
   m_TagString: Untagged
@@ -1887,6 +1974,22 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &1048789710
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1048789706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10ec122afc7ea35438c660e50f219f93, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  coinsText: {fileID: 0}
+  padWithZeros: 1
+  padDigits: 3
+  prefix: $
 --- !u!1 &1093374515 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1515124220689226682, guid: c4147b8d815ca9343ae492517be4e16d, type: 3}
@@ -3555,3 +3658,4 @@ SceneRoots:
   - {fileID: 1530257599}
   - {fileID: 345548170}
   - {fileID: 573801381}
+  - {fileID: 929295073}
