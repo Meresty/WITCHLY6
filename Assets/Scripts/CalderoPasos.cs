@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -9,11 +9,6 @@ public class CalderoLogic : MonoBehaviour
 {
     public static CalderoLogic instancia;
     public NotaUI notaUI;
-
-    private void Awake()
-    {
-        instancia = this;
-    }
 
     [Header("Pociones disponibles")]
     public List<PocionSO> todasLasPociones = new List<PocionSO>();
@@ -32,10 +27,15 @@ public class CalderoLogic : MonoBehaviour
 
     private readonly List<ItemSO> ingredientesAgregados = new List<ItemSO>();
 
-    [Header("Bloqueo en Fallo")]
-    [SerializeField] private GameObject panelBloqueo;
-    [SerializeField] private TextMeshProUGUI txtClickParaSalir;
-    [SerializeField] private string nombreEscenaInicial = "PantallaInicial";
+    private void Awake()
+    {
+        if (instancia != null && instancia != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        instancia = this;
+    }
 
     void Start()
     {
@@ -51,45 +51,61 @@ public class CalderoLogic : MonoBehaviour
         ActualizarUI();
     }
 
-    // Para drops sin mapping (ej: semilla)
-    public void ForceIncorrectDrop()
-    {
-        OnIngredienteIncorrecto();
-    }
+    //public void ForceIncorrectDrop() => OnIngredienteIncorrecto();
 
-    // Esta la llama la zona roja
     public void AddIngredient(ItemSO item)
     {
-        if (potion == null) return;
-
+        //if (potion == null) return;
+        
         if (step >= 3)
         {
+            Debug.Log("Entra:");
             if (textoResultado != null) textoResultado.text = "Pocion ya completada";
             return;
         }
+        
+        ItemSO esperado = GetEsperado(step);
+        Debug.Log("Esperado: " + esperado);
+        Debug.Log("Seleccionado: " + item);
+        // DEBUG: te va a decir por que no esta matcheando
+        //Debug.Log($"[CALDERO] step={step} drop='{Key(item)}'({item?.GetInstanceID()}) esperado='{Key(esperado)}'({esperado?.GetInstanceID()})");
 
-        ItemSO esperado = null;
-        if (step == 0) esperado = potion.suero;
-        if (step == 1) esperado = potion.ingrediente1;
-        if (step == 2) esperado = potion.ingrediente2;
-
-        // Permite cualquier item:
-        // si no es el esperado (o esta fuera de orden) => minijuego
-        if (item == esperado)
+        if (IsSameItem(item, esperado))
             OnIngredienteCorrecto(item);
         else
             OnIngredienteIncorrecto();
     }
 
+    private ItemSO GetEsperado(int s)
+    {
+        if (potion == null) return null;
+        if (s == 0) return potion.suero;
+        if (s == 1) return potion.ingrediente1;
+        if (s == 2) return potion.ingrediente2;
+        return null;
+    }
+
+    // Normaliza nombre (por si hay "(Clone)" o espacios)
+    private string Key(ItemSO x)
+    {
+        if (x == null) return "";
+        return x.name.Replace("(Clone)", "").Trim().ToLowerInvariant();
+    }
+
+    private bool IsSameItem(ItemSO a, ItemSO b)
+    {
+        if (a == null || b == null) return false;
+        if (a == b) return true;
+        return Key(a) == Key(b);
+    }
+
     void OnIngredienteCorrecto(ItemSO item)
     {
-        // Descarga del inventario real
         bool consumed = false;
 
         if (InventorySystem.Instance != null)
             consumed = InventorySystem.Instance.ConsumeMappedItem(item, 1);
 
-        // Fallback por si no existe InventorySystem
         if (!consumed && InventoryManager.instancia != null)
             InventoryManager.instancia.RemoveItem(item, 1);
 
@@ -104,14 +120,12 @@ public class CalderoLogic : MonoBehaviour
         if (step >= 3)
         {
             float precioFinal = CalcularPrecioFinal();
-
             if (textoResultado != null)
             {
                 string textoDescuento = descuentoPrecio > 0 ? $"\n(Descuento: {descuentoPrecio * 100}%)" : "";
                 textoResultado.text = $"Pocion creada: {potion.pocionNombre}{textoDescuento}";
             }
 
-            // agrega pocion al inventario del caldero
             if (InventoryManager.instancia != null && potion != null && potion.itemPocion != null)
                 InventoryManager.instancia.AddItem(potion.itemPocion, 1);
         }
@@ -168,21 +182,5 @@ public class CalderoLogic : MonoBehaviour
         float precioFinal = potion.precioBase * (1f - descuentoPrecio);
         potion.precioFinal = precioFinal;
         return precioFinal;
-    }
-
-    // Si tu UI usa bloqueo, lo puedes reactivar aqui (opcional)
-    IEnumerator BloquearPantallaYEsperarClick()
-    {
-        if (panelBloqueo != null) panelBloqueo.SetActive(true);
-        if (txtClickParaSalir != null) txtClickParaSalir.gameObject.SetActive(true);
-
-        bool clicked = false;
-        while (!clicked)
-        {
-            if (Input.GetMouseButtonDown(0)) clicked = true;
-            yield return null;
-        }
-
-        SceneManager.LoadScene(nombreEscenaInicial);
     }
 }

@@ -1,28 +1,44 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class CalderoDangerZone : MonoBehaviour, IDropHandler
 {
+    public ItemSO itemdrop;
     public void OnDrop(PointerEventData eventData)
     {
         if (eventData == null || eventData.pointerDrag == null) return;
-
-        var drag = eventData.pointerDrag.GetComponent<DraggableInventorySlot>();
-        if (drag == null) drag = eventData.pointerDrag.GetComponentInParent<DraggableInventorySlot>();
-        if (drag == null) return;
-
         if (CalderoLogic.instancia == null) return;
 
-        // BoundItem/BoundItemSO ya existen por compat
-        ItemSO itemSO = drag.BoundItem;
+        var drag = eventData.pointerDrag.GetComponent<DraggableInventorySlot>()
+                   ?? eventData.pointerDrag.GetComponentInParent<DraggableInventorySlot>();
 
-        // Si no hay mapping (ej: semilla u otro), cuenta como incorrecto
-        if (itemSO == null)
+        if (drag == null) return;
+        ItemSO itemSO = new ItemSO();
+        
+        
+        
+        itemSO = itemdrop;
+
+        //ItemSO itemSO = drag.BoundItemSO;
+        //Debug.Log(drag.BoundItemSO);
+        CalderoLogic.instancia.AddIngredient(itemSO);
+        /*
+        if (itemSO != null)
         {
-            CalderoLogic.instancia.ForceIncorrectDrop();
+
+            
+            Debug.Log($"[CALDERO] Drop detectado => {itemSO.name}");
+            CalderoLogic.instancia.AddIngredient(itemSO);
+        }
+           
+        else
+        {
+            Debug.LogWarning("[CALDERO] Drop en DangerZone pero BoundItemSO/BoundItem es NULL => mapping no resuelto.");
+            //CalderoLogic.instancia.ForceIncorrectDrop();
             return;
         }
+        */
 
-        CalderoLogic.instancia.AddIngredient(itemSO);
+       
     }
 }

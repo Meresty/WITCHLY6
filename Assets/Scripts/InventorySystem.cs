@@ -1,11 +1,15 @@
-﻿using UnityEngine;
-using UnityEngine.SceneManagement;
-using System;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
+using System.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 #region Data Models
 
-[System.Serializable]
+[Serializable]
 public class InventoryItem
 {
     public PlantaTipo plantaTipo;
@@ -13,21 +17,21 @@ public class InventoryItem
     public int cantidad;
 }
 
-[System.Serializable]
+[Serializable]
 public class SerumItem
 {
     public string sueroNombre;
     public int cantidad;
 }
 
-[System.Serializable]
+[Serializable]
 public class SeedItem
 {
     public PlantaTipo plantaTipo;
-    public int cantidad; // -1 = infinito
+    public int cantidad; // -1 = infinito (no vender)
 }
 
-[System.Serializable]
+[Serializable]
 public class PlantaItemSOMapping
 {
     public PlantaTipo tipo;
@@ -35,16 +39,16 @@ public class PlantaItemSOMapping
     public ItemSO itemSO;
 }
 
-[System.Serializable]
+[Serializable]
 public class SueroItemSOMapping
 {
     public string sueroNombre;
     public ItemSO itemSO;
 }
 
-[System.Serializable] public class PlantsList { public List<InventoryItem> items; }
-[System.Serializable] public class SeedsList { public List<SeedItem> items; }
-[System.Serializable] public class SerumsList { public List<SerumItem> items; }
+[Serializable] public class PlantsList { public List<InventoryItem> items; }
+[Serializable] public class SeedsList { public List<SeedItem> items; }
+[Serializable] public class SerumsList { public List<SerumItem> items; }
 
 #endregion
 
@@ -56,13 +60,15 @@ public class InventorySystem : MonoBehaviour
     public List<InventoryItem> plantas = new List<InventoryItem>();
     public List<SeedItem> semillas = new List<SeedItem>();
     public List<SerumItem> sueros = new List<SerumItem>();
+
+    // compat con scripts viejos
     public int coins = 0;
 
-    [Header("Referencias")]
+    [Header("Referencias (UI usa estas BD para armar ItemInfo)")]
     public PlantaBD plantBD;
     public SueroDB sueroBD;
 
-    [Header("Conexion con Caldero (ItemSO)")]
+    [Header("Mapeo a ItemSO (Caldero)")]
     public PlantaItemSOMapping[] plantaToItemMapping;
     public SueroItemSOMapping[] sueroToItemMapping;
 
@@ -70,16 +76,47 @@ public class InventorySystem : MonoBehaviour
 
     private bool _isInitializing = false;
 
+    // Keys (mantener para no romper guardado)
     private const string KEY_FIRST_TIME = "FirstTime";
     private const string KEY_PLANTS = "Plants";
     private const string KEY_SEEDS = "Seeds";
     private const string KEY_SERUMS = "Serums";
     private const string KEY_COINS = "Coins";
 
+    // ===== PRECIOS DE VENTA (TABLA) =====
+    private static readonly Dictionary<PlantaTipo, int> SELL_PLANTS = new Dictionary<PlantaTipo, int>
+    {
+        { PlantaTipo.Lumina,   13 },
+        { PlantaTipo.Falsibaya, 8 },
+        { PlantaTipo.Drakonia,  8 },
+        { PlantaTipo.Eldebria, 10 },
+        { PlantaTipo.Jiveria,  11 },
+        { PlantaTipo.Lirien,   17 },
+    };
+
+    private static readonly Dictionary<PlantaTipo, int> SELL_SEEDS = new Dictionary<PlantaTipo, int>
+    {
+        // N/A no se ponen
+        { PlantaTipo.Lumina,   7 },
+        { PlantaTipo.Eldebria, 5 },
+        { PlantaTipo.Jiveria,  6 },
+        { PlantaTipo.Lirien,   8 },
+    };
+
+    private static readonly Dictionary<string, int> SELL_SERUMS = new Dictionary<string, int>
+    {
+        { "suero de atadura",       19 },
+        { "suero de fuerza",        17 },
+        { "suero de congelamiento", 20 },
+        { "suero de energia",       15 },
+    };
+
     private void Awake()
     {
+        // Singleton + absorcion de refs (evita que DontDestroy se quede sin BD)
         if (Instance != null && Instance != this)
         {
+            Instance.AbsorbReferencesFrom(this);
             Destroy(gameObject);
             return;
         }
@@ -92,18 +129,61 @@ public class InventorySystem : MonoBehaviour
         InitializeInventory();
     }
 
+    private void Start()
+    {
+        StartCoroutine(AutoBindFirebase());
+    }
+
     private void OnDestroy()
     {
         if (Instance == this)
         {
             SceneManager.sceneLoaded -= OnSceneLoaded;
+            Instance = null;
         }
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Cada que cambia escena, si ya existe InventoryManager, re-sincroniza seguro
         SyncAllToCalderoSafe();
+        OnInventoryChanged?.Invoke();
+    }
+
+    private void AbsorbReferencesFrom(InventorySystem other)
+    {
+        if (other == null) return;
+
+        if (plantBD == null && other.plantBD != null) plantBD = other.plantBD;
+        if (sueroBD == null && other.sueroBD != null) sueroBD = other.sueroBD;
+
+        if ((plantaToItemMapping == null || plantaToItemMapping.Length == 0) &&
+            other.plantaToItemMapping != null && other.plantaToItemMapping.Length > 0)
+            plantaToItemMapping = other.plantaToItemMapping;
+
+        if ((sueroToItemMapping == null || sueroToItemMapping.Length == 0) &&
+            other.sueroToItemMapping != null && other.sueroToItemMapping.Length > 0)
+            sueroToItemMapping = other.sueroToItemMapping;
+    }
+
+    private IEnumerator AutoBindFirebase()
+    {
+        while (!FirebaseInitializer.IsReady) yield return null;
+        while (GameSession.Instance == null || GameSession.Instance.CurrentUser == null) yield return null;
+
+        string username = GameSession.Instance.CurrentUser.username;
+
+        if (FirebaseCoinsManager.Instance == null)
+        {
+            var go = new GameObject("FirebaseCoinsManager");
+            go.AddComponent<FirebaseCoinsManager>();
+            yield return null;
+        }
+
+        FirebaseCoinsManager.Instance.BindUser(username);
+
+        // compat: mantener coins local sincronizado
+        FirebaseCoinsManager.Instance.OnCoinsChanged += (c) => coins = c;
+        coins = FirebaseCoinsManager.Instance.Coins;
     }
 
     private void InitializeInventory()
@@ -112,17 +192,10 @@ public class InventorySystem : MonoBehaviour
 
         if (!PlayerPrefs.HasKey(KEY_FIRST_TIME))
         {
-            // Inventario inicial
+            // seed minimo para que SI se vea algo (si quieres, cambia esto)
+            AddSemilla(PlantaTipo.Lumina, 5, save: false, notify: false);
+            AddPlant(PlantaTipo.Lumina, PlantaCalidad.Estandar, 1, save: false, notify: false);
             AddSerum("Suero de Fuerza", 1, save: false, notify: false);
-            AddSerum("Suero de Energía", 1, save: false, notify: false);
-
-            AddPlant(PlantaTipo.Drakonia, PlantaCalidad.Estandar, 5, save: false, notify: false);
-            AddPlant(PlantaTipo.Drakonia, PlantaCalidad.Plata, 5, save: false, notify: false);
-            AddPlant(PlantaTipo.Falsibaya, PlantaCalidad.Estandar, 5, save: false, notify: false);
-            AddPlant(PlantaTipo.Drakonia, PlantaCalidad.Oro, 5, save: false, notify: false);
-
-            AddSemilla(PlantaTipo.Falsibaya, -1, save: false, notify: false);
-            AddSemilla(PlantaTipo.Drakonia, -1, save: false, notify: false);
 
             PlayerPrefs.SetInt(KEY_FIRST_TIME, 1);
             PlayerPrefs.Save();
@@ -135,46 +208,44 @@ public class InventorySystem : MonoBehaviour
         SaveInventory();
         _isInitializing = false;
 
-        // Sincroniza una vez (sin duplicar)
         SyncAllToCalderoSafe();
-
         OnInventoryChanged?.Invoke();
     }
 
-    #region Compatibility (methods otros scripts ya llaman)
-
+    // =========================
+    // COMPAT METHODS (lo que te marcaba error)
+    // =========================
     public bool HasSeed(PlantaTipo type, int amount = 1)
     {
-        var seed = semillas.Find(s => s.plantaTipo == type);
-        if (seed == null) return false;
-        if (seed.cantidad == -1) return true;
-        return seed.cantidad >= amount;
+        var s = semillas.Find(x => x.plantaTipo == type);
+        if (s == null) return false;
+        if (s.cantidad == -1) return true;
+        return s.cantidad >= amount;
     }
 
     public int GetSeedCount(PlantaTipo type)
     {
-        var seed = semillas.Find(s => s.plantaTipo == type);
-        return seed != null ? seed.cantidad : 0;
+        var s = semillas.Find(x => x.plantaTipo == type);
+        return s != null ? s.cantidad : 0;
     }
 
     public bool HasPlant(PlantaTipo type, PlantaCalidad quality, int amount = 1)
     {
-        var plant = plantas.Find(p => p.plantaTipo == type && p.calidad == quality);
-        return plant != null && plant.cantidad >= amount;
+        var p = plantas.Find(x => x.plantaTipo == type && x.calidad == quality);
+        return p != null && p.cantidad >= amount;
     }
 
     public bool HasPlant(PlantaTipo type)
     {
-        return plantas.Exists(p => p.plantaTipo == type && p.cantidad > 0);
+        return plantas.Exists(x => x.plantaTipo == type && x.cantidad > 0);
     }
 
     public int GetPlantCount(PlantaTipo type, PlantaCalidad quality)
     {
-        var plant = plantas.Find(p => p.plantaTipo == type && p.calidad == quality);
-        return plant != null ? plant.cantidad : 0;
+        var p = plantas.Find(x => x.plantaTipo == type && x.calidad == quality);
+        return p != null ? p.cantidad : 0;
     }
 
-    // Overload comun (por si algun script lo llama asi)
     public int GetPlantCount(PlantaTipo type)
     {
         int total = 0;
@@ -185,8 +256,8 @@ public class InventorySystem : MonoBehaviour
 
     public int GetSerumCount(string serumName)
     {
-        var serum = sueros.Find(s => string.Equals(s.sueroNombre, serumName, StringComparison.OrdinalIgnoreCase));
-        return serum != null ? serum.cantidad : 0;
+        var s = sueros.Find(x => string.Equals(x.sueroNombre, serumName, StringComparison.OrdinalIgnoreCase));
+        return s != null ? s.cantidad : 0;
     }
 
     public bool HasSerum(string serumName, int amount = 1)
@@ -194,23 +265,250 @@ public class InventorySystem : MonoBehaviour
         return GetSerumCount(serumName) >= amount;
     }
 
-    #endregion
+    // =========================
+    // ADD / REMOVE
+    // =========================
+    public void AddPlant(PlantaTipo type, PlantaCalidad quality, int amount, bool save = true, bool notify = true)
+    {
+        if (amount <= 0) return;
 
-    #region Mapping UI(ItemInfo) -> ItemSO (recetas)
+        var existing = plantas.Find(p => p.plantaTipo == type && p.calidad == quality);
+        if (existing != null) existing.cantidad += amount;
+        else plantas.Add(new InventoryItem { plantaTipo = type, calidad = quality, cantidad = amount });
 
+        if (!_isInitializing) SyncDeltaToCaldero(GetItemSOForPlant(type, quality), amount);
+
+        if (save) SaveInventory();
+        if (notify) OnInventoryChanged?.Invoke();
+    }
+
+    public bool RemovePlant(PlantaTipo type, PlantaCalidad quality, int amount = 1, bool save = true, bool notify = true)
+    {
+        if (amount <= 0) return true;
+
+        var existing = plantas.Find(p => p.plantaTipo == type && p.calidad == quality);
+        if (existing == null || existing.cantidad < amount) return false;
+
+        existing.cantidad -= amount;
+        if (existing.cantidad <= 0) plantas.Remove(existing);
+
+        SyncDeltaToCaldero(GetItemSOForPlant(type, quality), -amount);
+
+        if (save) SaveInventory();
+        if (notify) OnInventoryChanged?.Invoke();
+        return true;
+    }
+
+    public void AddSemilla(PlantaTipo type, int amount, bool save = true, bool notify = true)
+    {
+        if (amount == 0) return;
+
+        var existing = semillas.Find(s => s.plantaTipo == type);
+        if (existing != null)
+        {
+            if (existing.cantidad == -1 || amount == -1) existing.cantidad = -1;
+            else existing.cantidad += amount;
+        }
+        else semillas.Add(new SeedItem { plantaTipo = type, cantidad = amount });
+
+        if (save) SaveInventory();
+        if (notify) OnInventoryChanged?.Invoke();
+    }
+
+    public bool RemoveSeed(PlantaTipo type, int amount = 1, bool save = true, bool notify = true)
+    {
+        if (amount <= 0) return true;
+
+        var existing = semillas.Find(s => s.plantaTipo == type);
+        if (existing == null) return false;
+
+        if (existing.cantidad == -1) return true; // infinito
+
+        if (existing.cantidad < amount) return false;
+
+        existing.cantidad -= amount;
+        if (existing.cantidad <= 0) semillas.Remove(existing);
+
+        if (save) SaveInventory();
+        if (notify) OnInventoryChanged?.Invoke();
+        return true;
+    }
+
+    public void AddSerum(string name, int amount, bool save = true, bool notify = true)
+    {
+        if (string.IsNullOrWhiteSpace(name) || amount <= 0) return;
+
+        var existing = sueros.Find(s => string.Equals(s.sueroNombre, name, StringComparison.OrdinalIgnoreCase));
+        if (existing != null) existing.cantidad += amount;
+        else sueros.Add(new SerumItem { sueroNombre = name, cantidad = amount });
+
+        if (!_isInitializing) SyncDeltaToCaldero(GetItemSOForSerum(name), amount);
+
+        if (save) SaveInventory();
+        if (notify) OnInventoryChanged?.Invoke();
+    }
+
+    public bool RemoveSerum(string name, int amount = 1, bool save = true, bool notify = true)
+    {
+        if (string.IsNullOrWhiteSpace(name) || amount <= 0) return true;
+
+        var existing = sueros.Find(s => string.Equals(s.sueroNombre, name, StringComparison.OrdinalIgnoreCase));
+        if (existing == null || existing.cantidad < amount) return false;
+
+        existing.cantidad -= amount;
+        if (existing.cantidad <= 0) sueros.Remove(existing);
+
+        SyncDeltaToCaldero(GetItemSOForSerum(name), -amount);
+
+        if (save) SaveInventory();
+        if (notify) OnInventoryChanged?.Invoke();
+        return true;
+    }
+
+    // =========================
+    // COINS (compat)
+    // =========================
+    public void AddCoins(int amount)
+    {
+        if (amount <= 0) return;
+
+        if (FirebaseCoinsManager.Instance != null && GameSession.Instance != null && GameSession.Instance.CurrentUser != null)
+        {
+            if (!FirebaseCoinsManager.Instance.IsBound)
+                FirebaseCoinsManager.Instance.BindUser(GameSession.Instance.CurrentUser.username);
+
+            _ = FirebaseCoinsManager.Instance.AddCoinsAsync(amount);
+            return;
+        }
+
+        coins += amount;
+        SaveInventory();
+        OnInventoryChanged?.Invoke();
+    }
+
+    public bool SpendCoins(int amount)
+    {
+        if (amount <= 0) return true;
+
+        if (FirebaseCoinsManager.Instance != null && GameSession.Instance != null && GameSession.Instance.CurrentUser != null)
+        {
+            if (!FirebaseCoinsManager.Instance.IsBound)
+                FirebaseCoinsManager.Instance.BindUser(GameSession.Instance.CurrentUser.username);
+
+            _ = FirebaseCoinsManager.Instance.TrySpendCoinsAsync(amount);
+            return true;
+        }
+
+        if (coins < amount) return false;
+        coins -= amount;
+        SaveInventory();
+        OnInventoryChanged?.Invoke();
+        return true;
+    }
+
+    // =========================
+    // SELL (TABLA)
+    // =========================
+    public int GetSellPrice(ItemInfo info)
+    {
+        if (info == null) return 0;
+
+        // suero
+        if (info.plantaTipo == PlantaTipo.NONE)
+        {
+            string key = NormalizeKey(info.itemNombre);
+            return SELL_SERUMS.TryGetValue(key, out int p) ? p : 0;
+        }
+
+        // planta
+        if (info.calidad != PlantaCalidad.NONE)
+            return SELL_PLANTS.TryGetValue(info.plantaTipo, out int p2) ? p2 : 0;
+
+        // semilla
+        return SELL_SEEDS.TryGetValue(info.plantaTipo, out int p3) ? p3 : 0;
+    }
+
+    public async Task<bool> SellItemAsync(ItemInfo info, int amount = 1)
+    {
+        if (info == null) return false;
+        if (amount <= 0) amount = 1;
+
+        int unit = GetSellPrice(info);
+        if (unit <= 0) return false;
+
+        // no vender semillas infinitas
+        if (info.plantaTipo != PlantaTipo.NONE && info.calidad == PlantaCalidad.NONE)
+        {
+            var seed = semillas.Find(s => s.plantaTipo == info.plantaTipo);
+            if (seed != null && seed.cantidad == -1) return false;
+        }
+
+        bool removed = false;
+
+        if (info.plantaTipo == PlantaTipo.NONE)
+            removed = RemoveSerum(info.itemNombre, amount, save: false, notify: false);
+        else if (info.calidad != PlantaCalidad.NONE)
+            removed = RemovePlant(info.plantaTipo, info.calidad, amount, save: false, notify: false);
+        else
+            removed = RemoveSeed(info.plantaTipo, amount, save: false, notify: false);
+
+        if (!removed) return false;
+
+        int total = unit * amount;
+
+        // monedas por Firebase (HUD se actualiza solo)
+        if (FirebaseCoinsManager.Instance != null && GameSession.Instance != null && GameSession.Instance.CurrentUser != null)
+        {
+            if (!FirebaseCoinsManager.Instance.IsBound)
+                FirebaseCoinsManager.Instance.BindUser(GameSession.Instance.CurrentUser.username);
+
+            bool ok = await FirebaseCoinsManager.Instance.AddCoinsAsync(total);
+            if (!ok)
+            {
+                // rollback inventario
+                if (info.plantaTipo == PlantaTipo.NONE) AddSerum(info.itemNombre, amount, save: false, notify: false);
+                else if (info.calidad != PlantaCalidad.NONE) AddPlant(info.plantaTipo, info.calidad, amount, save: false, notify: false);
+                else AddSemilla(info.plantaTipo, amount, save: false, notify: false);
+
+                return false;
+            }
+        }
+        else
+        {
+            coins += total;
+        }
+
+        SaveInventory();
+        OnInventoryChanged?.Invoke();
+        return true;
+    }
+
+    // wrappers que te piden otros scripts
+    public void SellPlant(PlantaTipo type, PlantaCalidad quality, int amount)
+    {
+        var temp = new ItemInfo { itemNombre = type.ToString(), plantaTipo = type, calidad = quality };
+        _ = SellItemAsync(temp, amount);
+    }
+
+    public void SellSeed(PlantaTipo type, int amount)
+    {
+        var temp = new ItemInfo { itemNombre = type.ToString(), plantaTipo = type, calidad = PlantaCalidad.NONE };
+        _ = SellItemAsync(temp, amount);
+    }
+
+    // =========================
+    // CALDERO / MAPPING
+    // =========================
     public ItemSO ResolveItemSO(ItemInfo info)
     {
         if (info == null) return null;
 
-        // Planta (tiene tipo y calidad)
         if (info.plantaTipo != PlantaTipo.NONE && info.calidad != PlantaCalidad.NONE)
             return GetItemSOForPlant(info.plantaTipo, info.calidad);
 
-        // Suero (por nombre)
         if (info.plantaTipo == PlantaTipo.NONE)
             return GetItemSOForSerum(info.itemNombre);
 
-        // Semilla: normalmente no hay ItemSO para recetas del caldero
         return null;
     }
 
@@ -220,57 +518,29 @@ public class InventorySystem : MonoBehaviour
 
         foreach (var m in plantaToItemMapping)
         {
-            if (m == null) continue;
-            if (m.tipo == tipo && m.calidad == calidad)
-                return m.itemSO;
+            if (m == null || m.itemSO == null) continue;
+            if (m.tipo == tipo && m.calidad == calidad) return m.itemSO;
         }
         return null;
     }
 
     public ItemSO GetItemSOForSerum(string sueroNombre)
     {
-        if (string.IsNullOrEmpty(sueroNombre)) return null;
-        if (sueroToItemMapping == null) return null;
+        if (string.IsNullOrWhiteSpace(sueroNombre) || sueroToItemMapping == null) return null;
 
         foreach (var m in sueroToItemMapping)
         {
-            if (m == null) continue;
+            if (m == null || m.itemSO == null) continue;
             if (string.Equals(m.sueroNombre, sueroNombre, StringComparison.OrdinalIgnoreCase))
                 return m.itemSO;
         }
         return null;
     }
 
-    #endregion
-
-    #region Consume helpers (para caldero)
-
-    // Descuenta usando ItemInfo (lo correcto para tu inventario real)
-    public bool ConsumeItemInfo(ItemInfo info, int amount = 1)
-    {
-        if (info == null) return false;
-
-        // Planta
-        if (info.plantaTipo != PlantaTipo.NONE && info.calidad != PlantaCalidad.NONE)
-            return RemovePlant(info.plantaTipo, info.calidad, amount);
-
-        // Semilla
-        if (info.plantaTipo != PlantaTipo.NONE && info.calidad == PlantaCalidad.NONE)
-            return RemoveSeed(info.plantaTipo, amount);
-
-        // Suero
-        if (info.plantaTipo == PlantaTipo.NONE)
-            return RemoveSerum(info.itemNombre, amount);
-
-        return false;
-    }
-
-    // Descuenta usando ItemSO (fallback / compat)
     public bool ConsumeMappedItem(ItemSO itemSO, int amount = 1)
     {
-        if (itemSO == null) return false;
+        if (itemSO == null || amount <= 0) return false;
 
-        // Planta
         if (plantaToItemMapping != null)
         {
             foreach (var m in plantaToItemMapping)
@@ -281,7 +551,6 @@ public class InventorySystem : MonoBehaviour
             }
         }
 
-        // Suero
         if (sueroToItemMapping != null)
         {
             foreach (var m in sueroToItemMapping)
@@ -292,7 +561,6 @@ public class InventorySystem : MonoBehaviour
             }
         }
 
-        // Si no esta mapeado, al menos intenta bajar del InventoryManager
         if (InventoryManager.instancia != null)
         {
             InventoryManager.instancia.RemoveItem(itemSO, amount);
@@ -302,239 +570,26 @@ public class InventorySystem : MonoBehaviour
         return false;
     }
 
-    #endregion
-
-    #region Semillas
-
-    public void AddSemilla(PlantaTipo type, int amount, bool save = true, bool notify = true)
-    {
-        var existing = semillas.Find(s => s.plantaTipo == type);
-
-        if (existing != null)
-        {
-            if (existing.cantidad == -1 || amount == -1)
-                existing.cantidad = -1;
-            else
-                existing.cantidad += amount;
-        }
-        else
-        {
-            semillas.Add(new SeedItem { plantaTipo = type, cantidad = amount });
-        }
-
-        if (save) SaveInventory();
-        if (notify) OnInventoryChanged?.Invoke();
-    }
-
-    public bool RemoveSeed(PlantaTipo type, int amount = 1)
-    {
-        var seed = semillas.Find(s => s.plantaTipo == type);
-        if (seed == null) return false;
-
-        // infinito
-        if (seed.cantidad == -1) return true;
-
-        if (amount <= 0) return true;
-        if (seed.cantidad < amount) return false;
-
-        seed.cantidad -= amount;
-        if (seed.cantidad <= 0) semillas.Remove(seed);
-
-        SaveInventory();
-        OnInventoryChanged?.Invoke();
-        return true;
-    }
-
-    #endregion
-
-    #region Plantas
-
-    public void AddPlant(PlantaTipo type, PlantaCalidad quality, int amount, bool save = true, bool notify = true)
-    {
-        var existing = plantas.Find(p => p.plantaTipo == type && p.calidad == quality);
-        if (existing != null) existing.cantidad += amount;
-        else plantas.Add(new InventoryItem { plantaTipo = type, calidad = quality, cantidad = amount });
-
-        // Sync delta a caldero (solo si NO estamos inicializando para evitar duplicar)
-        if (!_isInitializing) SyncDeltaToCaldero(GetItemSOForPlant(type, quality), amount);
-
-        if (save) SaveInventory();
-        if (notify) OnInventoryChanged?.Invoke();
-    }
-
-    public bool RemovePlant(PlantaTipo type, PlantaCalidad quality, int amount = 1)
-    {
-        var plant = plantas.Find(p => p.plantaTipo == type && p.calidad == quality);
-        if (plant == null) return false;
-
-        if (amount <= 0) return true;
-        if (plant.cantidad < amount) return false;
-
-        plant.cantidad -= amount;
-        if (plant.cantidad <= 0) plantas.Remove(plant);
-
-        SyncDeltaToCaldero(GetItemSOForPlant(type, quality), -amount);
-
-        SaveInventory();
-        OnInventoryChanged?.Invoke();
-        return true;
-    }
-
-    #endregion
-
-    #region Sueros
-
-    public void AddSerum(string serumName, int amount, bool save = true, bool notify = true)
-    {
-        if (string.IsNullOrEmpty(serumName)) return;
-
-        var existing = sueros.Find(s => string.Equals(s.sueroNombre, serumName, StringComparison.OrdinalIgnoreCase));
-        if (existing != null) existing.cantidad += amount;
-        else sueros.Add(new SerumItem { sueroNombre = serumName, cantidad = amount });
-
-        if (!_isInitializing) SyncDeltaToCaldero(GetItemSOForSerum(serumName), amount);
-
-        if (save) SaveInventory();
-        if (notify) OnInventoryChanged?.Invoke();
-    }
-
-    public bool RemoveSerum(string serumName, int amount = 1)
-    {
-        if (string.IsNullOrEmpty(serumName)) return false;
-
-        var serum = sueros.Find(s => string.Equals(s.sueroNombre, serumName, StringComparison.OrdinalIgnoreCase));
-        if (serum == null) return false;
-
-        if (amount <= 0) return true;
-        if (serum.cantidad < amount) return false;
-
-        serum.cantidad -= amount;
-        if (serum.cantidad <= 0) sueros.Remove(serum);
-
-        SyncDeltaToCaldero(GetItemSOForSerum(serumName), -amount);
-
-        SaveInventory();
-        OnInventoryChanged?.Invoke();
-        return true;
-    }
-
-    #endregion
-
-    #region Monedas
-
-    public void AddCoins(int amount)
-    {
-        coins += amount;
-        SaveInventory();
-        OnInventoryChanged?.Invoke();
-    }
-
-    public bool SpendCoins(int amount)
-    {
-        if (coins < amount) return false;
-        coins -= amount;
-        SaveInventory();
-        OnInventoryChanged?.Invoke();
-        return true;
-    }
-
-    #endregion
-
-    #region Compra/Venta (para tus UIs de mercado/invernadero)
-
-    public void SellPlant(PlantaTipo type, PlantaCalidad quality, int amount)
-    {
-        if (amount <= 0) return;
-        if (plantBD == null) return;
-
-        if (!RemovePlant(type, quality, amount)) return;
-
-        PlantData data = plantBD.GetPlantas(type);
-        if (data == null) return;
-
-        int price = (quality == PlantaCalidad.Estandar) ? data.precioVentaEstandar :
-                    (quality == PlantaCalidad.Plata) ? data.precioVentaPlata :
-                    data.precioVentaOro;
-
-        AddCoins(price * amount);
-    }
-
-    public void SellSeed(PlantaTipo type, int amount)
-    {
-        if (amount <= 0) return;
-        if (plantBD == null) return;
-
-        if (!RemoveSeed(type, amount)) return;
-
-        PlantData data = plantBD.GetPlantas(type);
-        if (data == null) return;
-
-        AddCoins(data.precioCompraEstandar * amount);
-    }
-
-    public bool BuyPlant(PlantaTipo type, PlantaCalidad quality, int amount = 1)
-    {
-        if (amount <= 0) return false;
-        if (plantBD == null) return false;
-
-        PlantData data = plantBD.GetPlantas(type);
-        if (data == null) return false;
-
-        int price = (quality == PlantaCalidad.Estandar) ? data.precioCompraEstandar :
-                    (quality == PlantaCalidad.Plata) ? data.precioCompraPlata :
-                    data.precioCompraOro;
-
-        int total = price * amount;
-        if (!SpendCoins(total)) return false;
-
-        AddPlant(type, quality, amount);
-        return true;
-    }
-
-    public bool BuySeed(PlantaTipo type, int amount = 1)
-    {
-        if (amount <= 0) return false;
-        if (plantBD == null) return false;
-
-        PlantData data = plantBD.GetPlantas(type);
-        if (data == null) return false;
-
-        int total = data.precioCompraEstandar * amount;
-        if (!SpendCoins(total)) return false;
-
-        AddSemilla(type, amount);
-        return true;
-    }
-
-    #endregion
-
-    #region Caldero Sync (sin duplicar)
-
     private void SyncDeltaToCaldero(ItemSO itemSO, int delta)
     {
         if (itemSO == null) return;
         if (InventoryManager.instancia == null) return;
 
-        // Ajusta cantidad actual + delta sin duplicar por syncs globales
         var inv = InventoryManager.instancia.items.Find(i => i.item == itemSO);
         if (inv == null)
         {
-            if (delta > 0)
-                InventoryManager.instancia.AddItem(itemSO, delta);
+            if (delta > 0) InventoryManager.instancia.AddItem(itemSO, delta);
             return;
         }
 
         inv.cantidad += delta;
-        if (inv.cantidad <= 0)
-            InventoryManager.instancia.items.Remove(inv);
+        if (inv.cantidad <= 0) InventoryManager.instancia.items.Remove(inv);
     }
 
-    // Esto "setea" cantidades para items mapeados, sin tocar otros (como pociones)
     public void SyncAllToCalderoSafe()
     {
         if (InventoryManager.instancia == null) return;
 
-        // Calcula lo esperado por ItemSO
         Dictionary<ItemSO, int> expected = new Dictionary<ItemSO, int>();
 
         if (plantaToItemMapping != null)
@@ -561,33 +616,8 @@ public class InventorySystem : MonoBehaviour
             }
         }
 
-        // Aplica "set" solo a los items esperados
         foreach (var kv in expected)
-        {
             SetCalderoItemCount(kv.Key, kv.Value);
-        }
-
-        // Si hay items mapeados que ya no deberian existir (count 0) tambien los baja
-        // (solo los que esten en mapping)
-        if (plantaToItemMapping != null)
-        {
-            foreach (var m in plantaToItemMapping)
-            {
-                if (m == null || m.itemSO == null) continue;
-                if (!expected.ContainsKey(m.itemSO))
-                    SetCalderoItemCount(m.itemSO, 0);
-            }
-        }
-
-        if (sueroToItemMapping != null)
-        {
-            foreach (var m in sueroToItemMapping)
-            {
-                if (m == null || m.itemSO == null) continue;
-                if (!expected.ContainsKey(m.itemSO))
-                    SetCalderoItemCount(m.itemSO, 0);
-            }
-        }
     }
 
     private void SetCalderoItemCount(ItemSO itemSO, int count)
@@ -611,10 +641,9 @@ public class InventorySystem : MonoBehaviour
         inv.cantidad = count;
     }
 
-    #endregion
-
-    #region Save/Load
-
+    // =========================
+    // SAVE / LOAD
+    // =========================
     private void SaveInventory()
     {
         PlayerPrefs.SetString(KEY_PLANTS, JsonUtility.ToJson(new PlantsList { items = plantas }));
@@ -650,5 +679,21 @@ public class InventorySystem : MonoBehaviour
         coins = PlayerPrefs.GetInt(KEY_COINS, 0);
     }
 
-    #endregion
+    private string NormalizeKey(string s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return "";
+        s = s.Trim().ToLowerInvariant();
+
+        string formD = s.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder(formD.Length);
+
+        for (int i = 0; i < formD.Length; i++)
+        {
+            char ch = formD[i];
+            var uc = CharUnicodeInfo.GetUnicodeCategory(ch);
+            if (uc != UnicodeCategory.NonSpacingMark) sb.Append(ch);
+        }
+
+        return sb.ToString().Normalize(NormalizationForm.FormC);
+    }
 }

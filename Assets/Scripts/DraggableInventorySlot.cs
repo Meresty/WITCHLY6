@@ -13,8 +13,11 @@ public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHan
     public bool useGhostIcon = true;
     [Range(0f, 1f)] public float originalIconAlphaOnDrag = 0.25f;
 
+    public GameObject calderoObjeto;
+    public CalderoDangerZone caldero;
+
     private CanvasGroup cg;
-    private ItemInfo boundInfo;
+    public ItemInfo boundInfo;
     private int boundAmount;
 
     private GameObject ghostGO;
@@ -26,6 +29,13 @@ public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHan
     // Compat: scripts viejos esperan ItemSO
     public ItemSO BoundItemSO => (InventorySystem.Instance != null) ? InventorySystem.Instance.ResolveItemSO(boundInfo) : null;
     public ItemSO BoundItem => BoundItemSO; // alias
+
+    public void OnStart()
+    {
+        calderoObjeto = GameObject.Find("DangerZone");
+        caldero = calderoObjeto.GetComponent<CalderoDangerZone>();
+
+    }
 
     public void Bind(ItemInfo info, int amount)
     {
@@ -46,9 +56,19 @@ public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHan
             if (c != null) rootCanvas = c.rootCanvas; // top canvas
         }
     }
-
+    void Update()
+    {
+        if (calderoObjeto == null)
+        {
+            calderoObjeto = GameObject.Find("DangerZone");
+            caldero = calderoObjeto.GetComponent<CalderoDangerZone>();
+        }
+    }
     public void OnBeginDrag(PointerEventData eventData)
     {
+        calderoObjeto = GameObject.Find("DangerZone");
+        caldero = calderoObjeto.GetComponent<CalderoDangerZone>();
+
         if (boundInfo == null) return;
         if (boundAmount == 0) return;
 
@@ -98,15 +118,21 @@ public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHan
         }
     }
 
-    private void CreateGhost(PointerEventData eventData)
+    public void CreateGhost(PointerEventData eventData)
     {
         ghostGO = new GameObject("DragGhost");
         ghostGO.transform.SetParent(rootCanvas.transform, false);
         ghostGO.transform.SetAsLastSibling();
 
         ghostRT = ghostGO.AddComponent<RectTransform>();
+        
+        
+        caldero.itemdrop=BoundItemSO;
+
         var img = ghostGO.AddComponent<Image>();
         var ghostCG = ghostGO.AddComponent<CanvasGroup>();
+        
+        
         ghostCG.blocksRaycasts = false;
         ghostCG.interactable = false;
 

@@ -3,23 +3,28 @@ using UnityEngine.EventSystems;
 
 public class CalderoDropZone : MonoBehaviour, IDropHandler
 {
+    [SerializeField] private bool logDrops = false;
+
     public void OnDrop(PointerEventData eventData)
     {
-        if (eventData == null || eventData.pointerDrag == null) return;
+        if (eventData?.pointerDrag == null) return;
 
-        var drag = eventData.pointerDrag.GetComponent<DraggableInventorySlot>();
-        if (drag == null) drag = eventData.pointerDrag.GetComponentInParent<DraggableInventorySlot>();
-        if (drag == null) return;
+        var drag = eventData.pointerDrag.GetComponent<DraggableInventorySlot>()
+               ?? eventData.pointerDrag.GetComponentInParent<DraggableInventorySlot>();
 
-        if (CalderoLogic.instancia == null) return;
+        if (drag == null || CalderoLogic.instancia == null) return;
 
-        ItemSO itemSO = drag.BoundItemSO;   
+        ItemSO itemSO = drag.BoundItemSO; 
+
+        if (logDrops)
+            Debug.Log($"[DROPZONE] Soltaste: {(itemSO ? itemSO.name : "NULL")}");
+
         if (itemSO == null)
         {
-            CalderoLogic.instancia.ForceIncorrectDrop();
+            //CalderoLogic.instancia.ForceIncorrectDrop();
             return;
         }
 
-        CalderoLogic.instancia.AddIngredient(itemSO);
+        //CalderoLogic.instancia.AddIngredient(itemSO);
     }
 }

@@ -530,7 +530,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -806,7 +806,6 @@ GameObject:
   - component: {fileID: 775859392}
   - component: {fileID: 775859391}
   - component: {fileID: 775859393}
-  - component: {fileID: 775859394}
   m_Layer: 5
   m_Name: DangerZone
   m_TagString: Untagged
@@ -828,10 +827,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1050355888}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 50, y: 10}
-  m_SizeDelta: {x: 600, y: 200}
+  m_AnchorMin: {x: 0.35543752, y: 0.43322223}
+  m_AnchorMax: {x: 0.6856875, y: 0.60466653}
+  m_AnchoredPosition: {x: -5.435486, y: 1.552597}
+  m_SizeDelta: {x: -1.1289062, y: -9.105194}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &775859391
 MonoBehaviour:
@@ -881,18 +880,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1eead343dba197e429847d9ef932a53e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &775859394
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 775859389}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9c7ecf18c897f734b968de35cc4818fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &856103773
@@ -1313,7 +1300,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1273460056
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1946,9 +1933,6 @@ MonoBehaviour:
   iconoIngredientePrefab: {fileID: 8473556718247193951, guid: 6a504781a6fa53640b56e6b405167efc, type: 3}
   iconoPocionResultado: {fileID: 1738468254}
   textoResultado: {fileID: 1954660690}
-  panelBloqueo: {fileID: 0}
-  txtClickParaSalir: {fileID: 0}
-  nombreEscenaInicial: PantallaInicial
 --- !u!4 &1397926962
 Transform:
   m_ObjectHideFlags: 0
@@ -3069,7 +3053,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -3467,7 +3451,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1996609843
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3522,7 +3506,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
