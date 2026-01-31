@@ -40,23 +40,23 @@ public static class CartasConfig
     {
         var cartas = new List<CartaData>();
 
-        //Poci�n de Valor Infalible
+        //Valor Infalible
         cartas.Add(new CartaData
         {
             numero = 1,
             etapa = CartaStage.Etapa1,
             titulo = "Necesito valor para hablar",
             textoCarta =
-@"Brujita del buz�n:
+@"Brujita del buzón:
 
-Ma�ana tengo que hablar con mi jefe para pedirle un ascenso, 
+Mañana tengo que hablar con mi jefe para pedirle un ascenso, 
 pero solo de pensarlo me pongo nervioso. Siempre me quedo 
-callado aunque sepa que merezco m�s.
+callado aunque sepa que merezco más.
 
-�Podr�as prepararme algo que me d� el valor suficiente para 
+Podrías prepararme algo que me de el valor suficiente para 
 decir lo que pienso sin temblar?
 
-� Cliente nervioso",
+- Cliente nervioso",
             pocionRequerida = POCION_VALOR_INFALIBLE,
             calidad = PotionQuality.Estandar,
             recompensaBase = 29
@@ -71,14 +71,14 @@ decir lo que pienso sin temblar?
             textoCarta =
 @"Hechicera:
 
-Trabajo todo el d�a en el mercado y, cuando llego a casa, ya no 
+Trabajo todo el día en el mercado y, cuando llego a casa, ya no 
 me queda energ�a ni para cenar. Los m�dicos dicen que estoy sano,
 pero yo me siento agotado todo el tiempo.
 
 Quiero volver a sentirme con fuerzas para atender a mis clientes 
 sin arrastrar los pies.
 
-� Mercader exhausto",
+ - Mercader exhausto",
             pocionRequerida = REVITALIZANTE,
             calidad = PotionQuality.Estandar,
             recompensaBase = 29
@@ -93,13 +93,13 @@ sin arrastrar los pies.
             textoCarta =
 @"Bruja:
 
-El pr�ximo festival de m�scaras se acerca y quiero ir sin que nadie 
+El próximo festival de máscaras se acerca y quiero ir sin que nadie 
 me reconozca. No quiero problemas con cierta gente que me debe dinero.
 
-Necesito algo que me permita cambiar mi apariencia f�sica por un d�a, 
+Necesito algo que me permita cambiar mi apariencia física por un día, 
 solo para disfrutar del festival en paz.
 
-� Comerciante an�nimo",
+- Comerciante anónimo",
             pocionRequerida = POCION_METAMORFICA,
             calidad = PotionQuality.Estandar,
             recompensaBase = 27
@@ -118,10 +118,10 @@ Desde hace semanas tengo una fiebre que va y viene.
 Las hierbas comunes ya no me hacen efecto y el curandero del pueblo 
 dice que es algo ''persistente''.
 
-Me hablaron de tus pociones. �Tienes alguna que ayude a curar 
+Me hablaron de tus pociones. ¿Tienes alguna que ayude a curar 
 enfermedades que simplemente no se quieren ir?
 
-� Paciente desesperado",
+- Paciente desesperado",
             pocionRequerida = ELIXIR_SANACION,
             calidad = PotionQuality.Estandar,
             recompensaBase = 43
@@ -136,13 +136,13 @@ enfermedades que simplemente no se quieren ir?
             textoCarta =
 @"Hechicera:
 
-No me pasa nada grave� pero todos los d�as siento un peso en el pecho.
+No me pasa nada grave, pero todos los días siento un peso en el pecho.
 No tengo ganas de salir, ni de ver a mis amigos, ni de hacer nada.
 
-�Existir� alguna poci�n que ayude a alejar esta tristeza y 
-recordarme que todav�a hay cosas bonitas?
+¿Existirá alguna poción que ayude a alejar esta tristeza y 
+recordarme que todavía hay cosas bonitas?
 
-� Vecina apagada",
+- Vecina apagada",
             pocionRequerida = ESENCIA_SOL,
             calidad = PotionQuality.Estandar,
             recompensaBase = 32
@@ -158,12 +158,12 @@ recordarme que todav�a hay cosas bonitas?
 @"Bruja del bosque:
 
 Entre el trabajo, la familia y las deudas siento que mi cabeza 
-est� a punto de explotar. Apenas duermo y siempre estoy tenso.
+está a punto de explotar. Apenas duermo y siempre estoy tenso.
 
 Necesito algo que me ayude a relajarme de verdad, sin dejarme 
 medio dormido todo el d�a.
 
-� Artesano estresado",
+- Artesano estresado",
             pocionRequerida = SERENIDAD_LIQUIDA,
             calidad = PotionQuality.Estandar,
             recompensaBase = 36
@@ -178,13 +178,13 @@ medio dormido todo el d�a.
             textoCarta =
 @"Bruja:
 
-En unos d�as tengo un examen para entrar a la academia de magia te�rica.
+En unos días tengo un examen para entrar a la academia de magia te�rica.
 Estudio, pero mi mente se distrae y nada se me queda.
 
-�Podr�as crear una poci�n que mejore mi concentraci�n mientras estudio,
+¿Podrías crear una poci�n que mejore mi concentraci�n mientras estudio,
 sin volverme un zombi?
 
-� Aprendiz preocupado",
+- Aprendiz preocupado",
             pocionRequerida = ESENCIA_SABIO,
             calidad = PotionQuality.Estandar,
             recompensaBase = 39
@@ -201,12 +201,12 @@ sin volverme un zombi?
 
 Se rumora que en el fondo del lago hay un cofre antiguo. 
 Ya intentamos bucear varias veces, pero el aire no alcanza 
-y el agua es muy fr�a.
+y el agua es muy fría.
 
 Si tuvieras algo que nos permitiera respirar bajo el agua 
 por un tiempo, podr�amos intentar recuperarlo.
 
-� Aventurero curioso",
+- Aventurero curioso",
             pocionRequerida = ELIXIR_SUBMARINO,
             calidad = PotionQuality.Estandar,
             recompensaBase = 34
@@ -221,11 +221,11 @@ por un tiempo, podr�amos intentar recuperarlo.
             textoCarta =
 @"Hechicera:
 
-Creo que uno de mis empleados est� robando de la caja, 
+Creo que uno de mis empleados está robando de la caja, 
 pero nunca lo puedo agarrar en el momento.
 
-�Tienes alguna poci�n que obligue a decir la verdad durante una charla?
-Solo la usar� en una ''cata gratuita'' de bebidas.
+¿Tienes alguna poción que obligue a decir la verdad durante una charla?
+Solo la usaré en una cata gratuita de bebidas :) .
 
 � Due�o desconfiado",
             pocionRequerida = VERITALIXIR,

@@ -1,268 +1,288 @@
-using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 using System;
+using UnityEngine;
 
 public class CajaCalidad : MonoBehaviour
 {
-    [Header("Referencias UI")]
-    public Button cajaBtn;
-    public Image cajaImg;
-    public TextMeshProUGUI timerTxt;
-    public GameObject lockedOverlay;
-    public GameObject timerPanel;
-    public Sprite bloqueadoSprite;
-    public Sprite desbloqueadoSprite;
-    public Sprite cargandoSprite;
+    [Header("Identidad de la caja")]
+    [Tooltip("Indice unico 0..3 para que el guardado sea diferente por cada caja")]
+    public int boxIndex = 0;
 
-    [Header("Estado")]
-    public int cajaIndex; 
-    public bool isDesbloqueado = false;
-    public bool isCargando = false;
+    [Header("UI (opcional)")]
+    public CajaCalidadUI ui;
 
-    private PlantaTipo actualPlantaTipo;
-    private PlantaCalidad inputQuality;
-    private PlantaCalidad outputQuality;
-    private DateTime startTime;
-    private int processingTimeSeconds;
+    [Header("Estado (solo lectura)")]
+    [SerializeField] private bool unlocked = false;
 
-    void Start()
+    // Entrada actual (2 plantas iguales)
+    private bool hasInput = false;
+    private PlantaTipo inputType = PlantaTipo.NONE;
+    private PlantaCalidad inputQuality = PlantaCalidad.NONE;
+
+    // Timer
+    private bool running = false;
+    private long finishUtcTicks = 0;
+
+    // ---------- Keys PlayerPrefs ----------
+    private string KeyUnlocked => "QualityBox_" + boxIndex + "_Unlocked";
+    private string KeyHasInput => "QualityBox_" + boxIndex + "_HasInput";
+    private string KeyTipo => "QualityBox_" + boxIndex + "_Tipo";
+    private string KeyCalidad => "QualityBox_" + boxIndex + "_Calidad";
+    private string KeyRunning => "QualityBox_" + boxIndex + "_Running";
+    private string KeyFinishTicks => "QualityBox_" + boxIndex + "_FinishTicks";
+
+    private void Awake()
     {
-        if (cajaBtn != null)
-        {
-            cajaBtn.onClick.AddListener(OnBoxClicked);
-        }
-
-        CargarCaja();
-        ActualizarSprites();
+        LoadState();
+        NotifyUI();
+        unlocked = true;
     }
 
-    void Update()
+    private void Update()
     {
-        if (isCargando)
-        {
-            UpdateTimer();
-        }
-    }
+        if (!unlocked) return;
 
-    public void DesbloquearCaja()
-    {
-        if (!isDesbloqueado)
+        if (running && finishUtcTicks > 0)
         {
-            isDesbloqueado = true;
-            SaveBoxState();
-            ActualizarSprites();
-            Debug.Log($"Caja {cajaIndex} desbloqueada");
+            long nowTicks = DateTime.UtcNow.Ticks;
+            if (nowTicks >= finishUtcTicks)
+                CompleteUpgrade();
+            else
+                NotifyUI(); // refrescar timer
         }
     }
 
-    void OnBoxClicked()
+    // ===================== API PUBLICA =====================
+
+    public bool IsUnlocked() => unlocked;
+    public bool HasInput() => hasInput;
+    public bool IsRunning() => running;
+
+    public PlantaTipo GetInputType() => inputType;
+    public PlantaCalidad GetInputQuality() => inputQuality;
+
+    public TimeSpan GetRemainingTime()
     {
-        if (!isDesbloqueado)
-        {
-            Debug.Log("Esta caja está bloqueada");
-            return;
-        }
-
-        if (isCargando)
-        {
-            Debug.Log("La caja está procesando");
-            return;
-        }
-
-
-        CajaCalidadUI.Instance?.OpenBoxSelection(this);
+        if (!running || finishUtcTicks <= 0) return TimeSpan.Zero;
+        long now = DateTime.UtcNow.Ticks;
+        long remaining = finishUtcTicks - now;
+        if (remaining <= 0) return TimeSpan.Zero;
+        return TimeSpan.FromTicks(remaining);
     }
 
-    public bool StartProcessing(PlantaTipo plantaTipo, PlantaCalidad quality)
+    public PlantaCalidad? GetOutputQuality()
     {
-        if (isCargando)
+        if (!hasInput) return null;
+
+        if (inputQuality == PlantaCalidad.Estandar) return PlantaCalidad.Plata;
+        if (inputQuality == PlantaCalidad.Plata) return PlantaCalidad.Oro;
+
+        return null; // Oro no mejora
+    }
+
+    public void UnlockBox()
+    {
+        unlocked = true;
+        SaveState();
+        NotifyUI();
+    }
+
+    /// <summary>
+    /// Selecciona la "receta" (tipo + calidad). No consume inventario aqui.
+    /// </summary>
+    public bool TrySetInput(PlantaTipo tipo, PlantaCalidad calidad, out string message)
+    {
+        message = "";
+
+        if (!unlocked)
         {
-            Debug.Log("La caja ya está procesando");
+            message = "La caja esta bloqueada.";
             return false;
         }
 
-
-        if (!InventorySystem.Instance.HasPlant(plantaTipo, quality, 2))
+        if (running)
         {
-            Debug.Log("Necesitas 2 plantas de la misma calidad");
+            message = "La caja esta ocupada. Espera a que termine.";
             return false;
         }
 
-
-        if (quality == PlantaCalidad.Oro)
+        if (tipo == PlantaTipo.NONE || calidad == PlantaCalidad.NONE)
         {
-            Debug.Log("Las plantas de calidad Oro no pueden mejorarse más");
+            message = "Seleccion no valida.";
             return false;
         }
 
-
-        if (!InventorySystem.Instance.RemovePlant(plantaTipo, quality, 2))
+        if (calidad == PlantaCalidad.Oro)
         {
+            message = "No se puede mejorar mas una planta de calidad Oro.";
             return false;
         }
 
+        hasInput = true;
+        inputType = tipo;
+        inputQuality = calidad;
 
-        actualPlantaTipo = plantaTipo;
-        inputQuality = quality;
-        outputQuality = quality == PlantaCalidad.Estandar ? PlantaCalidad.Plata : PlantaCalidad.Oro;
-        isCargando = true;
-        startTime = DateTime.Now;
-
-
-        int baseTime = quality == PlantaCalidad.Estandar ? 180 : 300;
-
-
-        processingTimeSeconds = BarraEnergiaSistema.Instance.GetModifiedQualityBoxTime(baseTime);
-
-        SaveBoxState();
-        ActualizarSprites();
-
-        Debug.Log($"Procesando {plantaTipo} de {quality} a {outputQuality} - Tiempo: {processingTimeSeconds}s");
+        SaveState();
+        NotifyUI();
         return true;
     }
 
-    void UpdateTimer()
+    /// <summary>
+    /// Inicia la mejora: valida inventario (2 plantas), calcula tiempo (con penalizacion),
+    /// consume las 2 plantas y arranca el timer.
+    /// </summary>
+    public bool StartUpgrade(out string message)
     {
-        TimeSpan elapsed = DateTime.Now - startTime;
-        int remainingSeconds = processingTimeSeconds - (int)elapsed.TotalSeconds;
+        message = "";
 
-        if (remainingSeconds <= 0)
+        if (!unlocked)
         {
-            CompleteProcessing();
+            message = "La caja esta bloqueada.";
+            return false;
         }
-        else
-        {
-            int minutes = remainingSeconds / 60;
-            int seconds = remainingSeconds % 60;
 
-            if (timerTxt != null)
-            {
-                timerTxt.text = $"{minutes:D2}:{seconds:D2}";
-            }
+        if (!hasInput)
+        {
+            message = "Primero selecciona 2 plantas del mismo tipo y calidad.";
+            return false;
         }
+
+        if (running)
+        {
+            message = "Ya hay una mejora en proceso.";
+            return false;
+        }
+
+        var outQ = GetOutputQuality();
+        if (outQ == null)
+        {
+            message = "No se puede mejorar mas esta calidad.";
+            return false;
+        }
+
+        if (InventorySystem.Instance == null)
+        {
+            message = "No existe InventorySystem en la escena.";
+            return false;
+        }
+
+        if (!InventorySystem.Instance.HasPlant(inputType, inputQuality, 2))
+        {
+            message = "No tienes 2 plantas de ese tipo y calidad.";
+            return false;
+        }
+
+        int baseSeconds = (inputQuality == PlantaCalidad.Estandar) ? (3 * 60) : (5 * 60);
+        int penaltySeconds = CalculateEnergyPenaltySeconds();
+        int totalSeconds = baseSeconds + penaltySeconds;
+
+        bool removed = InventorySystem.Instance.RemovePlant(inputType, inputQuality, 2);
+        if (!removed)
+        {
+            message = "No se pudieron consumir las plantas del inventario.";
+            return false;
+        }
+
+        running = true;
+        finishUtcTicks = DateTime.UtcNow.AddSeconds(totalSeconds).Ticks;
+
+        SaveState();
+        NotifyUI();
+
+        message = "Mejora iniciada.";
+        return true;
     }
 
-    void CompleteProcessing()
+    public void CancelInput()
     {
-        if (!isCargando)
-            return;
+        if (running) return;
+        hasInput = false;
+        inputType = PlantaTipo.NONE;
+        inputQuality = PlantaCalidad.NONE;
 
-        // Añadir planta mejorada al inventario
-        InventorySystem.Instance.AddPlant(actualPlantaTipo, outputQuality, 1);
-
-        // Resetear estado
-        isCargando = false;
-
-        SaveBoxState();
-        ActualizarSprites();
-
-        Debug.Log($"¡Planta mejorada a {outputQuality}!");
-
-        // Mostrar notificación (opcional)
-        // NotificationSystem.Instance?.ShowNotification($"¡Planta {currentPlantType} mejorada a {outputQuality}!");
+        SaveState();
+        NotifyUI();
     }
 
-    void ActualizarSprites()
+    // ===================== INTERNOS =====================
+
+    private int CalculateEnergyPenaltySeconds()
     {
-        if (lockedOverlay != null)
+        float energyPercent = 100f;
+
+        // Compatible con tu sistema de energia si existe
+        var energia = FindAnyObjectByType<BarraEnergiaSistema>();
+        if (energia != null)
         {
-            lockedOverlay.SetActive(!isDesbloqueado);
+            energyPercent = energia.GetEnergyPercentage();
         }
 
-        if (cajaImg != null)
-        {
-            if (!isDesbloqueado)
-            {
-                cajaImg.sprite = bloqueadoSprite;
-            }
-            else if (isCargando)
-            {
-                cajaImg.sprite = cargandoSprite;
-            }
-            else
-            {
-                cajaImg.sprite = desbloqueadoSprite;
-            }
-        }
+        // 65% a 36% => +30s
+        if (energyPercent <= 65f && energyPercent >= 36f) return 30;
 
-        if (timerPanel != null)
-        {
-            timerPanel.SetActive(isCargando);
-        }
+        // 35% a 1% => +60s
+        if (energyPercent <= 35f && energyPercent >= 1f) return 60;
 
-        if (cajaBtn != null)
-        {
-            cajaBtn.interactable = isDesbloqueado && !isCargando;
-        }
+        return 0;
     }
 
-    void SaveBoxState()
+    private void CompleteUpgrade()
     {
-        string key = $"QualityBox_{cajaIndex}";
-        PlayerPrefs.SetInt($"{key}_Unlocked", isDesbloqueado ? 1 : 0);
-        PlayerPrefs.SetInt($"{key}_Processing", isCargando ? 1 : 0);
-
-        if (isCargando)
+        var outQ = GetOutputQuality();
+        if (outQ != null && InventorySystem.Instance != null)
         {
-            PlayerPrefs.SetInt($"{key}_PlantType", (int)actualPlantaTipo);
-            PlayerPrefs.SetInt($"{key}_InputQuality", (int)inputQuality);
-            PlayerPrefs.SetInt($"{key}_OutputQuality", (int)outputQuality);
-            PlayerPrefs.SetString($"{key}_StartTime", startTime.ToString());
-            PlayerPrefs.SetInt($"{key}_ProcessTime", processingTimeSeconds);
+            InventorySystem.Instance.AddPlant(inputType, outQ.Value, 1);
         }
+
+        running = false;
+        finishUtcTicks = 0;
+
+        // Si quieres limpiar entrada al terminar, descomenta:
+        // hasInput = false; inputType = PlantaTipo.NONE; inputQuality = PlantaCalidad.NONE;
+
+        SaveState();
+        NotifyUI();
+    }
+
+    private void SaveState()
+    {
+        PlayerPrefs.SetInt(KeyUnlocked, unlocked ? 1 : 0);
+
+        PlayerPrefs.SetInt(KeyHasInput, hasInput ? 1 : 0);
+        PlayerPrefs.SetInt(KeyTipo, (int)inputType);
+        PlayerPrefs.SetInt(KeyCalidad, (int)inputQuality);
+
+        PlayerPrefs.SetInt(KeyRunning, running ? 1 : 0);
+        PlayerPrefs.SetString(KeyFinishTicks, finishUtcTicks.ToString());
 
         PlayerPrefs.Save();
     }
 
-    void CargarCaja()
+    private void LoadState()
     {
-        string key = $"QualityBox_{cajaIndex}";
+        unlocked = PlayerPrefs.GetInt(KeyUnlocked, 0) == 1;
 
-        // La primera caja se desbloquea después de 12 cartas
-        // Por ahora, para testing, puedes activarla manualmente
-        if (cajaIndex == 0 && !PlayerPrefs.HasKey($"{key}_Unlocked"))
+        hasInput = PlayerPrefs.GetInt(KeyHasInput, 0) == 1;
+        inputType = (PlantaTipo)PlayerPrefs.GetInt(KeyTipo, (int)PlantaTipo.NONE);
+        inputQuality = (PlantaCalidad)PlayerPrefs.GetInt(KeyCalidad, (int)PlantaCalidad.NONE);
+
+        running = PlayerPrefs.GetInt(KeyRunning, 0) == 1;
+
+        string ticksStr = PlayerPrefs.GetString(KeyFinishTicks, "0");
+        if (!long.TryParse(ticksStr, out finishUtcTicks))
+            finishUtcTicks = 0;
+
+        // Si el timer vencio mientras el juego estaba cerrado
+        if (running && finishUtcTicks > 0 && DateTime.UtcNow.Ticks >= finishUtcTicks)
         {
-            // Verificar si se han completado 12 cartas
-            // int completedCards = CardSystem.Instance.GetCompletedCards();
-            // isUnlocked = completedCards >= 12;
-
-            // Para testing:
-            isDesbloqueado = false; // Cambiar a true para testing
-        }
-        else
-        {
-            isDesbloqueado = PlayerPrefs.GetInt($"{key}_Unlocked", 0) == 1;
-        }
-
-        isCargando = PlayerPrefs.GetInt($"{key}_Processing", 0) == 1;
-
-        if (isCargando)
-        {
-            actualPlantaTipo = (PlantaTipo)PlayerPrefs.GetInt($"{key}_PlantType");
-            inputQuality = (PlantaCalidad)PlayerPrefs.GetInt($"{key}_InputQuality");
-            outputQuality = (PlantaCalidad)PlayerPrefs.GetInt($"{key}_OutputQuality");
-            string timeString = PlayerPrefs.GetString($"{key}_StartTime");
-            if (!string.IsNullOrEmpty(timeString))
-            {
-                startTime = DateTime.Parse(timeString);
-            }
-            processingTimeSeconds = PlayerPrefs.GetInt($"{key}_ProcessTime");
+            CompleteUpgrade();
         }
     }
 
-    [ContextMenu("Unlock This Box")]
-    public void UnlockForTesting()
+    private void NotifyUI()
     {
-        DesbloquearCaja();
-    }
-
-    [ContextMenu("Complete Processing Now")]
-    public void CompleteNow()
-    {
-        if (isCargando)
+        if (ui != null)
         {
-            CompleteProcessing();
+            ui.Refrescar(this);
         }
     }
 }

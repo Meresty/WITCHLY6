@@ -183,7 +183,7 @@ public class PlantaSlot : MonoBehaviour
         else
         {
             // Mostrar tiempo restante en formato MM:SS
-            float minutes = remainingSeconds / 60;
+            int minutes = (int)(remainingSeconds / 60f);
             int seconds = (int)remainingSeconds % 60;
 
             if (timerText != null)
@@ -363,7 +363,7 @@ public class PlantaSlot : MonoBehaviour
                 }
             }
 
-            growthTimeSeconds = PlayerPrefs.GetInt($"{key}_GrowthTime");
+            growthTimeSeconds = PlayerPrefs.GetFloat($"{key}_GrowthTime", 0f);
 
             UpdateSlotVisuals();
 

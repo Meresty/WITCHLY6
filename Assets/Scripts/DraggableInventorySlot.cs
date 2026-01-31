@@ -13,6 +13,7 @@ public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHan
     public bool useGhostIcon = true;
     [Range(0f, 1f)] public float originalIconAlphaOnDrag = 0.25f;
 
+    [Header("Caldero (opcional)")]
     public GameObject calderoObjeto;
     public CalderoDangerZone caldero;
 
@@ -28,13 +29,43 @@ public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHan
 
     // Compat: scripts viejos esperan ItemSO
     public ItemSO BoundItemSO => (InventorySystem.Instance != null) ? InventorySystem.Instance.ResolveItemSO(boundInfo) : null;
-    public ItemSO BoundItem => BoundItemSO; // alias
+    public ItemSO BoundItem => BoundItemSO;
 
-    public void OnStart()
+    private void Awake()
     {
-        calderoObjeto = GameObject.Find("DangerZone");
-        caldero = calderoObjeto.GetComponent<CalderoDangerZone>();
+        cg = GetComponent<CanvasGroup>();
 
+        if (iconImage == null)
+            iconImage = GetComponentInChildren<Image>(true);
+
+        if (rootCanvas == null)
+        {
+            var c = GetComponentInParent<Canvas>();
+            if (c != null) rootCanvas = c.rootCanvas; // top canvas
+        }
+    }
+
+    private void Start()
+    {
+        // Intentamos encontrar el caldero SOLO una vez al inicio.
+        TryResolveCaldero();
+    }
+
+    /// <summary>
+    /// Busca DangerZone si existe. Si no existe, NO pasa nada.
+    /// Esto evita los NullReference + spam.
+    /// </summary>
+    private void TryResolveCaldero()
+    {
+        // Si ya lo tenemos, no hacemos nada
+        if (caldero != null) return;
+
+        // Busca por nombre (si en la escena no existe, regresa null y listo)
+        calderoObjeto = GameObject.Find("DangerZone");
+        if (calderoObjeto == null) return;
+
+        caldero = calderoObjeto.GetComponent<CalderoDangerZone>();
+        // Si no tiene ese componente, también lo dejamos como null sin tronar
     }
 
     public void Bind(ItemInfo info, int amount)
@@ -43,34 +74,10 @@ public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHan
         boundAmount = amount;
     }
 
-    private void Awake()
-    {
-        cg = GetComponent<CanvasGroup>();
-
-        if (iconImage == null)
-            iconImage = GetComponentInChildren<Image>();
-
-        if (rootCanvas == null)
-        {
-            var c = GetComponentInParent<Canvas>();
-            if (c != null) rootCanvas = c.rootCanvas; // top canvas
-        }
-    }
-    void Update()
-    {
-        if (calderoObjeto == null)
-        {
-            calderoObjeto = GameObject.Find("DangerZone");
-            caldero = calderoObjeto.GetComponent<CalderoDangerZone>();
-        }
-    }
     public void OnBeginDrag(PointerEventData eventData)
     {
-        calderoObjeto = GameObject.Find("DangerZone");
-        caldero = calderoObjeto.GetComponent<CalderoDangerZone>();
-
         if (boundInfo == null) return;
-        if (boundAmount == 0) return;
+        if (boundAmount <= 0) return;
 
         if (rootCanvas == null)
         {
@@ -78,6 +85,9 @@ public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHan
             if (c != null) rootCanvas = c.rootCanvas;
         }
         if (rootCanvas == null) return;
+
+        // Solo si estás en la escena del caldero, tendrá sentido
+        TryResolveCaldero();
 
         // deja pasar el drop al target
         cg.blocksRaycasts = false;
@@ -118,26 +128,28 @@ public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHan
         }
     }
 
-    public void CreateGhost(PointerEventData eventData)
+    private void CreateGhost(PointerEventData eventData)
     {
         ghostGO = new GameObject("DragGhost");
         ghostGO.transform.SetParent(rootCanvas.transform, false);
         ghostGO.transform.SetAsLastSibling();
 
         ghostRT = ghostGO.AddComponent<RectTransform>();
-        
-        
-        caldero.itemdrop=BoundItemSO;
+
+        // Si existe caldero, le pasamos el itemdrop. Si no, NO hacemos nada.
+        if (caldero != null)
+        {
+            caldero.itemdrop = BoundItemSO;
+        }
 
         var img = ghostGO.AddComponent<Image>();
         var ghostCG = ghostGO.AddComponent<CanvasGroup>();
-        
-        
+
         ghostCG.blocksRaycasts = false;
         ghostCG.interactable = false;
 
         // sprite
-        img.sprite = (iconImage != null && iconImage.sprite != null) ? iconImage.sprite : boundInfo.icon;
+        img.sprite = (iconImage != null && iconImage.sprite != null) ? iconImage.sprite : (boundInfo != null ? boundInfo.icon : null);
         img.preserveAspect = true;
 
         // size: copia del icono real
@@ -146,12 +158,11 @@ public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHan
         else
             ghostRT.sizeDelta = new Vector2(80, 80);
 
-        // IMPORTANTISIMO: pivot centrado para que caiga justo en el cursor
+        // pivot centrado
         ghostRT.pivot = new Vector2(0.5f, 0.5f);
         ghostRT.anchorMin = new Vector2(0.5f, 0.5f);
         ghostRT.anchorMax = new Vector2(0.5f, 0.5f);
 
-        // posicion inicial EN EL CURSOR (evita que aparezca a la izquierda)
         UpdateGhostPosition(eventData);
     }
 
@@ -165,8 +176,7 @@ public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHan
         if (rootCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
             cam = rootCanvas.worldCamera;
 
-        Vector2 localPoint;
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRT, eventData.position, cam, out localPoint))
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRT, eventData.position, cam, out Vector2 localPoint))
         {
             ghostRT.anchoredPosition = localPoint;
         }

@@ -1,230 +1,260 @@
+using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using System.Collections.Generic;
 
 public class CajaCalidadUI : MonoBehaviour
 {
-    public static CajaCalidadUI Instance { get; private set; }
+    [Header("Slots UI (derecha)")]
+    public Image entradaIcon1;
+    public TextMeshProUGUI entradaCantidad1;
 
-    [Header("Referencias UI")]
-    public GameObject selectionPanel;
-    public Transform plantListContainer;
-    public GameObject plantSelectionItemPrefab;
-    public Button confirmarBtn;
-    public Button cancelarBtn;
-    public TextMeshProUGUI instruccionTxt;
+    public Image entradaIcon2;
+    public TextMeshProUGUI entradaCantidad2;
 
-    private CajaCalidad cajaActual;
-    private PlantaTipo plantaActualTipo;
-    private PlantaCalidad calidadActual;
-    private List<GameObject> spawnedItems = new List<GameObject>();
+    public Image salidaIcon;
+    public TextMeshProUGUI salidaCantidad;
 
-    void Awake()
+    [Header("Timer / Mensajes")]
+    public TextMeshProUGUI timerText;
+    public TextMeshProUGUI messageText;
+
+    [Header("Botones")]
+    public Button mejorarButton;
+    public Button cerrarButton;
+    public Button cancelarEntradaButton;
+
+    [Header("DB sprites (opcional)")]
+    public PlantaBD plantDB;
+
+    private CajaCalidad caja;
+
+    private void Awake()
     {
-        if (Instance == null)
+        if (cerrarButton != null)
+            cerrarButton.onClick.AddListener(Cerrar);
+
+        if (mejorarButton != null)
+            mejorarButton.onClick.AddListener(OnClickMejorar);
+
+        if (cancelarEntradaButton != null)
+            cancelarEntradaButton.onClick.AddListener(OnClickCancelarEntrada);
+    }
+
+    public void SetCaja(CajaCalidad nuevaCaja)
+    {
+        caja = nuevaCaja;
+
+        // Conectar UI <-> caja
+        if (caja != null)
+            caja.ui = this;
+
+        Refrescar();
+    }
+
+    // Este metodo lo llama CajaCalidad.NotifyUI()
+    public void Refrescar(CajaCalidad cajaActual)
+    {
+        caja = cajaActual;
+        Refrescar();
+    }
+
+    public void Refrescar()
+    {
+        if (caja == null) return;
+
+        bool unlocked = caja.IsUnlocked();
+
+        if (!unlocked)
         {
-            Instance = this;
+            SetMessage("Caja bloqueada.");
+            SetSlotEmpty();
+            SetTimer("--:--");
+            SetButtonsState(false);
+            return;
+        }
+
+        // Entrada
+        if (caja.HasInput())
+        {
+            var tipo = caja.GetInputType();
+            var calidad = caja.GetInputQuality();
+
+            Sprite spr = GetPlantSprite(tipo);
+            SetEntradaSlots(spr, "2"); // siempre requiere 2
+            SetMessage(tipo + " " + calidad);
         }
         else
         {
-            Destroy(gameObject);
+            SetEntradaSlots(null, "0");
+            SetMessage("Selecciona 2 plantas del inventario.");
+        }
+
+        // Salida
+        PlantaCalidad? outQ = caja.GetOutputQuality();
+        if (outQ.HasValue && caja.HasInput())
+        {
+            Sprite sprOut = GetPlantSprite(caja.GetInputType());
+            salidaIcon.sprite = sprOut;
+            salidaIcon.enabled = (sprOut != null);
+
+            salidaCantidad.text = "1";
+        }
+        else
+        {
+            if (salidaIcon != null) { salidaIcon.sprite = null; salidaIcon.enabled = false; }
+            if (salidaCantidad != null) salidaCantidad.text = "0";
+        }
+
+        // Timer
+        TimeSpan t = caja.GetRemainingTime();
+        if (t.TotalSeconds > 0)
+            SetTimer(t.ToString(@"mm\:ss"));
+        else
+            SetTimer("--:--");
+
+        // Botones
+        bool canStart = caja.HasInput() && !caja.IsRunning();
+        SetButtonsState(canStart);
+
+        // Si esta corriendo, no se permite cambiar entrada
+        if (cancelarEntradaButton != null)
+            cancelarEntradaButton.interactable = !caja.IsRunning();
+    }
+
+    // Lo llama InventarioCalidadUI cuando el usuario clickea algo del inventario
+    public void OnSeleccionInventario(PlantaTipo tipo, PlantaCalidad calidad)
+    {
+        if (caja == null)
+        {
+            SetMessage("No hay caja seleccionada.");
+            return;
+        }
+
+        if (!caja.IsUnlocked())
+        {
+            SetMessage("Caja bloqueada.");
+            return;
+        }
+
+        if (caja.IsRunning())
+        {
+            SetMessage("Caja ocupada. Espera a que termine.");
+            return;
+        }
+
+        // Validar que tengas 2 (para evitar seleccionar cosas imposibles)
+        if (InventorySystem.Instance == null)
+        {
+            SetMessage("No existe InventorySystem.");
+            return;
+        }
+
+        if (!InventorySystem.Instance.HasPlant(tipo, calidad, 2))
+        {
+            SetMessage("Necesitas 2 plantas iguales para mejorar.");
+            return;
+        }
+
+        string msg;
+        if (!caja.TrySetInput(tipo, calidad, out msg))
+        {
+            SetMessage(msg);
+            return;
+        }
+
+        SetMessage("Entrada seleccionada. Presiona MEJORAR.");
+        Refrescar();
+    }
+
+    private void OnClickMejorar()
+    {
+        if (caja == null) return;
+
+        string msg;
+        bool ok = caja.StartUpgrade(out msg);
+        SetMessage(msg);
+
+        if (ok)
+            Refrescar();
+    }
+
+    private void OnClickCancelarEntrada()
+    {
+        if (caja == null) return;
+        caja.CancelInput();
+        SetMessage("Entrada limpiada.");
+        Refrescar();
+    }
+
+    public void Cerrar()
+    {
+        gameObject.SetActive(false);
+    }
+
+    private void Update()
+    {
+        // Refrescar timer mientras corre
+        if (caja != null && caja.IsRunning())
+        {
+            Refrescar();
         }
     }
 
-    void Start()
+    // ---------------- Helpers UI ----------------
+
+    private void SetButtonsState(bool canStart)
     {
-        if (selectionPanel != null)
-        {
-            selectionPanel.SetActive(false);
-        }
-
-        if (confirmarBtn != null)
-        {
-            confirmarBtn.onClick.AddListener(OnConfirmClicked);
-        }
-
-        if (cancelarBtn != null)
-        {
-            cancelarBtn.onClick.AddListener(OnCancelClicked);
-        }
+        if (mejorarButton != null)
+            mejorarButton.interactable = canStart;
     }
 
-    public void OpenBoxSelection(CajaCalidad box)
+    private void SetMessage(string msg)
     {
-        cajaActual = box;
-
-        if (selectionPanel != null)
-        {
-            selectionPanel.SetActive(true);
-        }
-
-        PopulatePlantList();
+        if (messageText != null)
+            messageText.text = msg;
     }
 
-    void PopulatePlantList()
+    private void SetTimer(string s)
     {
-        // Limpiar lista anterior
-        foreach (var item in spawnedItems)
-        {
-            Destroy(item);
-        }
-        spawnedItems.Clear();
-
-        if (instruccionTxt != null)
-        {
-            instruccionTxt.text = "Selecciona 2 plantas de la misma calidad para mejorar:" + "Estándar a Plata (3 min)" + "Plata a Oro (5 min)";
-        }
-
-
-        var inventory = InventorySystem.Instance;
-
-        foreach (var plantaItem in inventory.plantas)
-        {
-            // Solo mostrar plantas que no sean oro y que tengamos al menos 2
-            if (plantaItem.calidad != PlantaCalidad.Oro && plantaItem.cantidad >= 2)
-            {
-                PlantData data = InvernaderoManager.Instance.plantDatabase.GetPlantas(plantaItem.plantaTipo);
-                if (data == null) continue;
-
-                GameObject itemObj = Instantiate(plantSelectionItemPrefab, plantListContainer);
-                PlantSelectionItem itemUI = itemObj.GetComponent<PlantSelectionItem>();
-
-                if (itemUI != null)
-                {
-                    itemUI.Setup(plantaItem.plantaTipo, plantaItem.calidad, data, plantaItem.cantidad, this);
-                    spawnedItems.Add(itemObj);
-                }
-            }
-        }
-
-        if (spawnedItems.Count == 0)
-        {
-            if (instruccionTxt != null)
-            {
-                instruccionTxt.text = "No tienes plantas disponibles para mejorar." + "Necesitas al menos 2 plantas de la misma calidad (Estándar o Plata).";
-            }
-        }
+        if (timerText != null)
+            timerText.text = s;
     }
 
-    public void SelectPlant(PlantaTipo tipo, PlantaCalidad calidad)
+    private void SetSlotEmpty()
     {
-        plantaActualTipo = tipo;
-        calidadActual = calidad;
-
-        if (confirmarBtn != null)
-        {
-            confirmarBtn.interactable = true;
-        }
+        SetEntradaSlots(null, "0");
+        if (salidaIcon != null) { salidaIcon.sprite = null; salidaIcon.enabled = false; }
+        if (salidaCantidad != null) salidaCantidad.text = "0";
     }
 
-    void OnConfirmClicked()
+    private void SetEntradaSlots(Sprite spr, string cantidad)
     {
-        if (cajaActual != null)
+        if (entradaIcon1 != null)
         {
-            bool success = cajaActual.StartProcessing(plantaActualTipo, calidadActual);
-
-            if (success)
-            {
-                ClosePanel();
-            }
-            else
-            {
-                Debug.Log("No se pudo iniciar el procesamiento");
-            }
+            entradaIcon1.sprite = spr;
+            entradaIcon1.enabled = (spr != null);
         }
+        if (entradaIcon2 != null)
+        {
+            entradaIcon2.sprite = spr;
+            entradaIcon2.enabled = (spr != null);
+        }
+
+        if (entradaCantidad1 != null) entradaCantidad1.text = cantidad;
+        if (entradaCantidad2 != null) entradaCantidad2.text = cantidad;
     }
 
-    void OnCancelClicked()
+    private Sprite GetPlantSprite(PlantaTipo tipo)
     {
-        ClosePanel();
-    }
+        if (tipo == PlantaTipo.NONE) return null;
 
-    void ClosePanel()
-    {
-        if (selectionPanel != null)
-        {
-            selectionPanel.SetActive(false);
-        }
+        if (plantDB == null && InvernaderoManager.Instance != null)
+            plantDB = InvernaderoManager.Instance.plantDatabase;
 
-        cajaActual = null;
-        plantaActualTipo = PlantaTipo.Lumina;
-        calidadActual = PlantaCalidad.Estandar;
+        if (plantDB == null) return null;
 
-        if (confirmarBtn != null)
-        {
-            confirmarBtn.interactable = false;
-        }
-    }
-}
-
-public class PlantSelectionItem : MonoBehaviour
-{
-    [Header("Referencias UI")]
-    public Image itemImg;
-    public TextMeshProUGUI itemNombreTxt;
-    public TextMeshProUGUI cantidadTxt;
-    public TextMeshProUGUI upgradeInfoText;
-    public Button elegirBtn;
-    public Image calidadEstrella;
-
-    [Header("Colores")]
-    public Color estandarColor = Color.white;
-    public Color plataColor = new Color(0.75f, 0.75f, 0.75f);
-    public Color oroColor = new Color(1f, 0.84f, 0f);
-
-    private PlantaTipo plantaTipo;
-    private PlantaCalidad calidad;
-    private CajaCalidadUI parentUI;
-
-    void Start()
-    {
-        if (elegirBtn != null)
-        {
-            elegirBtn.onClick.AddListener(OnSelectClicked);
-        }
-    }
-
-    public void Setup(PlantaTipo type, PlantaCalidad qual, PlantData data, int count, CajaCalidadUI parent)
-    {
-        plantaTipo = type;
-        calidad = qual;
-        parentUI = parent;
-
-        if (itemImg != null)
-        {
-            itemImg.sprite = data.plantaSprite;
-        }
-
-        if (itemNombreTxt != null)
-        {
-            string qualityName = qual == PlantaCalidad.Estandar ? "Estándar" : "Plata";
-            itemNombreTxt.text = $"{data.nombre} ({qualityName})";
-        }
-
-        if (cantidadTxt != null)
-        {
-            cantidadTxt.text = $"Disponible: {count}";
-        }
-
-        if (upgradeInfoText != null)
-        {
-            PlantaCalidad nextQuality = qual == PlantaCalidad.Estandar ? PlantaCalidad.Plata : PlantaCalidad.Oro;
-            int time = qual == PlantaCalidad.Estandar ? 3 : 5;
-            upgradeInfoText.text = $"Mejora a {nextQuality} ({time} min)";
-        }
-
-        if (calidadEstrella != null)
-        {
-            calidadEstrella.color = qual == PlantaCalidad.Estandar ? estandarColor : plataColor;
-        }
-    }
-
-    void OnSelectClicked()
-    {
-        if (parentUI != null)
-        {
-            parentUI.SelectPlant(plantaTipo, calidad);
-        }
+        PlantData data = plantDB.GetPlantas(tipo);
+        return (data != null) ? data.frutoSprite : null;
     }
 }

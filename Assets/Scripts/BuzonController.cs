@@ -31,15 +31,15 @@ public class BuzonController : MonoBehaviour
     public Button btnElegirPocion;   
     public Button btnCerrar;     
 
-    [Header("Econom�a")]
+    [Header("Economía")]
     public WalletFirebase playerWallet;
 
     [Header("Recetas especiales desbloqueadas (cartas 28-30)")]
-    [Tooltip("Se pone en true cuando compras la carta especial de Poci�n de Ruptura")]
+    [Tooltip("Se pone en true cuando compras la carta especial de Poción de Ruptura")]
     public bool recetaRupturaDesbloqueada;
-    [Tooltip("Se pone en true cuando compras la carta especial de Poci�n de Amor")]
+    [Tooltip("Se pone en true cuando compras la carta especial de Poción de Amor")]
     public bool recetaAmorDesbloqueada;
-    [Tooltip("Se pone en true cuando compras la carta especial de Brebaje de Guardi�n")]
+    [Tooltip("Se pone en true cuando compras la carta especial de Brebaje de Guardián")]
     public bool recetaGuardianDesbloqueada;
 
     [Header("DEBUG (opcional)")]
@@ -246,8 +246,8 @@ public class BuzonController : MonoBehaviour
         if (pocionEntregada != carta.pocionRequerida)
         {
             mensaje =
-                $"La poci�n entregada NO era la correcta.\n" +
-                $"El cliente pidi�: {carta.pocionRequerida}.\n" +
+                $"La poción entregada NO era la correcta.\n" +
+                $"El cliente pidió: {carta.pocionRequerida}.\n" +
                 $"Solo recibes 10 monedas.";
             return 10;
         }
@@ -264,9 +264,9 @@ public class BuzonController : MonoBehaviour
             int recompensa = Mathf.Max(0, basePrice - penalizacion);
 
             mensaje =
-                $"Entregaste la poci�n correcta ({carta.pocionRequerida}), " +
+                $"Entregaste la poción correcta ({carta.pocionRequerida}), " +
                 $"pero con calidad {calidadEntregada}, inferior a la requerida ({carta.calidad}).\n" +
-                $"Se aplica una penalizaci�n del 20% del precio ({penalizacion} monedas).";
+                $"Se aplica una penalización del 20% del precio ({penalizacion} monedas).";
 
             return recompensa;
         }
@@ -276,9 +276,9 @@ public class BuzonController : MonoBehaviour
             int recompensa = CalcularRecompensaConBonus(basePrice, carta.calidad);
 
             mensaje =
-                $"�Entrega correcta!\n" +
-                $"Poci�n: {carta.pocionRequerida}\n" +
-                $"Calidad: {calidadEntregada} (justo lo que pidi� el cliente).";
+                $"¡Entrega correcta! :)\n" +
+                $"Poción: {carta.pocionRequerida}\n" +
+                $"Calidad: {calidadEntregada}";
 
             return recompensa;
         }
@@ -289,7 +289,7 @@ public class BuzonController : MonoBehaviour
 
             mensaje =
                 $"Entregaste una calidad superior ({calidadEntregada}) a la requerida ({carta.calidad}).\n" +
-                $"No hay penalizaci�n, pero tampoco recibes el bono extra por esa calidad superior.";
+                $"No hay penalización, pero tampoco recibes el bono extra por esa calidad superior.";
 
             return recompensa;
         }
