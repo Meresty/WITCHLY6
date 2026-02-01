@@ -476,7 +476,8 @@ Transform:
   m_LocalPosition: {x: 870.1513, y: 536.2404, z: -1.6980169}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1397926962}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &546444567
@@ -725,23 +726,23 @@ MonoBehaviour:
   sueroBD: {fileID: 11400000, guid: dddeab91cc41dd14b8f114a42be96db1, type: 2}
   plantaToItemMapping:
   - tipo: 0
-    calidad: 0
-    itemSO: {fileID: 0}
-  - tipo: 0
-    calidad: 0
-    itemSO: {fileID: 0}
-  - tipo: 0
-    calidad: 0
-    itemSO: {fileID: 0}
-  - tipo: 0
-    calidad: 0
-    itemSO: {fileID: 0}
-  - tipo: 0
-    calidad: 0
-    itemSO: {fileID: 0}
-  - tipo: 0
-    calidad: 0
-    itemSO: {fileID: 0}
+    calidad: 1
+    itemSO: {fileID: 11400000, guid: 0fcddf76d4ce7bd4499256a703a1a509, type: 2}
+  - tipo: 1
+    calidad: 1
+    itemSO: {fileID: 11400000, guid: 7267fcacc0ff0d9418fa9b54001616e9, type: 2}
+  - tipo: 2
+    calidad: 1
+    itemSO: {fileID: 11400000, guid: 2c5b38410de14ee4f94f323a031ecbc2, type: 2}
+  - tipo: 3
+    calidad: 1
+    itemSO: {fileID: 11400000, guid: 1749b3d3045f2c64283a59696131f9fe, type: 2}
+  - tipo: 4
+    calidad: 1
+    itemSO: {fileID: 11400000, guid: f5507195989d2dd49b9ee0f5121831de, type: 2}
+  - tipo: 5
+    calidad: 1
+    itemSO: {fileID: 11400000, guid: 9d3f1669b0e90ed4bbde9836768d8ea9, type: 2}
   - tipo: 0
     calidad: 0
     itemSO: {fileID: 0}
@@ -779,6 +780,8 @@ MonoBehaviour:
     calidad: 0
     itemSO: {fileID: 0}
   sueroToItemMapping: []
+  catalogoItems: []
+  logResolve: 0
 --- !u!4 &773932589
 Transform:
   m_ObjectHideFlags: 0
@@ -879,9 +882,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 775859389}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1eead343dba197e429847d9ef932a53e, type: 3}
+  m_Script: {fileID: 11500000, guid: 9c7ecf18c897f734b968de35cc4818fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  logDrops: 1
 --- !u!1 &856103773
 GameObject:
   m_ObjectHideFlags: 0
@@ -1912,6 +1916,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   notaUI: {fileID: 1867501113}
+  contenedorIngredientes: {fileID: 1702970715}
+  iconoIngredientePrefab: {fileID: 8473556718247193951, guid: 6a504781a6fa53640b56e6b405167efc, type: 3}
+  iconoPocionResultado: {fileID: 1738468254}
+  textoResultado: {fileID: 1954660690}
   todasLasPociones:
   - {fileID: 11400000, guid: ac6d98e6cec5ee54ea3ecd471606d8da, type: 2}
   - {fileID: 11400000, guid: de06b7f768fe87f458be5aaa698667de, type: 2}
@@ -1929,10 +1937,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e433642ee76379341ae1191e54ba9a8b, type: 2}
   - {fileID: 11400000, guid: ad807e0fd49c9804bb6898349fb1c929, type: 2}
   nombreEscenaMinijuego: Presicion
-  contenedorIngredientes: {fileID: 1702970715}
-  iconoIngredientePrefab: {fileID: 8473556718247193951, guid: 6a504781a6fa53640b56e6b405167efc, type: 3}
-  iconoPocionResultado: {fileID: 1738468254}
-  textoResultado: {fileID: 1954660690}
+  debugLogs: 1
+  debugAssetPaths: 1
+  ignorarEstadoGuardado: 0
 --- !u!4 &1397926962
 Transform:
   m_ObjectHideFlags: 0
@@ -1941,12 +1948,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1397926960}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1037.707, y: 621.51624, z: -4.1774273}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 167.55573, y: 85.27582, z: -2.4794104}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 247258214}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1410054937
 GameObject:
@@ -3451,7 +3458,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1996609843
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3557,7 +3564,6 @@ SceneRoots:
   - {fileID: 1329486139}
   - {fileID: 1050355888}
   - {fileID: 1653967419}
-  - {fileID: 1397926962}
   - {fileID: 247258214}
   - {fileID: 773932589}
   - {fileID: 1773660124}
