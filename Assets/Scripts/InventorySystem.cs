@@ -61,7 +61,7 @@ public class InventorySystem : MonoBehaviour
     public List<SeedItem> semillas = new List<SeedItem>();
     public List<SerumItem> sueros = new List<SerumItem>();
 
-    // compat con scripts viejos
+    [Header("Compat")]
     public int coins = 0;
 
     [Header("Referencias (UI usa estas BD para armar ItemInfo)")]
@@ -71,6 +71,12 @@ public class InventorySystem : MonoBehaviour
     [Header("Mapeo a ItemSO (Caldero)")]
     public PlantaItemSOMapping[] plantaToItemMapping;
     public SueroItemSOMapping[] sueroToItemMapping;
+
+    [Header("Catalogo canonico (anti duplicados ItemSO)")]
+    [SerializeField] private List<ItemSO> catalogoItems = new List<ItemSO>();
+
+    [Header("Debug")]
+    [SerializeField] private bool logResolve = false;
 
     public event Action OnInventoryChanged;
 
@@ -83,24 +89,26 @@ public class InventorySystem : MonoBehaviour
     private const string KEY_SERUMS = "Serums";
     private const string KEY_COINS = "Coins";
 
+    // Canon cache
+    private Dictionary<string, ItemSO> _canonByKey = new Dictionary<string, ItemSO>();
+
     // ===== PRECIOS DE VENTA (TABLA) =====
     private static readonly Dictionary<PlantaTipo, int> SELL_PLANTS = new Dictionary<PlantaTipo, int>
     {
-        { PlantaTipo.Lumina,   13 },
-        { PlantaTipo.Falsibaya, 8 },
-        { PlantaTipo.Drakonia,  8 },
-        { PlantaTipo.Eldebria, 10 },
-        { PlantaTipo.Jiveria,  11 },
-        { PlantaTipo.Lirien,   17 },
+        { PlantaTipo.Lumina,    13 },
+        { PlantaTipo.Falsibaya,  8 },
+        { PlantaTipo.Drakonia,   8 },
+        { PlantaTipo.Eldebria,  10 },
+        { PlantaTipo.Jiveria,   11 },
+        { PlantaTipo.Lirien,    17 },
     };
 
     private static readonly Dictionary<PlantaTipo, int> SELL_SEEDS = new Dictionary<PlantaTipo, int>
     {
-        // N/A no se ponen
-        { PlantaTipo.Lumina,   7 },
-        { PlantaTipo.Eldebria, 5 },
-        { PlantaTipo.Jiveria,  6 },
-        { PlantaTipo.Lirien,   8 },
+        { PlantaTipo.Lumina,    7 },
+        { PlantaTipo.Eldebria,  5 },
+        { PlantaTipo.Jiveria,   6 },
+        { PlantaTipo.Lirien,    8 },
     };
 
     private static readonly Dictionary<string, int> SELL_SERUMS = new Dictionary<string, int>
@@ -126,6 +134,7 @@ public class InventorySystem : MonoBehaviour
 
         SceneManager.sceneLoaded += OnSceneLoaded;
 
+        RebuildCanonicalCache();
         InitializeInventory();
     }
 
@@ -163,10 +172,17 @@ public class InventorySystem : MonoBehaviour
         if ((sueroToItemMapping == null || sueroToItemMapping.Length == 0) &&
             other.sueroToItemMapping != null && other.sueroToItemMapping.Length > 0)
             sueroToItemMapping = other.sueroToItemMapping;
+
+        if ((catalogoItems == null || catalogoItems.Count == 0) &&
+            other.catalogoItems != null && other.catalogoItems.Count > 0)
+            catalogoItems = other.catalogoItems;
+
+        RebuildCanonicalCache();
     }
 
     private IEnumerator AutoBindFirebase()
     {
+        // Si no existe en tu proyecto, comenta este bloque
         while (!FirebaseInitializer.IsReady) yield return null;
         while (GameSession.Instance == null || GameSession.Instance.CurrentUser == null) yield return null;
 
@@ -181,7 +197,6 @@ public class InventorySystem : MonoBehaviour
 
         FirebaseCoinsManager.Instance.BindUser(username);
 
-        // compat: mantener coins local sincronizado
         FirebaseCoinsManager.Instance.OnCoinsChanged += (c) => coins = c;
         coins = FirebaseCoinsManager.Instance.Coins;
     }
@@ -192,7 +207,6 @@ public class InventorySystem : MonoBehaviour
 
         if (!PlayerPrefs.HasKey(KEY_FIRST_TIME))
         {
-            // seed minimo para que SI se vea algo (si quieres, cambia esto)
             AddSemilla(PlantaTipo.Lumina, 5, save: false, notify: false);
             AddPlant(PlantaTipo.Lumina, PlantaCalidad.Estandar, 1, save: false, notify: false);
             AddSerum("Suero de Fuerza", 1, save: false, notify: false);
@@ -208,12 +222,13 @@ public class InventorySystem : MonoBehaviour
         SaveInventory();
         _isInitializing = false;
 
+        RebuildCanonicalCache();
         SyncAllToCalderoSafe();
         OnInventoryChanged?.Invoke();
     }
 
     // =========================
-    // COMPAT METHODS (lo que te marcaba error)
+    // COMPAT METHODS
     // =========================
     public bool HasSeed(PlantaTipo type, int amount = 1)
     {
@@ -309,7 +324,10 @@ public class InventorySystem : MonoBehaviour
             if (existing.cantidad == -1 || amount == -1) existing.cantidad = -1;
             else existing.cantidad += amount;
         }
-        else semillas.Add(new SeedItem { plantaTipo = type, cantidad = amount });
+        else
+        {
+            semillas.Add(new SeedItem { plantaTipo = type, cantidad = amount });
+        }
 
         if (save) SaveInventory();
         if (notify) OnInventoryChanged?.Invoke();
@@ -322,7 +340,7 @@ public class InventorySystem : MonoBehaviour
         var existing = semillas.Find(s => s.plantaTipo == type);
         if (existing == null) return false;
 
-        if (existing.cantidad == -1) return true; // infinito
+        if (existing.cantidad == -1) return true;
 
         if (existing.cantidad < amount) return false;
 
@@ -366,7 +384,7 @@ public class InventorySystem : MonoBehaviour
     }
 
     // =========================
-    // COINS (compat)
+    // COINS
     // =========================
     public void AddCoins(int amount)
     {
@@ -407,24 +425,21 @@ public class InventorySystem : MonoBehaviour
     }
 
     // =========================
-    // SELL (TABLA)
+    // SELL
     // =========================
     public int GetSellPrice(ItemInfo info)
     {
         if (info == null) return 0;
 
-        // suero
         if (info.plantaTipo == PlantaTipo.NONE)
         {
             string key = NormalizeKey(info.itemNombre);
             return SELL_SERUMS.TryGetValue(key, out int p) ? p : 0;
         }
 
-        // planta
         if (info.calidad != PlantaCalidad.NONE)
             return SELL_PLANTS.TryGetValue(info.plantaTipo, out int p2) ? p2 : 0;
 
-        // semilla
         return SELL_SEEDS.TryGetValue(info.plantaTipo, out int p3) ? p3 : 0;
     }
 
@@ -436,7 +451,6 @@ public class InventorySystem : MonoBehaviour
         int unit = GetSellPrice(info);
         if (unit <= 0) return false;
 
-        // no vender semillas infinitas
         if (info.plantaTipo != PlantaTipo.NONE && info.calidad == PlantaCalidad.NONE)
         {
             var seed = semillas.Find(s => s.plantaTipo == info.plantaTipo);
@@ -456,7 +470,6 @@ public class InventorySystem : MonoBehaviour
 
         int total = unit * amount;
 
-        // monedas por Firebase (HUD se actualiza solo)
         if (FirebaseCoinsManager.Instance != null && GameSession.Instance != null && GameSession.Instance.CurrentUser != null)
         {
             if (!FirebaseCoinsManager.Instance.IsBound)
@@ -465,7 +478,6 @@ public class InventorySystem : MonoBehaviour
             bool ok = await FirebaseCoinsManager.Instance.AddCoinsAsync(total);
             if (!ok)
             {
-                // rollback inventario
                 if (info.plantaTipo == PlantaTipo.NONE) AddSerum(info.itemNombre, amount, save: false, notify: false);
                 else if (info.calidad != PlantaCalidad.NONE) AddPlant(info.plantaTipo, info.calidad, amount, save: false, notify: false);
                 else AddSemilla(info.plantaTipo, amount, save: false, notify: false);
@@ -483,7 +495,6 @@ public class InventorySystem : MonoBehaviour
         return true;
     }
 
-    // wrappers que te piden otros scripts
     public void SellPlant(PlantaTipo type, PlantaCalidad quality, int amount)
     {
         var temp = new ItemInfo { itemNombre = type.ToString(), plantaTipo = type, calidad = quality };
@@ -497,30 +508,70 @@ public class InventorySystem : MonoBehaviour
     }
 
     // =========================
-    // CALDERO / MAPPING
+    // CALDERO / MAPPING (FIXES IMPORTANTES)
     // =========================
     public ItemSO ResolveItemSO(ItemInfo info)
     {
         if (info == null) return null;
 
-        if (info.plantaTipo != PlantaTipo.NONE && info.calidad != PlantaCalidad.NONE)
-            return GetItemSOForPlant(info.plantaTipo, info.calidad);
-
+        // suero
         if (info.plantaTipo == PlantaTipo.NONE)
-            return GetItemSOForSerum(info.itemNombre);
+        {
+            var so = GetItemSOForSerum(info.itemNombre);
+            if (logResolve) Debug.Log($"[INV Resolve] SUERO name='{info.itemNombre}' => {(so ? so.name : "NULL")}");
+            return so;
+        }
 
-        return null;
+        // planta con calidad
+        if (info.calidad != PlantaCalidad.NONE)
+        {
+            var so = GetItemSOForPlant(info.plantaTipo, info.calidad);
+            if (logResolve) Debug.Log($"[INV Resolve] PLANTA tipo={info.plantaTipo} calidad={info.calidad} => {(so ? so.name : "NULL")}");
+            return so;
+        }
+
+        // planta sin calidad (fallback)
+        var fallback = GetItemSOForPlantFallback(info.plantaTipo);
+        if (logResolve) Debug.Log($"[INV Resolve] PLANTA-FALLBACK tipo={info.plantaTipo} calidad=NONE => {(fallback ? fallback.name : "NULL")}");
+        return fallback;
     }
 
     public ItemSO GetItemSOForPlant(PlantaTipo tipo, PlantaCalidad calidad)
     {
         if (plantaToItemMapping == null) return null;
 
-        foreach (var m in plantaToItemMapping)
+        for (int i = 0; i < plantaToItemMapping.Length; i++)
         {
+            var m = plantaToItemMapping[i];
             if (m == null || m.itemSO == null) continue;
-            if (m.tipo == tipo && m.calidad == calidad) return m.itemSO;
+            if (m.tipo == tipo && m.calidad == calidad)
+                return m.itemSO;
         }
+        return null;
+    }
+
+    public ItemSO GetItemSOForPlantFallback(PlantaTipo tipo)
+    {
+        if (plantaToItemMapping == null) return null;
+
+        // prioridad: estandar
+        for (int i = 0; i < plantaToItemMapping.Length; i++)
+        {
+            var m = plantaToItemMapping[i];
+            if (m == null || m.itemSO == null) continue;
+            if (m.tipo == tipo && m.calidad == PlantaCalidad.Estandar)
+                return m.itemSO;
+        }
+
+        // si no hay estandar, cualquier calidad
+        for (int i = 0; i < plantaToItemMapping.Length; i++)
+        {
+            var m = plantaToItemMapping[i];
+            if (m == null || m.itemSO == null) continue;
+            if (m.tipo == tipo)
+                return m.itemSO;
+        }
+
         return null;
     }
 
@@ -528,12 +579,17 @@ public class InventorySystem : MonoBehaviour
     {
         if (string.IsNullOrWhiteSpace(sueroNombre) || sueroToItemMapping == null) return null;
 
-        foreach (var m in sueroToItemMapping)
+        string k = NormalizeItemKey(sueroNombre);
+
+        for (int i = 0; i < sueroToItemMapping.Length; i++)
         {
+            var m = sueroToItemMapping[i];
             if (m == null || m.itemSO == null) continue;
-            if (string.Equals(m.sueroNombre, sueroNombre, StringComparison.OrdinalIgnoreCase))
+
+            if (NormalizeItemKey(m.sueroNombre) == k)
                 return m.itemSO;
         }
+
         return null;
     }
 
@@ -541,26 +597,31 @@ public class InventorySystem : MonoBehaviour
     {
         if (itemSO == null || amount <= 0) return false;
 
+        itemSO = Canonicalize(itemSO);
+
+        // plantas
         if (plantaToItemMapping != null)
         {
             foreach (var m in plantaToItemMapping)
             {
                 if (m == null || m.itemSO == null) continue;
-                if (m.itemSO == itemSO)
+                if (Canonicalize(m.itemSO) == itemSO)
                     return RemovePlant(m.tipo, m.calidad, amount);
             }
         }
 
+        // sueros
         if (sueroToItemMapping != null)
         {
             foreach (var m in sueroToItemMapping)
             {
                 if (m == null || m.itemSO == null) continue;
-                if (m.itemSO == itemSO)
+                if (Canonicalize(m.itemSO) == itemSO)
                     return RemoveSerum(m.sueroNombre, amount);
             }
         }
 
+        // fallback inventario viejo
         if (InventoryManager.instancia != null)
         {
             InventoryManager.instancia.RemoveItem(itemSO, amount);
@@ -570,10 +631,15 @@ public class InventorySystem : MonoBehaviour
         return false;
     }
 
+    // =========================
+    // SYNC con InventoryManager (viejo) para el caldero
+    // =========================
     private void SyncDeltaToCaldero(ItemSO itemSO, int delta)
     {
         if (itemSO == null) return;
         if (InventoryManager.instancia == null) return;
+
+        itemSO = Canonicalize(itemSO);
 
         var inv = InventoryManager.instancia.items.Find(i => i.item == itemSO);
         if (inv == null)
@@ -592,27 +658,33 @@ public class InventorySystem : MonoBehaviour
 
         Dictionary<ItemSO, int> expected = new Dictionary<ItemSO, int>();
 
+        // plantas
         if (plantaToItemMapping != null)
         {
             foreach (var m in plantaToItemMapping)
             {
                 if (m == null || m.itemSO == null) continue;
-                int count = GetPlantCount(m.tipo, m.calidad);
 
-                if (!expected.ContainsKey(m.itemSO)) expected[m.itemSO] = 0;
-                expected[m.itemSO] += count;
+                int count = GetPlantCount(m.tipo, m.calidad);
+                var canon = Canonicalize(m.itemSO);
+
+                if (!expected.ContainsKey(canon)) expected[canon] = 0;
+                expected[canon] += count;
             }
         }
 
+        // sueros
         if (sueroToItemMapping != null)
         {
             foreach (var m in sueroToItemMapping)
             {
                 if (m == null || m.itemSO == null) continue;
-                int count = GetSerumCount(m.sueroNombre);
 
-                if (!expected.ContainsKey(m.itemSO)) expected[m.itemSO] = 0;
-                expected[m.itemSO] += count;
+                int count = GetSerumCount(m.sueroNombre);
+                var canon = Canonicalize(m.itemSO);
+
+                if (!expected.ContainsKey(canon)) expected[canon] = 0;
+                expected[canon] += count;
             }
         }
 
@@ -623,6 +695,8 @@ public class InventorySystem : MonoBehaviour
     private void SetCalderoItemCount(ItemSO itemSO, int count)
     {
         if (InventoryManager.instancia == null) return;
+
+        itemSO = Canonicalize(itemSO);
 
         var inv = InventoryManager.instancia.items.Find(i => i.item == itemSO);
 
@@ -639,6 +713,78 @@ public class InventorySystem : MonoBehaviour
         }
 
         inv.cantidad = count;
+    }
+
+    // =========================
+    // CANONICAL (anti duplicados)
+    // =========================
+    public void RebuildCanonicalCache()
+    {
+        _canonByKey.Clear();
+
+        if (catalogoItems != null)
+            foreach (var it in catalogoItems)
+                AddCanon(it);
+
+        if (plantaToItemMapping != null)
+            foreach (var m in plantaToItemMapping)
+                if (m != null) AddCanon(m.itemSO);
+
+        if (sueroToItemMapping != null)
+            foreach (var m in sueroToItemMapping)
+                if (m != null) AddCanon(m.itemSO);
+    }
+
+    private void AddCanon(ItemSO it)
+    {
+        if (it == null) return;
+
+        string key = NormalizeItemKey(it.name);
+        if (string.IsNullOrEmpty(key)) return;
+
+        if (!_canonByKey.ContainsKey(key))
+            _canonByKey[key] = it;
+    }
+
+    public ItemSO Canonicalize(ItemSO item)
+    {
+        if (item == null) return null;
+
+        string key = NormalizeItemKey(item.name);
+        if (string.IsNullOrEmpty(key)) return item;
+
+        if (_canonByKey != null && _canonByKey.TryGetValue(key, out var canon) && canon != null)
+            return canon;
+
+        return item;
+    }
+
+    // Normaliza duro para matching (mappings, clones, espacios, etc)
+    public string NormalizeItemKey(string s)
+    {
+        s = NormalizeKey(s);
+        s = s.Replace(" ", "").Replace("_", "").Replace("-", "");
+        s = s.Replace("(clone)", "");
+        return s;
+    }
+
+    // Quita acentos, trim, lower
+    private string NormalizeKey(string s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return "";
+        s = s.Trim().ToLowerInvariant();
+
+        string formD = s.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder(formD.Length);
+
+        for (int i = 0; i < formD.Length; i++)
+        {
+            char ch = formD[i];
+            var uc = CharUnicodeInfo.GetUnicodeCategory(ch);
+            if (uc != UnicodeCategory.NonSpacingMark) sb.Append(ch);
+        }
+
+        return sb.ToString().Normalize(NormalizationForm.FormC);
     }
 
     // =========================
@@ -677,23 +823,5 @@ public class InventorySystem : MonoBehaviour
         else sueros = new List<SerumItem>();
 
         coins = PlayerPrefs.GetInt(KEY_COINS, 0);
-    }
-
-    private string NormalizeKey(string s)
-    {
-        if (string.IsNullOrWhiteSpace(s)) return "";
-        s = s.Trim().ToLowerInvariant();
-
-        string formD = s.Normalize(NormalizationForm.FormD);
-        var sb = new StringBuilder(formD.Length);
-
-        for (int i = 0; i < formD.Length; i++)
-        {
-            char ch = formD[i];
-            var uc = CharUnicodeInfo.GetUnicodeCategory(ch);
-            if (uc != UnicodeCategory.NonSpacingMark) sb.Append(ch);
-        }
-
-        return sb.ToString().Normalize(NormalizationForm.FormC);
     }
 }

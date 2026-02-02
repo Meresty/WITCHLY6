@@ -6,20 +6,19 @@ using UnityEngine.EventSystems;
 public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [Header("References")]
-    public Image iconImage;          // arrastra aqui tu Icono (Image)
-    public Canvas rootCanvas;        // opcional, se autodetecta
+    [SerializeField] private Image iconImage;
+    [SerializeField] private Canvas rootCanvas;
 
     [Header("Drag Visual")]
     public bool useGhostIcon = true;
     [Range(0f, 1f)] public float originalIconAlphaOnDrag = 0.25f;
 
-    [Header("Caldero (opcional)")]
-    public GameObject calderoObjeto;
-    public CalderoDangerZone caldero;
-
     private CanvasGroup cg;
-    public ItemInfo boundInfo;
+
+    private ItemInfo boundInfo;
     private int boundAmount;
+
+    private ItemSO cachedItemSO; // <- cache para que no dependa de cosas raras
 
     private GameObject ghostGO;
     private RectTransform ghostRT;
@@ -27,8 +26,17 @@ public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHan
     public ItemInfo BoundItemInfo => boundInfo;
     public int BoundAmount => boundAmount;
 
-    // Compat: scripts viejos esperan ItemSO
-    public ItemSO BoundItemSO => (InventorySystem.Instance != null) ? InventorySystem.Instance.ResolveItemSO(boundInfo) : null;
+    public ItemSO BoundItemSO
+    {
+        get
+        {
+            if (cachedItemSO != null) return cachedItemSO;
+            if (InventorySystem.Instance == null) return null;
+            return InventorySystem.Instance.ResolveItemSO(boundInfo);
+        }
+    }
+
+    // compat
     public ItemSO BoundItem => BoundItemSO;
 
     private void Awake()
@@ -36,48 +44,34 @@ public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHan
         cg = GetComponent<CanvasGroup>();
 
         if (iconImage == null)
-            iconImage = GetComponentInChildren<Image>(true);
+            iconImage = GetComponentInChildren<Image>();
 
         if (rootCanvas == null)
         {
             var c = GetComponentInParent<Canvas>();
-            if (c != null) rootCanvas = c.rootCanvas; // top canvas
+            if (c != null) rootCanvas = c.rootCanvas;
         }
-    }
-
-    private void Start()
-    {
-        // Intentamos encontrar el caldero SOLO una vez al inicio.
-        TryResolveCaldero();
-    }
-
-    /// <summary>
-    /// Busca DangerZone si existe. Si no existe, NO pasa nada.
-    /// Esto evita los NullReference + spam.
-    /// </summary>
-    private void TryResolveCaldero()
-    {
-        // Si ya lo tenemos, no hacemos nada
-        if (caldero != null) return;
-
-        // Busca por nombre (si en la escena no existe, regresa null y listo)
-        calderoObjeto = GameObject.Find("DangerZone");
-        if (calderoObjeto == null) return;
-
-        caldero = calderoObjeto.GetComponent<CalderoDangerZone>();
-        // Si no tiene ese componente, también lo dejamos como null sin tronar
     }
 
     public void Bind(ItemInfo info, int amount)
     {
         boundInfo = info;
         boundAmount = amount;
+
+        cachedItemSO = null;
+        if (InventorySystem.Instance != null)
+            cachedItemSO = InventorySystem.Instance.ResolveItemSO(boundInfo);
+
+        // Debug ultra claro para encontrar el fallo
+        if (cachedItemSO == null && boundInfo != null)
+        {
+            Debug.LogWarning($"[SLOT BIND] NO mapping ItemSO para info='{boundInfo.itemNombre}' tipo={boundInfo.plantaTipo} calidad={boundInfo.calidad}. Revisa mappings.");
+        }
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (boundInfo == null) return;
-        if (boundAmount <= 0) return;
+        if (boundInfo == null || boundAmount <= 0) return;
 
         if (rootCanvas == null)
         {
@@ -86,21 +80,15 @@ public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHan
         }
         if (rootCanvas == null) return;
 
-        // Solo si estás en la escena del caldero, tendrá sentido
-        TryResolveCaldero();
-
-        // deja pasar el drop al target
         cg.blocksRaycasts = false;
 
-        // baja alpha del icono original
         if (iconImage != null)
         {
             var c = iconImage.color;
             iconImage.color = new Color(c.r, c.g, c.b, originalIconAlphaOnDrag);
         }
 
-        if (useGhostIcon)
-            CreateGhost(eventData);
+        if (useGhostIcon) CreateGhost(eventData);
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -113,7 +101,6 @@ public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHan
     {
         cg.blocksRaycasts = true;
 
-        // restaura alpha
         if (iconImage != null)
         {
             var c = iconImage.color;
@@ -136,29 +123,15 @@ public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHan
 
         ghostRT = ghostGO.AddComponent<RectTransform>();
 
-        // Si existe caldero, le pasamos el itemdrop. Si no, NO hacemos nada.
-        if (caldero != null)
-        {
-            caldero.itemdrop = BoundItemSO;
-        }
-
         var img = ghostGO.AddComponent<Image>();
         var ghostCG = ghostGO.AddComponent<CanvasGroup>();
-
         ghostCG.blocksRaycasts = false;
         ghostCG.interactable = false;
 
-        // sprite
         img.sprite = (iconImage != null && iconImage.sprite != null) ? iconImage.sprite : (boundInfo != null ? boundInfo.icon : null);
         img.preserveAspect = true;
 
-        // size: copia del icono real
-        if (iconImage != null)
-            ghostRT.sizeDelta = iconImage.rectTransform.sizeDelta;
-        else
-            ghostRT.sizeDelta = new Vector2(80, 80);
-
-        // pivot centrado
+        ghostRT.sizeDelta = (iconImage != null) ? iconImage.rectTransform.sizeDelta : new Vector2(80, 80);
         ghostRT.pivot = new Vector2(0.5f, 0.5f);
         ghostRT.anchorMin = new Vector2(0.5f, 0.5f);
         ghostRT.anchorMax = new Vector2(0.5f, 0.5f);
@@ -177,8 +150,6 @@ public class DraggableInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHan
             cam = rootCanvas.worldCamera;
 
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRT, eventData.position, cam, out Vector2 localPoint))
-        {
             ghostRT.anchoredPosition = localPoint;
-        }
     }
 }
