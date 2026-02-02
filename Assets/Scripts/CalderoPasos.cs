@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -22,18 +23,21 @@ public class CalderoLogic : MonoBehaviour
     [Header("Pociones disponibles")]
     public List<PocionSO> todasLasPociones = new List<PocionSO>();
 
-    [Header("Config")]
+    [Header("Escenas")]
     public string nombreEscenaMinijuego = "Presicion";
+    public string nombreEscenaInicio = "PantallaInicial";
+    public float delayVolverInicio = 5f;
 
     [Header("Debug")]
     [SerializeField] private bool debugLogs = true;
     [SerializeField] private bool debugAssetPaths = true;
-    [SerializeField] private bool ignorarEstadoGuardado = false; // ponlo true si sospechas que step se queda “pegado”
+    [SerializeField] private bool ignorarEstadoGuardado = false;
 
     private PocionSO potion;
     private int step = 0;
     private int vecesEquivocado = 0;
     private float descuentoPrecio = 0f;
+    private bool finishing = false;
 
     private readonly List<ItemSO> ingredientesAgregados = new List<ItemSO>();
 
@@ -56,10 +60,8 @@ public class CalderoLogic : MonoBehaviour
     {
         CargarPocionSeleccionada();
 
-        if (!ignorarEstadoGuardado)
-            RestaurarEstadoSiAplica();
-        else
-            LimpiarEstadoLocal();
+        if (!ignorarEstadoGuardado) RestaurarEstadoSiAplica();
+        else LimpiarEstadoLocal();
 
         if (potion != null)
         {
@@ -67,27 +69,32 @@ public class CalderoLogic : MonoBehaviour
             if (textoResultado != null) textoResultado.text = $"Creando: {potion.pocionNombre}";
             if (notaUI != null) notaUI.MostrarReceta(potion);
         }
+        else
+        {
+            if (textoResultado != null) textoResultado.text = "No hay pocion seleccionada";
+            return;
+        }
 
         ReconstruirListaIngredientesPorStep();
         ActualizarUI();
 
         if (debugLogs)
         {
-            Debug.Log($"[CALDERO] START potion={(potion ? potion.pocionNombre : "NULL")} step={step} fails={vecesEquivocado}");
+            Debug.Log($"[CALDERO] START potion={potion.pocionNombre} step={step} fails={vecesEquivocado}");
             DebugDumpReceta();
         }
     }
 
-    public void ForceIncorrectDrop()
-    {
-        OnIngredienteIncorrecto(null, null);
-    }
+    // Solo testing
+    public void ForceIncorrectDrop() => OnIngredienteIncorrecto(null, null);
 
     public void AddIngredient(ItemSO itemDrop)
     {
+        if (finishing) return;
+
         if (potion == null)
         {
-            Debug.LogWarning("[CALDERO] potion es NULL. Revisa PlayerPrefs 'PocionSeleccionada' y 'todasLasPociones' en el inspector.");
+            Debug.LogWarning("[CALDERO] potion es NULL. Revisa PlayerPrefs 'PocionSeleccionada' y lista 'todasLasPociones'.");
             return;
         }
 
@@ -100,7 +107,6 @@ public class CalderoLogic : MonoBehaviour
         ItemSO esperadoRaw = GetEsperado(step);
         ItemSO dropRaw = itemDrop;
 
-        // Canonicalizar para evitar el bug típico: “mismo nombre pero otro asset”
         ItemSO esperado = Canon(esperadoRaw);
         ItemSO drop = Canon(dropRaw);
 
@@ -116,19 +122,17 @@ public class CalderoLogic : MonoBehaviour
 
         if (drop == null || esperado == null)
         {
-            // Si esperado es null: receta mal configurada en el PocionSO o potion no tiene asignados los slots
-            // Si drop es null: tu Draggable no está resolviendo BoundItemSO correctamente
             OnIngredienteIncorrecto(drop, esperado);
             return;
         }
 
-        bool ok = IsSameItem(drop, esperado);
-
-        if (ok)
-            OnIngredienteCorrecto(drop);
-        else
-            OnIngredienteIncorrecto(drop, esperado);
+        if (IsSameItem(drop, esperado)) OnIngredienteCorrecto(drop);
+        else OnIngredienteIncorrecto(drop, esperado);
     }
+
+    // =========================
+    // CORE
+    // =========================
 
     private ItemSO GetEsperado(int s)
     {
@@ -139,41 +143,19 @@ public class CalderoLogic : MonoBehaviour
         return null;
     }
 
-    // Normaliza por nombre (sin acentos, sin espacios, sin guiones)
-    private string Key(ItemSO x)
-    {
-        if (x == null) return "";
-        if (InventorySystem.Instance != null) return InventorySystem.Instance.NormalizeItemKey(x.name);
-        return x.name.Replace("(Clone)", "").Trim().ToLowerInvariant().Replace(" ", "").Replace("_", "").Replace("-", "");
-    }
-
-    private ItemSO Canon(ItemSO x)
-    {
-        if (x == null) return null;
-        if (InventorySystem.Instance == null) return x;
-        return InventorySystem.Instance.Canonicalize(x);
-    }
-
-    private bool IsSameItem(ItemSO a, ItemSO b)
-    {
-        if (a == null || b == null) return false;
-        if (a == b) return true;          // misma referencia (ideal)
-        return Key(a) == Key(b);          // fallback por nombre normalizado
-    }
-
     private void OnIngredienteCorrecto(ItemSO item)
     {
         bool consumed = false;
 
-        // Consume del inventario principal (nuevo)
+        // Inventario nuevo
         if (InventorySystem.Instance != null)
             consumed = InventorySystem.Instance.ConsumeMappedItem(item, 1);
 
-        // Fallback al inventario viejo
+        // Fallback inventario viejo
         if (!consumed && InventoryManager.instancia != null)
             InventoryManager.instancia.RemoveItem(item, 1);
 
-        ingredientesAgregados.Add(item);
+        ingredientesAgregados.Add(Canon(item));
         step++;
 
         if (textoResultado != null)
@@ -184,22 +166,6 @@ public class CalderoLogic : MonoBehaviour
 
         if (step >= 3)
             FinalizarPocion();
-    }
-
-    private void FinalizarPocion()
-    {
-        float precioFinal = CalcularPrecioFinal();
-
-        if (textoResultado != null)
-        {
-            string textoDescuento = descuentoPrecio > 0 ? $"\n(Descuento: {descuentoPrecio * 100}%)" : "";
-            textoResultado.text = $"Pocion creada: {potion.pocionNombre}{textoDescuento}";
-        }
-
-        if (InventoryManager.instancia != null && potion != null && potion.itemPocion != null)
-            InventoryManager.instancia.AddItem(potion.itemPocion, 1);
-
-        LimpiarEstado();
     }
 
     private void OnIngredienteIncorrecto(ItemSO drop, ItemSO esperado)
@@ -220,6 +186,46 @@ public class CalderoLogic : MonoBehaviour
         SceneManager.LoadScene(nombreEscenaMinijuego);
     }
 
+    private void FinalizarPocion()
+    {
+        if (finishing) return;
+        finishing = true;
+
+        // 1) Precio final (si lo usas)
+        CalcularPrecioFinal();
+
+        // 2) Desbloquear en buzon (SIEMPRE, no depende de la UI)
+        if (potion != null)
+            BuzonProgress.UnlockPotion(potion.pocionNombre);
+
+        // 3) Mostrar texto
+        if (textoResultado != null)
+        {
+            string textoDescuento = descuentoPrecio > 0f ? $"\n(Descuento: {(descuentoPrecio * 100f):0}%)" : "";
+            textoResultado.text = $"Pocion creada:\n{potion.pocionNombre}{textoDescuento}";
+        }
+
+        // 4) Agregar la pocion al inventario (si usas itemPocion)
+        if (InventoryManager.instancia != null && potion != null && potion.itemPocion != null)
+            InventoryManager.instancia.AddItem(potion.itemPocion, 1);
+
+        // 5) Limpia el estado para que no se quede pegado
+        LimpiarEstado();
+
+        // 6) Volver a inicio en X segundos
+        StartCoroutine(VolverInicioDespuesDeDelay());
+    }
+
+    private IEnumerator VolverInicioDespuesDeDelay()
+    {
+        yield return new WaitForSeconds(delayVolverInicio);
+        SceneManager.LoadScene(nombreEscenaInicio);
+    }
+
+    // =========================
+    // UI
+    // =========================
+
     private void ActualizarUI()
     {
         if (contenedorIngredientes == null || iconoIngredientePrefab == null) return;
@@ -229,11 +235,17 @@ public class CalderoLogic : MonoBehaviour
 
         foreach (var ing in ingredientesAgregados)
         {
+            if (ing == null) continue;
+
             var icono = Instantiate(iconoIngredientePrefab, contenedorIngredientes);
             var img = icono.GetComponent<Image>();
             if (img != null) img.sprite = ing.icon;
         }
     }
+
+    // =========================
+    // LOAD / SAVE
+    // =========================
 
     private void CargarPocionSeleccionada()
     {
@@ -244,7 +256,7 @@ public class CalderoLogic : MonoBehaviour
             return;
         }
 
-        potion = todasLasPociones.Find(p => p.pocionNombre == nombrePocion);
+        potion = todasLasPociones.Find(p => p != null && p.pocionNombre == nombrePocion);
         if (potion == null)
             Debug.LogError($"[CALDERO] No se encontro la pocion '{nombrePocion}' en 'todasLasPociones'.");
     }
@@ -291,6 +303,7 @@ public class CalderoLogic : MonoBehaviour
         vecesEquivocado = 0;
         descuentoPrecio = 0f;
         ingredientesAgregados.Clear();
+        finishing = false;
     }
 
     private void LimpiarEstado()
@@ -310,7 +323,41 @@ public class CalderoLogic : MonoBehaviour
         return precioFinal;
     }
 
-    // ===== DEBUG HELPERS =====
+    // =========================
+    // CANON + MATCHING
+    // =========================
+
+    private string Key(ItemSO x)
+    {
+        if (x == null) return "";
+
+        if (InventorySystem.Instance != null)
+            return InventorySystem.Instance.NormalizeItemKey(x.name);
+
+        return x.name.Replace("(Clone)", "")
+            .Trim().ToLowerInvariant()
+            .Replace(" ", "")
+            .Replace("_", "")
+            .Replace("-", "");
+    }
+
+    private ItemSO Canon(ItemSO x)
+    {
+        if (x == null) return null;
+        if (InventorySystem.Instance == null) return x;
+        return InventorySystem.Instance.Canonicalize(x);
+    }
+
+    private bool IsSameItem(ItemSO a, ItemSO b)
+    {
+        if (a == null || b == null) return false;
+        if (a == b) return true;
+        return Key(a) == Key(b);
+    }
+
+    // =========================
+    // DEBUG
+    // =========================
 
     private void DebugDumpReceta()
     {

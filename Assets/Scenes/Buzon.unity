@@ -534,6 +534,10 @@ PrefabInstance:
       propertyPath: m_SizeDelta.x
       value: 300
       objectReference: {fileID: 0}
+    - target: {fileID: 4905604874528720084, guid: 357860c8d882ff145ad10ac8f75bfa20, type: 3}
+      propertyPath: recetaRupturaDesbloqueada
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5267254955673810890, guid: 357860c8d882ff145ad10ac8f75bfa20, type: 3}
       propertyPath: m_fontSize
       value: 45

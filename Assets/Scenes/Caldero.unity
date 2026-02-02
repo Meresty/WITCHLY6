@@ -779,7 +779,15 @@ MonoBehaviour:
   - tipo: 0
     calidad: 0
     itemSO: {fileID: 0}
-  sueroToItemMapping: []
+  sueroToItemMapping:
+  - sueroNombre: Suero de Fuerza
+    itemSO: {fileID: 11400000, guid: 9004647c915b04945b9abacacafd451c, type: 2}
+  - sueroNombre: Suero de Atadura
+    itemSO: {fileID: 11400000, guid: 6db8164750626f742a69959e0bf8a67b, type: 2}
+  - sueroNombre: Suero de Congelamiento
+    itemSO: {fileID: 11400000, guid: f65b2deede6f28b4e877de1412d9f5e2, type: 2}
+  - sueroNombre: Suero de Energia
+    itemSO: {fileID: 11400000, guid: fa4a7d1c95031ce40b5cc4bfc738ef17, type: 2}
   catalogoItems: []
   logResolve: 0
 --- !u!4 &773932589
