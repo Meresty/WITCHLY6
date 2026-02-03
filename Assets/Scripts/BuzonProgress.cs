@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -20,10 +20,23 @@ public static class BuzonProgress
         if (string.IsNullOrEmpty(key)) return;
 
         var list = Load();
-
         if (!list.items.Contains(key))
         {
             list.items.Add(key);
+            Save(list);
+        }
+    }
+
+    // ✅ NUEVO: se usa al ENTREGAR una pocion (se consume y se vuelve a bloquear)
+    public static void ConsumePotion(string pocionNombre)
+    {
+        string key = NormalizeKey(pocionNombre);
+        if (string.IsNullOrEmpty(key)) return;
+
+        var list = Load();
+        if (list.items.Contains(key))
+        {
+            list.items.Remove(key);
             Save(list);
         }
     }
@@ -35,11 +48,6 @@ public static class BuzonProgress
 
         var list = Load();
         return list.items.Contains(key);
-    }
-
-    public static List<string> GetAllUnlockedKeys()
-    {
-        return Load().items;
     }
 
     private static StringListWrapper Load()
@@ -69,7 +77,6 @@ public static class BuzonProgress
         catch { }
     }
 
-    // Normaliza: minusculas, sin espacios, sin acentos, sin guiones, etc.
     private static string NormalizeKey(string s)
     {
         if (string.IsNullOrWhiteSpace(s)) return "";
@@ -87,7 +94,6 @@ public static class BuzonProgress
 
         s = sb.ToString().Normalize(NormalizationForm.FormC);
 
-        // extra limpieza
         s = s.Replace(" ", "")
              .Replace("_", "")
              .Replace("-", "")

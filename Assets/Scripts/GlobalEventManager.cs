@@ -1,119 +1,238 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using TMPro;
 using UnityEngine.UI;
+using TMPro;
 
 public class EventoMundialManager : MonoBehaviour
 {
     public static EventoMundialManager instance;
 
-    [Header("Configuración del evento")]
-    public GameObject botonEventoPrefab; // Prefab del botón del evento (se instancia en el inventario)
-    public float duracionEvento = 300f; // 5 minutos = 300 segundos
-    public int maxEventosPorDia = 3;
+    [Header("Ventana del evento")]
+    public float ventanaSegundos = 60;      // 15 min
+    public int activacionesPorVentana = 3;    // 3 veces
+    public float duracionActiva = 10;       // 3 min
 
-    private int eventosHoy = 0;
+    [Header("Escena donde se muestra el icono")]
+    public string escenaPantallaInicial = "PantallaInicial";
+
+    [Header("UI en PantallaInicial (nombres exactos)")]
+    public string nombreBotonEnEscena = "BtnEventoMundial";
+    public string nombreTextoTimer = "TxtEventoTimer";
+
+    [Header("Minijuegos")]
+    public string escenaMinijuegoA = "Estrellas";
+    public string escenaMinijuegoB = "Meteoritos";
+
+    private GameObject botonGO;
+    private Button boton;
+    private TextMeshProUGUI txtTimer;
+
     private bool eventoActivo = false;
-    private bool botonVisible = false;
-    private float tiempoRestante;
+    private float tiempoRestante = 0f;
 
-    private GameObject botonInstanciado;
-    private TextMeshProUGUI textoContador;
+    private Coroutine cicloRoutine;
 
     private void Awake()
     {
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-            StartCoroutine(GenerarEventosAleatorios());
-        }
-        else
+        if (instance != null && instance != this)
         {
             Destroy(gameObject);
+            return;
         }
+
+        instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
-    IEnumerator GenerarEventosAleatorios()
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void Start()
+    {
+        TryBindUI();
+
+        if (cicloRoutine != null) StopCoroutine(cicloRoutine);
+        cicloRoutine = StartCoroutine(CicloVentanas());
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        TryBindUI();
+    }
+
+    // Busca objetos aunque esten INACTIVOS (GameObject.Find NO los encuentra)
+    private GameObject FindInActiveSceneByName(string exactName)
+    {
+        var scene = SceneManager.GetActiveScene();
+        var roots = scene.GetRootGameObjects();
+
+        foreach (var root in roots)
+        {
+            var all = root.GetComponentsInChildren<Transform>(true);
+            foreach (var t in all)
+            {
+                if (t.name == exactName) return t.gameObject;
+            }
+        }
+        return null;
+    }
+
+    private void TryBindUI()
+    {
+        // Solo usamos UI si estamos en PantallaInicial
+        var scene = SceneManager.GetActiveScene();
+        if (scene.name != escenaPantallaInicial)
+        {
+            if (botonGO != null) botonGO.SetActive(false);
+            return;
+        }
+
+        var go = FindInActiveSceneByName(nombreBotonEnEscena);
+        if (go == null) return;
+
+        botonGO = go;
+        boton = botonGO.GetComponent<Button>();
+        if (boton == null) return;
+
+        // Timer opcional
+        var timerTr = botonGO.transform.Find(nombreTextoTimer);
+        txtTimer = (timerTr != null) ? timerTr.GetComponent<TextMeshProUGUI>() : null;
+
+        boton.onClick.RemoveAllListeners();
+        boton.onClick.AddListener(OnClickEvento);
+
+        // Aplica estado actual
+        botonGO.SetActive(eventoActivo);
+        if (boton != null) boton.interactable = eventoActivo;
+
+        UpdateTimerText();
+    }
+
+    private IEnumerator CicloVentanas()
     {
         while (true)
         {
-            if (eventosHoy < maxEventosPorDia && !eventoActivo)
+            // 3 activaciones aleatorias dentro de 15 min sin empalmarse
+            List<float> starts = GenerarStartTimesNoEmpalmados();
+
+            float tiempoEnVentana = 0f;
+
+            for (int i = 0; i < starts.Count; i++)
             {
+                float wait = Mathf.Max(0f, starts[i] - tiempoEnVentana);
+                if (wait > 0f)
+                {
+                    yield return new WaitForSeconds(wait);
+                    tiempoEnVentana += wait;
+                }
 
-                float espera = Random.Range(10f, 30f); //Para test: 10 a 30 segundos
-                yield return new WaitForSeconds(espera);
+                // Activar evento
+                ActivarEvento();
 
-   
-                eventoActivo = true;
-                eventosHoy++;
-                NotificarEvento();
+                // Se mantiene activo 3 min o hasta que el jugador lo use
+                float t = 0f;
+                while (t < duracionActiva && eventoActivo)
+                {
+                    t += Time.deltaTime;
+                    tiempoRestante = Mathf.Max(0f, duracionActiva - t);
+                    UpdateTimerText();
+                    yield return null;
+                }
+
+                // Si no lo usaron, expira
+                if (eventoActivo) DesactivarEvento();
+
+                tiempoEnVentana += Mathf.Min(t, duracionActiva);
             }
-            yield return null;
+
+            // Espera restante para completar la ventana de 15 min
+            float restante = Mathf.Max(0f, ventanaSegundos - tiempoEnVentana);
+            if (restante > 0f) yield return new WaitForSeconds(restante);
         }
     }
 
-    void NotificarEvento()
+    private List<float> GenerarStartTimesNoEmpalmados()
     {
-        Debug.Log("¡Evento Mundial Disponible!");
-        // Aquí puedes poner una UI global tipo popup si quieres (por ahora solo log)
+        float maxStart = Mathf.Max(0f, ventanaSegundos - duracionActiva);
+        var times = new List<float>(activacionesPorVentana);
 
-        PlayerPrefs.SetInt("EventoActivo", 1);
-    }
-
-    public void MostrarBotonEvento(GameObject contenedorUI)
-    {
-        if (!eventoActivo || botonVisible) return;
-
-        botonInstanciado = Instantiate(botonEventoPrefab, contenedorUI.transform);
-        textoContador = botonInstanciado.GetComponentInChildren<TextMeshProUGUI>();
-        botonVisible = true;
-
-        botonInstanciado.GetComponent<Button>().onClick.AddListener(() => IniciarEvento());
-
-        tiempoRestante = duracionEvento;
-        StartCoroutine(ContadorRegresivo());
-    }
-
-    IEnumerator ContadorRegresivo()
-    {
-        while (tiempoRestante > 0)
+        int safeGuard = 0;
+        while (times.Count < activacionesPorVentana && safeGuard < 500)
         {
-            tiempoRestante -= Time.deltaTime;
-            if (textoContador != null)
-                textoContador.text = Mathf.CeilToInt(tiempoRestante).ToString() + "s";
+            safeGuard++;
+            float candidate = Random.Range(0f, maxStart);
 
-            yield return null;
+            bool ok = true;
+            for (int i = 0; i < times.Count; i++)
+            {
+                // Para no empalmar: distancia minima = duracionActiva
+                if (Mathf.Abs(candidate - times[i]) < duracionActiva)
+                {
+                    ok = false;
+                    break;
+                }
+            }
+
+            if (ok) times.Add(candidate);
         }
 
-        FinalizarEvento(false);
+        times.Sort();
+        return times;
     }
 
-    void IniciarEvento()
+    private void ActivarEvento()
+    {
+        eventoActivo = true;
+        tiempoRestante = duracionActiva;
+
+        // Si estamos en PantallaInicial y el boton existe, lo mostramos
+        if (botonGO != null) botonGO.SetActive(true);
+        if (boton != null) boton.interactable = true;
+
+        UpdateTimerText();
+    }
+
+    private void DesactivarEvento()
+    {
+        eventoActivo = false;
+        tiempoRestante = 0f;
+
+        if (botonGO != null) botonGO.SetActive(false);
+        UpdateTimerText();
+    }
+
+    private void OnClickEvento()
     {
         if (!eventoActivo) return;
 
-        string[] escenas = { "Estrellas", "Meteoritos" };
-        string escenaAleatoria = escenas[Random.Range(0, escenas.Length)];
+        // Se consume la activacion (ya no se puede volver a usar en esta ventana)
+        DesactivarEvento();
 
-        Debug.Log("Lanzando evento ? " + escenaAleatoria);
-        SceneManager.LoadScene(escenaAleatoria);
+        // Minijuego aleatorio
+        string escena = (Random.value < 0.5f) ? escenaMinijuegoA : escenaMinijuegoB;
+        SceneManager.LoadScene(escena);
     }
 
-    public void FinalizarEvento(bool completado)
+    private void UpdateTimerText()
     {
-        eventoActivo = false;
-        botonVisible = false;
+        if (txtTimer == null) return;
 
-        if (botonInstanciado != null)
-            Destroy(botonInstanciado);
+        if (!eventoActivo)
+        {
+            txtTimer.text = "";
+            return;
+        }
 
-        PlayerPrefs.SetInt("EventoActivo", 0);
-
-        if (completado)
-            Debug.Log("Evento completado con éxito");
-        else
-            Debug.Log("El evento expiró");
+        int sec = Mathf.CeilToInt(tiempoRestante);
+        txtTimer.text = sec.ToString() + "s";
     }
 }
