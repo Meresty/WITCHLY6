@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c63f92b44720084ca2187581c557112, type: 3}
+  m_Name: 19
+  m_EditorClassIdentifier: 
+  id: 19
+  displayNombre: Inversionista
+  requerimientoTexto: "Compraste dos cartas al comerciante An\xF3nimo"
+  sprite: {fileID: 0}
+  logroTipo: 8
+  targetValue: 2
+  recompensaTipo: 2
+  recompensaMonedas: 0
+  recompensaCajas: 0
+  recompensaPocionSO: {fileID: 11400000, guid: e1702fd393c196f48b3513117a351f72, type: 2}
