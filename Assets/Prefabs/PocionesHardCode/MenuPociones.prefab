@@ -1371,17 +1371,11 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1936921393661565599, guid: 6ef44ae272862344d979e8860c0779ad, type: 3}
   m_PrefabInstance: {fileID: 118075155572951462}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &6594026598593840613 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6494697517128633411, guid: 6ef44ae272862344d979e8860c0779ad, type: 3}
+--- !u!1 &5218527741180837581 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5316662013192271723, guid: 6ef44ae272862344d979e8860c0779ad, type: 3}
   m_PrefabInstance: {fileID: 118075155572951462}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6772607858385644413}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &6772607858385644413 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6655860982404997851, guid: 6ef44ae272862344d979e8860c0779ad, type: 3}
@@ -1400,9 +1394,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pocion: {fileID: 11400000, guid: dc1dccf1a6e666040a3fdf6fa01a3601, type: 2}
-  button: {fileID: 6594026598593840613}
-  lockOverlay: {fileID: 6772607858385644413}
+  button: {fileID: 8177625782562758918}
+  lockOverlay: {fileID: 5218527741180837581}
   hideIfLocked: 0
+--- !u!114 &8177625782562758918 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8133430459419011232, guid: 6ef44ae272862344d979e8860c0779ad, type: 3}
+  m_PrefabInstance: {fileID: 118075155572951462}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5218527741180837581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &761901729172728393
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2278,11 +2283,27 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 3714087874150901619}
   m_SourcePrefab: {fileID: 100100000, guid: f44144ffac6c2eb4d9f218b0da1804d7, type: 3}
+--- !u!1 &2882965498759821210 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2176406193559180567, guid: f44144ffac6c2eb4d9f218b0da1804d7, type: 3}
+  m_PrefabInstance: {fileID: 3906446333917471373}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &3231103487018956818 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1936921393661565599, guid: f44144ffac6c2eb4d9f218b0da1804d7, type: 3}
   m_PrefabInstance: {fileID: 3906446333917471373}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4641366109689794520 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8529551460287901013, guid: f44144ffac6c2eb4d9f218b0da1804d7, type: 3}
+  m_PrefabInstance: {fileID: 3906446333917471373}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2882965498759821210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7667416242007228502 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6655860982404997851, guid: f44144ffac6c2eb4d9f218b0da1804d7, type: 3}
@@ -2301,20 +2322,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pocion: {fileID: 11400000, guid: 9d772472fa004b449ada009ff506b630, type: 2}
-  button: {fileID: 7788888441040105166}
-  lockOverlay: {fileID: 7667416242007228502}
+  button: {fileID: 4641366109689794520}
+  lockOverlay: {fileID: 2882965498759821210}
   hideIfLocked: 0
---- !u!114 &7788888441040105166 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6494697517128633411, guid: f44144ffac6c2eb4d9f218b0da1804d7, type: 3}
-  m_PrefabInstance: {fileID: 3906446333917471373}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7667416242007228502}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &5183447727718400550
 PrefabInstance:
   m_ObjectHideFlags: 0
